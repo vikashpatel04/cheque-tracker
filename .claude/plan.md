@@ -50,13 +50,19 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - On 2026-09-27 the maintainer went through the screens with the imported data, and everything showed properly. The layout problems in 15–24 are for the redesign.
 - [x] **13.** Write the brief for Claude Design from this plan, covering screens 30–40.
   - The brief is `docs/design-brief.md`.
-- [ ] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14. **In progress**
+- [ ] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14. **In progress:** designs done, waiting for the maintainer's go-ahead to build.
   - Canvas (private to the maintainer): https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG
   - Round 1, 2026-09-27: the "Passbook" direction (warm paper, cheque-ink blue for actions, green only for money in, IBM Plex Sans / Serif / Mono). It covers the system sheet, Today and Cheques at desktop and phone width, and cheque detail, add cheque and deposit on the phone. Waiting for the maintainer's review.
   - The maintainer liked the colours and fonts. On their request, `docs/feature-map.md` now lists every current feature with its place in the redesign; it's the checklist for 68 and 14.
   - Round 1b: Today for people who only give and for people who only receive, at desktop and phone width, plus an All / Given / Received switch. The choice is only a view, not an account type.
   - Round 2, done: Add funds (phone), Calendar (desktop and phone), Parties and the two-way party ledger, Reports overview, and Settings, including "What you track".
-  - Still to design: sign-up and onboarding, re-presenting a returned cheque, landing and pricing, and dark mode for Today and Cheques.
+  - Round 3, done:
+    - Sign-up.
+    - Onboarding in three steps: region, what you track, and a first-run Today with a checklist and "Try with sample data".
+    - Re-presenting a returned cheque.
+    - Dark mode for Today and Cheques on the phone, derived from the light screens with a fixed colour map.
+    - The landing and pricing page, with placeholders for prices and trial length.
+  - 27 boards in all. Not designed: the pack checkout (with 53), and desktop versions of the phone-only screens, which follow the same patterns.
 - [ ] **14.** Build the new layout, then the received-cheque screens on it.
 
 ## Layout and navigation
@@ -87,17 +93,19 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
 
 ## Screens for the design brief
 
-- [ ] **30.** Landing and pricing
-- [ ] **31.** Sign-up and onboarding, including region setup
-- [ ] **32.** Today, on desktop and mobile
-- [ ] **33.** Cheques list
-- [ ] **34.** Cheque detail, with timeline and actions
-- [ ] **35.** Add cheque: received, given and series
-- [ ] **36.** Deposit batch
-- [ ] **37.** Bounce resolution
-- [ ] **38.** Party ledger
-- [ ] **39.** Reports overview
-- [ ] **40.** Settings and billing
+All designed on the canvas (68). Building them is 14.
+
+- [x] **30.** Landing and pricing
+- [x] **31.** Sign-up and onboarding, including region setup
+- [x] **32.** Today, on desktop and mobile
+- [x] **33.** Cheques list
+- [x] **34.** Cheque detail, with timeline and actions
+- [x] **35.** Add cheque: received, given and series
+- [x] **36.** Deposit batch
+- [x] **37.** Bounce resolution
+- [x] **38.** Party ledger
+- [x] **39.** Reports overview
+- [x] **40.** Settings and billing
 
 ## Received cheques
 
