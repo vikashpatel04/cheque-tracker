@@ -4,7 +4,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 
 ## How to use this file
 
-- Every item keeps its number for good. Add new items at the end of the section they belong to, numbered from 68 up, and never renumber.
+- Every item keeps its number for good. New items take the next free number (68 up) and go where they belong in their section. Never renumber.
 - `[x]` is done and `[ ]` is to do. The item being worked on says **In progress**.
 - Tick an item in the commit that finishes it, so this file's history shows when each one was done.
 - To drop an item, strike it through and say why. Don't delete it.
@@ -43,9 +43,14 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Rollback won't undo an import entry. The dashboard leaves import entries out of recent activity and "passed" dates, and Reports counts re-presented cheques as returned.
   - On 2026-09-27 the maintainer's v0 export went into the dev project: 97 parties, 82 given cheques and 7 funds added. The card still needs a look at phone width, as part of 12.
 - [ ] **10.** Add cheque IDs to the export, so a later import brings history back too.
+  - Moved on 2026-09-27: do it with 57. IDs alone don't bring history back; the export also needs exact times and the data that undo relies on.
 - [ ] **11.** Made-up sample data for both sides, since a v0 export has no received cheques. Later it can become a "try with sample data" option for new sign-ups. Real cheque, party or bank data never goes in the repo or the tests.
-- [ ] **12.** Try the app with the maintainer, who signs in themselves: region setup, Settings, then the main screens. Fix what breaks.
-- [ ] **13.** Write the brief for Claude Design from this plan, covering screens 30–40.
+  - Moved on 2026-09-27: build it with the received screens in 14. Received cheques have no screens yet, so sample ones would be invisible.
+- [x] **12.** Try the app with the maintainer, who signs in themselves: region setup, Settings, then the main screens. Fix what breaks.
+  - On 2026-09-27 the maintainer went through the screens with the imported data, and everything showed properly. The layout problems in 15–24 are for the redesign.
+- [x] **13.** Write the brief for Claude Design from this plan, covering screens 30–40.
+  - The brief is `docs/design-brief.md`.
+- [ ] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14.
 - [ ] **14.** Build the new layout, then the received-cheque screens on it.
 
 ## Layout and navigation
