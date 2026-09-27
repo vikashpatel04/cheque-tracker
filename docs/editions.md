@@ -112,13 +112,14 @@ values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>
 
 ## Licence obligations (AGPL-3.0)
 
-- Anyone who runs a modified copy as a network service must offer its users the source of that version. The app links to its source in the sidebar and on the sign-in page, using `VITE_SOURCE_URL`. Forks must point it at their own repository.
-- The hosted edition runs the public code, so it complies automatically. If a fix is ever deployed before it's pushed, publish it promptly.
-- People who self-host without changing the code only need to keep the link.
+- The app shows a source link, in the sidebar and on the sign-in page, only when `VITE_SOURCE_URL` is set.
+- Anyone who runs a modified copy as a network service must offer its users the source of that version: publish the fork and set `VITE_SOURCE_URL` to it.
+- People who self-host without changing the code have nothing to set.
+- The hosted edition leaves it unset. The maintainer holds the copyright in all of the code, and the licence's conditions don't bind the copyright holder.
 
 ## Contributions
 
-Contributions are accepted under the AGPL-3.0 with a [DCO](https://developercertificate.org/) sign-off; see [CONTRIBUTING.md](../CONTRIBUTING.md). A DCO is enough because the hosted edition runs the same public code. If the project ever needs to relicense, or to sell licences with different terms, move to a contributor licence agreement *before* merging the first outside contribution.
+Contributions are accepted under the AGPL-3.0 with a [DCO](https://developercertificate.org/) sign-off; see [CONTRIBUTING.md](../CONTRIBUTING.md). The hosted edition shows no source link, which relies on the maintainer holding the copyright in all of the code. So *before* merging the first outside contribution, either move to a contributor licence agreement (CLA) that lets the maintainer run contributions in the hosted edition without the AGPL's conditions, or set `VITE_SOURCE_URL` there. A CLA is also what relicensing, or selling licences with different terms, would need.
 
 ## Name and logo
 

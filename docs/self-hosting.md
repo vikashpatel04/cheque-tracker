@@ -112,7 +112,7 @@ Two things look different:
 
 The AGPL-3.0 requires you to offer your users the source code of the version you run, if you let others use it over a network:
 - Publish your changes, for example as a public fork.
-- Set `VITE_SOURCE_URL` to that repository. The app links to it from the sidebar and the sign-in page.
+- Set `VITE_SOURCE_URL` to that repository. The app then links to it from the sidebar and the sign-in page; without it, no link is shown.
 - If you offer your copy to others, use your own name and logo; see [TRADEMARKS.md](../TRADEMARKS.md).
 
 ## Development
