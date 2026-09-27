@@ -32,6 +32,7 @@ const CHANGED_BY_LABELS: Record<string, string> = {
   deposit_allocation: 'Add funds',
   rollback: 'Rolled back',
   velo: 'Assistant',
+  import: 'Import',
 }
 
 interface ChequeDetailProps {
@@ -227,7 +228,11 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
                 <div className="space-y-2">
                   {history.map((h) => (
                     <div key={h.id} className="border-l-2 border-muted pl-3 py-1">
-                      <p>{STATUS_LABELS[h.from_status] ?? h.from_status} → {STATUS_LABELS[h.to_status] ?? h.to_status}</p>
+                      <p>
+                        {h.changed_by === 'import'
+                          ? `Imported as ${STATUS_LABELS[h.to_status] ?? h.to_status}`
+                          : `${STATUS_LABELS[h.from_status] ?? h.from_status} → ${STATUS_LABELS[h.to_status] ?? h.to_status}`}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {CHANGED_BY_LABELS[h.changed_by] ?? h.changed_by} · {formatDateTime(h.created_at)}
                       </p>

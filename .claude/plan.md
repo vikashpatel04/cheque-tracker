@@ -37,6 +37,11 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - Read both formats. v0's export has the sheets Parties, Cheques, History and Deposits. The current one has Parties, Given cheques, Given history, Funds added, Received cheques, Received history and Bank accounts.
   - Statuses are exported as labels and dates in the user's format, so map both back.
   - The cheque sheets have no ID column, so history can't be linked to its cheque. Give each imported cheque one "Imported" history entry.
+  - **In progress.** Built and tested:
+    - Migration 016's `import_data()` checks every value and saves all or nothing. It only imports into an account with no parties or cheques, and skips funds added that are already there.
+    - The parser in `src/lib/importPlan.ts`, and a Settings → Import card with a preview.
+    - Rollback won't undo an import entry. The dashboard leaves import entries out of recent activity and "passed" dates, and Reports counts re-presented cheques as returned.
+  - Still to do: look at the card at desktop and phone width, then import the maintainer's v0 export once 016 is deployed.
 - [ ] **10.** Add cheque IDs to the export, so a later import brings history back too.
 - [ ] **11.** Made-up sample data for both sides, since a v0 export has no received cheques. Later it can become a "try with sample data" option for new sign-ups. Real cheque, party or bank data never goes in the repo or the tests.
 - [ ] **12.** Try the app with the maintainer, who signs in themselves: region setup, Settings, then the main screens. Fix what breaks.

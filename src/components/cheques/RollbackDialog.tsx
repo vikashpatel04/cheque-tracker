@@ -18,14 +18,16 @@ import { STATUS_LABELS, type Cheque, type ChequeHistory, type ChequeStatus } fro
 
 /**
  * The change a rollback would undo: the latest history row that is not itself
- * a rollback and hasn't been undone yet. Mirrors rollback_cheque_status().
+ * a rollback and hasn't been undone yet. An import has nothing before it to go
+ * back to. Mirrors rollback_cheque_status().
  */
 export function findUndoableChange(history: ChequeHistory[]): ChequeHistory | null {
   const undone = new Set(history.map((h) => h.reverts_history_id).filter(Boolean))
   const candidates = history
     .filter((h) => !h.reverts_history_id && !undone.has(h.id))
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
-  return candidates[0] ?? null
+  const latest = candidates[0]
+  return latest && latest.changed_by !== 'import' ? latest : null
 }
 
 interface Target {

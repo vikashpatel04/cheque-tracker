@@ -598,6 +598,7 @@ export type Database = {
         Returns: undefined
       }
       has_write_access: { Args: never; Returns: boolean }
+      import_data: { Args: { p_data: Json }; Returns: Json }
       is_legacy_represented: {
         Args: { c: Database["public"]["Tables"]["cheques"]["Row"] }
         Returns: boolean

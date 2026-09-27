@@ -21,6 +21,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { supabase } from '@/lib/supabase'
 import { exportAllData } from '@/lib/exportUtils'
 import { PlanCard } from '@/components/settings/PlanCard'
+import { ImportCard } from '@/components/settings/ImportCard'
 import { RegionSettingsCard } from '@/components/settings/RegionSettingsCard'
 import { fetchAllRows } from '@/lib/fetchAll'
 import type { AllocationSort, Cheque, ChequeHistory, DailyDeposit, Party } from '@/types'
@@ -227,6 +228,8 @@ export default function SettingsPage() {
           <Button variant="outline" onClick={handleExport}>Export All Data</Button>
         </CardContent>
       </Card>
+
+      <ImportCard />
 
       <Card className="border-destructive">
         <CardHeader>

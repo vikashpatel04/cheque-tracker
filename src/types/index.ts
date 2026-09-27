@@ -8,7 +8,7 @@ export type ChequeStatus =
   | 'CANCELLED'
   | 'WRITTEN_OFF'
 
-export type ChangedBy = 'manual' | 'auto' | 'deposit_allocation' | 'rollback'
+export type ChangedBy = 'manual' | 'auto' | 'deposit_allocation' | 'rollback' | 'import'
 
 export type AllocationSort = 'due_date_asc' | 'amount_asc' | 'amount_desc'
 

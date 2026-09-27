@@ -40,6 +40,7 @@ export default function Reports() {
   const [cheques, setCheques] = useState<Cheque[]>([])
   // Cheques that bounced at least once (from history), even if later
   // re-presented and paid — their current status no longer says RETURNED.
+  // Imported cheques have no such history, so re-presented ones count too.
   const [everReturned, setEverReturned] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState('')
@@ -58,7 +59,7 @@ export default function Reports() {
   }, [])
 
   const wasReturned = useCallback(
-    (c: Cheque) => c.status === 'RETURNED' || everReturned.has(c.id),
+    (c: Cheque) => c.status === 'RETURNED' || everReturned.has(c.id) || c.represent_count > 0,
     [everReturned]
   )
 

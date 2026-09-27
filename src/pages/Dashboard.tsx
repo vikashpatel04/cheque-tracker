@@ -62,8 +62,9 @@ export default function Dashboard() {
     setLoading(true)
     const [chequesRes, historyRes, passedRes] = await Promise.all([
       supabase.from('cheques').select('*, party:parties(*)').is('deleted_at', null),
-      supabase.from('cheque_history').select('*, cheque:cheques(*, party:parties(*))').order('created_at', { ascending: false }).limit(10),
-      supabase.from('cheque_history').select('cheque_id, created_at').eq('to_status', 'PASSED'),
+      // Imports aren't activity, and their date isn't when the cheque passed.
+      supabase.from('cheque_history').select('*, cheque:cheques(*, party:parties(*))').neq('changed_by', 'import').order('created_at', { ascending: false }).limit(10),
+      supabase.from('cheque_history').select('cheque_id, created_at').eq('to_status', 'PASSED').neq('changed_by', 'import'),
     ])
     if (chequesRes.data) setCheques(chequesRes.data as Cheque[])
     if (historyRes.data) setHistory(historyRes.data as ChequeHistory[])
