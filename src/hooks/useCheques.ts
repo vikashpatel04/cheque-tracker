@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Cheque, ChequeStatus } from '@/types'
+import type { TablesUpdate } from '@/types/database'
 
 export interface ChequeFilters {
   status?: ChequeStatus[]
@@ -82,7 +83,7 @@ export function useCheques(filters?: ChequeFilters) {
     return { data, error: error?.message }
   }
 
-  const updateCheque = async (id: string, updates: Partial<Cheque>) => {
+  const updateCheque = async (id: string, updates: TablesUpdate<'cheques'>) => {
     const { error } = await supabase.from('cheques').update(updates).eq('id', id)
     if (!error) await fetchCheques()
     return { error: error?.message }

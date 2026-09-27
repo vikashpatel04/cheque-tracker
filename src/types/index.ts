@@ -12,6 +12,11 @@ export type ChangedBy = 'manual' | 'auto' | 'deposit_allocation' | 'rollback'
 
 export type AllocationSort = 'due_date_asc' | 'amount_asc' | 'amount_desc'
 
+// Rows as the app uses them. They're stricter than the generated types in
+// ./database.ts: statuses are the known values, and columns the database
+// fills by default, such as is_active and created_at, are never null. Hooks
+// cast query results to these types.
+
 export interface Party {
   id: string
   user_id: string

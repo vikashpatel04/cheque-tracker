@@ -15,8 +15,8 @@ export async function updateChequeStatus(
     p_cheque_id: chequeId,
     p_new_status: newStatus,
     p_changed_by: options.changedBy,
-    p_note: options.note ?? null,
-    p_return_reason: newStatus === 'RETURNED' ? options.returnReason ?? null : null,
+    p_note: options.note,
+    p_return_reason: newStatus === 'RETURNED' ? options.returnReason : undefined,
   })
 
   if (error) {
@@ -39,7 +39,7 @@ export async function recordDeposit(
     p_amount: amount,
     p_deposit_date: depositDate,
     p_cheque_ids: chequeIds,
-    p_notes: notes ?? null,
+    p_notes: notes,
   })
 
   if (error) {
@@ -60,7 +60,7 @@ export async function representCheque(
   const { error } = await supabase.rpc('represent_cheque', {
     p_cheque_id: chequeId,
     p_new_due_date: newDueDate,
-    p_note: options.note ?? null,
+    p_note: options.note,
     p_mark_deposited: options.markDeposited ?? false,
   })
   if (error) return { success: false, error: error.message }
@@ -87,7 +87,7 @@ export async function rollbackChequeStatus(
 ): Promise<{ success: boolean; error?: string; status?: ChequeStatus }> {
   const { data, error } = await supabase.rpc('rollback_cheque_status', {
     p_cheque_id: chequeId,
-    p_note: note ?? null,
+    p_note: note,
   })
   if (error) return { success: false, error: error.message }
   return { success: true, status: data as ChequeStatus }

@@ -19,7 +19,7 @@ export function useParties(includeInactive = false) {
     }
 
     const { data, error } = await query
-    if (!error && data) setParties(data)
+    if (!error && data) setParties(data as Party[])
     setLoading(false)
   }, [includeInactive])
 

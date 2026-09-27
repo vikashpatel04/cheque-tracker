@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { buildSeries, type SeriesPlan } from './receivedSchedule'
 import type { ReceivedKind, ReceivedStatus, SettlementMethod } from '@/types/received'
+import type { Database } from '@/types/database'
 
 /**
  * Received-cheque actions. Each one calls a SQL function from migration 012,
@@ -10,8 +11,17 @@ import type { ReceivedKind, ReceivedStatus, SettlementMethod } from '@/types/rec
 
 type Result = { success: boolean; error?: string }
 
-async function rpc(fn: string, args: Record<string, unknown>): Promise<Result & { data?: unknown }> {
-  const { data, error } = await supabase.rpc(fn, args)
+type Functions = Database['public']['Functions']
+
+/**
+ * A function's arguments, checked by name against the generated types. Any
+ * of them may be null: a security cheque has no amount or date, and SQL
+ * allows it, but the generated types can't say so.
+ */
+type Args<F extends keyof Functions> = { [K in keyof Functions[F]['Args']]: Functions[F]['Args'][K] | null }
+
+async function rpc<F extends keyof Functions>(fn: F, args: Args<F>): Promise<Result & { data?: unknown }> {
+  const { data, error } = await supabase.rpc(fn, args as Functions[F]['Args'])
   if (error) return { success: false, error: error.message }
   return { success: true, data }
 }

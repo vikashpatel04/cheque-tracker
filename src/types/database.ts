@@ -7,33 +7,46 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      bank_accounts: {
+        Row: {
+          bank_name: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_default: boolean
+          last4: string | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_default?: boolean
+          last4?: string | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cheque_history: {
         Row: {
           changed_by: string
@@ -42,6 +55,8 @@ export type Database = {
           from_status: string
           id: string
           note: string | null
+          prev_state: Json | null
+          reverts_history_id: string | null
           to_status: string
         }
         Insert: {
@@ -51,6 +66,8 @@ export type Database = {
           from_status: string
           id?: string
           note?: string | null
+          prev_state?: Json | null
+          reverts_history_id?: string | null
           to_status: string
         }
         Update: {
@@ -60,6 +77,8 @@ export type Database = {
           from_status?: string
           id?: string
           note?: string | null
+          prev_state?: Json | null
+          reverts_history_id?: string | null
           to_status?: string
         }
         Relationships: [
@@ -68,6 +87,13 @@ export type Database = {
             columns: ["cheque_id"]
             isOneToOne: false
             referencedRelation: "cheques"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cheque_history_reverts_history_id_fkey"
+            columns: ["reverts_history_id"]
+            isOneToOne: false
+            referencedRelation: "cheque_history"
             referencedColumns: ["id"]
           },
         ]
@@ -84,11 +110,15 @@ export type Database = {
           id: string
           issue_date: string
           notes: string | null
+          original_due_date: string | null
           party_id: string
+          replaces_cheque_id: string | null
+          represent_count: number
           return_reason: string | null
           status: string
           updated_at: string | null
           user_id: string
+          write_off_reason: string | null
         }
         Insert: {
           amount: number
@@ -101,11 +131,15 @@ export type Database = {
           id?: string
           issue_date: string
           notes?: string | null
+          original_due_date?: string | null
           party_id: string
+          replaces_cheque_id?: string | null
+          represent_count?: number
           return_reason?: string | null
           status?: string
           updated_at?: string | null
           user_id: string
+          write_off_reason?: string | null
         }
         Update: {
           amount?: number
@@ -118,11 +152,15 @@ export type Database = {
           id?: string
           issue_date?: string
           notes?: string | null
+          original_due_date?: string | null
           party_id?: string
+          replaces_cheque_id?: string | null
+          represent_count?: number
           return_reason?: string | null
           status?: string
           updated_at?: string | null
           user_id?: string
+          write_off_reason?: string | null
         }
         Relationships: [
           {
@@ -130,6 +168,13 @@ export type Database = {
             columns: ["party_id"]
             isOneToOne: false
             referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cheques_replaces_cheque_id_fkey"
+            columns: ["replaces_cheque_id"]
+            isOneToOne: false
+            referencedRelation: "cheques"
             referencedColumns: ["id"]
           },
         ]
@@ -158,6 +203,66 @@ export type Database = {
           id?: string
           notes?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      entitlements: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          note: string | null
+          payment_ref: string | null
+          plan: string
+          source: string
+          starts_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          payment_ref?: string | null
+          plan?: string
+          source: string
+          starts_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          note?: string | null
+          payment_ref?: string | null
+          plan?: string
+          source?: string
+          starts_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      instance_config: {
+        Row: {
+          billing_enabled: boolean
+          default_country_code: string | null
+          id: boolean
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          billing_enabled?: boolean
+          default_country_code?: string | null
+          id?: boolean
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          billing_enabled?: boolean
+          default_country_code?: string | null
+          id?: boolean
+          trial_days?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -200,47 +305,267 @@ export type Database = {
         }
         Relationships: []
       }
+      received_cheque_history: {
+        Row: {
+          changed_by: string
+          cheque_id: string
+          created_at: string
+          from_status: string
+          id: string
+          note: string | null
+          prev_state: Json
+          reverts_history_id: string | null
+          to_status: string
+        }
+        Insert: {
+          changed_by: string
+          cheque_id: string
+          created_at?: string
+          from_status: string
+          id?: string
+          note?: string | null
+          prev_state: Json
+          reverts_history_id?: string | null
+          to_status: string
+        }
+        Update: {
+          changed_by?: string
+          cheque_id?: string
+          created_at?: string
+          from_status?: string
+          id?: string
+          note?: string | null
+          prev_state?: Json
+          reverts_history_id?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "received_cheque_history_cheque_id_fkey"
+            columns: ["cheque_id"]
+            isOneToOne: false
+            referencedRelation: "received_cheques"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_cheque_history_reverts_history_id_fkey"
+            columns: ["reverts_history_id"]
+            isOneToOne: false
+            referencedRelation: "received_cheque_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      received_cheques: {
+        Row: {
+          amount: number | null
+          bank_charges: number | null
+          bank_name: string
+          bounce_reason: string | null
+          bounced_on: string | null
+          cheque_date: string | null
+          cheque_number: string
+          cleared_on: string | null
+          close_reason: string | null
+          created_at: string
+          deleted_at: string | null
+          deposit_account_id: string | null
+          deposited_on: string | null
+          due_date: string
+          id: string
+          kind: string
+          notes: string | null
+          party_id: string
+          received_on: string
+          redeposit_count: number
+          replaces_id: string | null
+          series_id: string | null
+          series_index: number | null
+          settled_on: string | null
+          settled_via: string | null
+          settlement_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          bank_charges?: number | null
+          bank_name: string
+          bounce_reason?: string | null
+          bounced_on?: string | null
+          cheque_date?: string | null
+          cheque_number: string
+          cleared_on?: string | null
+          close_reason?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deposit_account_id?: string | null
+          deposited_on?: string | null
+          due_date: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          party_id: string
+          received_on: string
+          redeposit_count?: number
+          replaces_id?: string | null
+          series_id?: string | null
+          series_index?: number | null
+          settled_on?: string | null
+          settled_via?: string | null
+          settlement_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          bank_charges?: number | null
+          bank_name?: string
+          bounce_reason?: string | null
+          bounced_on?: string | null
+          cheque_date?: string | null
+          cheque_number?: string
+          cleared_on?: string | null
+          close_reason?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deposit_account_id?: string | null
+          deposited_on?: string | null
+          due_date?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          party_id?: string
+          received_on?: string
+          redeposit_count?: number
+          replaces_id?: string | null
+          series_id?: string | null
+          series_index?: number | null
+          settled_on?: string | null
+          settled_via?: string | null
+          settlement_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "received_cheques_deposit_account_id_fkey"
+            columns: ["deposit_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_cheques_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_cheques_replaces_id_fkey"
+            columns: ["replaces_id"]
+            isOneToOne: false
+            referencedRelation: "received_cheques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           allocation_sort: string | null
           auto_pass_enabled: boolean
           auto_pass_time: string | null
           banks: string[] | null
+          cheque_validity_months: number | null
+          clearing_days: number | null
+          country_code: string | null
           created_at: string | null
+          currency_code: string | null
           currency_symbol: string | null
+          date_format: string | null
           id: string
+          locale: string | null
+          timezone: string | null
           updated_at: string | null
           user_id: string
+          week_starts_on: number | null
         }
         Insert: {
           allocation_sort?: string | null
           auto_pass_enabled?: boolean
           auto_pass_time?: string | null
           banks?: string[] | null
+          cheque_validity_months?: number | null
+          clearing_days?: number | null
+          country_code?: string | null
           created_at?: string | null
+          currency_code?: string | null
           currency_symbol?: string | null
+          date_format?: string | null
           id?: string
+          locale?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id: string
+          week_starts_on?: number | null
         }
         Update: {
           allocation_sort?: string | null
           auto_pass_enabled?: boolean
           auto_pass_time?: string | null
           banks?: string[] | null
+          cheque_validity_months?: number | null
+          clearing_days?: number | null
+          country_code?: string | null
           created_at?: string | null
+          currency_code?: string | null
           currency_symbol?: string | null
+          date_format?: string | null
           id?: string
+          locale?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id?: string
+          week_starts_on?: number | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      all_cheques: {
+        Row: {
+          amount: number | null
+          bank_name: string | null
+          cheque_date: string | null
+          cheque_number: string | null
+          created_at: string | null
+          direction: string | null
+          due_date: string | null
+          id: string | null
+          kind: string | null
+          party_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      bounce_received_cheque: {
+        Args: {
+          p_bank_charges?: number
+          p_bounced_on: string
+          p_cheque_id: string
+          p_note?: string
+          p_reason: string
+        }
+        Returns: undefined
+      }
       change_cheque_status: {
         Args: {
           p_changed_by?: string
@@ -251,6 +576,32 @@ export type Database = {
         }
         Returns: undefined
       }
+      cheque_state_snapshot: {
+        Args: { c: Database["public"]["Tables"]["cheques"]["Row"] }
+        Returns: Json
+      }
+      clear_received_cheques: {
+        Args: { p_cheque_ids: string[]; p_cleared_on: string; p_note?: string }
+        Returns: number
+      }
+      deposit_received_cheques: {
+        Args: {
+          p_account_id?: string
+          p_cheque_ids: string[]
+          p_deposited_on: string
+          p_note?: string
+        }
+        Returns: number
+      }
+      hand_back_received_cheque: {
+        Args: { p_cheque_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      has_write_access: { Args: never; Returns: boolean }
+      is_legacy_represented: {
+        Args: { c: Database["public"]["Tables"]["cheques"]["Row"] }
+        Returns: boolean
+      }
       record_deposit: {
         Args: {
           p_amount: number
@@ -259,6 +610,64 @@ export type Database = {
           p_notes?: string
         }
         Returns: string
+      }
+      redeposit_received_cheque: {
+        Args: {
+          p_account_id?: string
+          p_cheque_id: string
+          p_date: string
+          p_deposit_now?: boolean
+          p_note?: string
+        }
+        Returns: undefined
+      }
+      replace_received_cheque: {
+        Args: {
+          p_amount: number
+          p_bank_name: string
+          p_cheque_date: string
+          p_cheque_id: string
+          p_cheque_number: string
+          p_due_date?: string
+          p_notes?: string
+          p_received_on: string
+        }
+        Returns: string
+      }
+      represent_cheque: {
+        Args: {
+          p_cheque_id: string
+          p_mark_deposited?: boolean
+          p_new_due_date: string
+          p_note?: string
+        }
+        Returns: undefined
+      }
+      rollback_cheque_status: {
+        Args: { p_cheque_id: string; p_note?: string }
+        Returns: string
+      }
+      rollback_received_cheque: {
+        Args: { p_cheque_id: string; p_note?: string }
+        Returns: string
+      }
+      settle_received_cheque: {
+        Args: {
+          p_cheque_id: string
+          p_note?: string
+          p_reference?: string
+          p_settled_on: string
+          p_via: string
+        }
+        Returns: undefined
+      }
+      write_off_cheque: {
+        Args: { p_cheque_id: string; p_reason: string }
+        Returns: undefined
+      }
+      write_off_received_cheque: {
+        Args: { p_cheque_id: string; p_reason: string }
+        Returns: undefined
       }
     }
     Enums: {
@@ -278,12 +687,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -307,11 +716,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -332,11 +741,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -357,11 +766,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -374,11 +783,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -388,11 +797,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
 } as const
-

@@ -27,7 +27,7 @@ export function useDeposits() {
       .select('*')
       .order('deposit_date', { ascending: false })
 
-    if (data) setDeposits(data)
+    if (data) setDeposits(data as DailyDeposit[])
     setLoading(false)
   }, [])
 

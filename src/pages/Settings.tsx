@@ -106,7 +106,7 @@ export default function SettingsPage() {
   const handleDeleteAll = async () => {
     if (deleteConfirm !== 'DELETE MY DATA') return
     const now = new Date().toISOString()
-    for (const table of ['received_cheques', 'cheques', 'bank_accounts', 'parties']) {
+    for (const table of ['received_cheques', 'cheques', 'bank_accounts', 'parties'] as const) {
       const { error } = await supabase.from(table).update({ deleted_at: now }).is('deleted_at', null)
       if (error) {
         toast.error(error.message)

@@ -33,8 +33,8 @@ export function PartyDetail() {
       supabase.from('parties').select('*').eq('id', id).single(),
       supabase.from('cheques').select('*').eq('party_id', id).is('deleted_at', null).order('due_date'),
     ]).then(([partyRes, chequesRes]) => {
-      if (partyRes.data) setParty(partyRes.data)
-      if (chequesRes.data) setCheques(chequesRes.data)
+      if (partyRes.data) setParty(partyRes.data as Party)
+      if (chequesRes.data) setCheques(chequesRes.data as Cheque[])
       setLoading(false)
     })
   }, [id])
