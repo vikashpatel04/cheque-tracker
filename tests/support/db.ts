@@ -6,7 +6,7 @@
  *
  * By default the database behaves like a Supabase project with "automatically
  * expose new tables" turned off, so tests only pass if the migrations grant
- * every privilege the app needs.
+ * every privilege the app needs. Options add other project settings.
  */
 import fs from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
@@ -37,6 +37,16 @@ const EXPOSE_NEW_TABLES = `
   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
 `
 
+/**
+ * Supabase's "automatic RLS" project setting adds this SECURITY DEFINER
+ * function, run by an event trigger, before any migration. The tests only
+ * need the function.
+ */
+const AUTOMATIC_RLS = `
+  CREATE FUNCTION public.rls_auto_enable() RETURNS event_trigger LANGUAGE plpgsql
+    SECURITY DEFINER SET search_path = pg_catalog AS $$ BEGIN END $$;
+`
+
 export interface TestDatabase {
   db: PGlite
   /** Run a query as a signed-in user (role authenticated, auth.uid() = uid). */
@@ -48,11 +58,12 @@ export interface TestDatabase {
 }
 
 export async function createTestDatabase(
-  options: { exposeNewTables?: boolean; usersBeforeMigrations?: string[] } = {}
+  options: { exposeNewTables?: boolean; automaticRls?: boolean; usersBeforeMigrations?: string[] } = {}
 ): Promise<TestDatabase> {
   const db = new PGlite()
   await db.exec(SUPABASE_STANDINS)
   if (options.exposeNewTables) await db.exec(EXPOSE_NEW_TABLES)
+  if (options.automaticRls) await db.exec(AUTOMATIC_RLS)
   // Accounts that exist before any migration runs, e.g. a login added in the dashboard of a new project.
   for (const id of options.usersBeforeMigrations ?? []) {
     await db.query('INSERT INTO auth.users (id, email) VALUES ($1, $2)', [id, `${id.slice(0, 8)}@example.com`])

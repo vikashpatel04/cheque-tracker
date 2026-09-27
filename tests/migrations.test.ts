@@ -57,6 +57,47 @@ describe('privileges', () => {
     const exposed = await createTestDatabase({ exposeNewTables: true })
     expect(await grantsIn(exposed)).toEqual(await grantsIn(t))
   })
+
+  it("never let visitors or signed-in users run SECURITY DEFINER functions, Supabase's included", async () => {
+    const withHelper = await createTestDatabase({ automaticRls: true })
+    const helper = await withHelper.asAdmin<{ found: boolean }>(
+      "SELECT to_regprocedure('public.rls_auto_enable()') IS NOT NULL AS found"
+    )
+    expect(helper.rows).toEqual([{ found: true }])
+    const { rows } = await withHelper.asAdmin<{ fn: string }>(`
+      SELECT p.oid::regprocedure::text AS fn
+      FROM pg_proc p
+      WHERE p.pronamespace = 'public'::regnamespace AND p.prosecdef
+        AND (has_function_privilege('anon', p.oid, 'EXECUTE') OR has_function_privilege('authenticated', p.oid, 'EXECUTE'))`)
+    expect(rows).toEqual([])
+  })
+})
+
+describe('row-level security and indexes', () => {
+  it('evaluate auth.uid(), has_write_access() and current_setting() once per statement, not per row', async () => {
+    const { rows } = await t.asAdmin<{ policy: string; expr: string }>(`
+      SELECT tablename || ': ' || policyname AS policy, concat_ws(' ', qual, with_check) AS expr
+      FROM pg_policies WHERE schemaname = 'public'`)
+    // Once per statement reads "( SELECT auth.uid() AS uid)"; per row reads "(auth.uid() = user_id)".
+    const perRow = rows.filter((r) =>
+      /(?<!SELECT (public\.)?)(auth\.uid\(\)|has_write_access\(\)|current_setting\()/.test(r.expr)
+    )
+    expect(perRow.map((r) => r.policy)).toEqual([])
+  })
+
+  it('index every foreign key', async () => {
+    const { rows } = await t.asAdmin<{ fkey: string }>(`
+      SELECT c.conrelid::regclass::text || ' ' || c.conname AS fkey
+      FROM pg_constraint c
+      WHERE c.contype = 'f' AND c.connamespace = 'public'::regnamespace
+        AND NOT EXISTS (
+          SELECT 1 FROM pg_index i
+          WHERE i.indrelid = c.conrelid
+            AND (string_to_array(i.indkey::text, ' ')::smallint[])[1:cardinality(c.conkey)] = c.conkey
+        )
+      ORDER BY 1`)
+    expect(rows.map((r) => r.fkey)).toEqual([])
+  })
 })
 
 describe('accounts created before the migrations', () => {

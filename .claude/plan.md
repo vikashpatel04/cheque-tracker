@@ -29,6 +29,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - The maintainer's account has a settings row.
   - `get_advisors`, both security and performance.
   - Fix real findings in migration 015, with tests.
+  - Findings (2026-09-27): privileges and RLS were right. 015 makes the policies call `auth.uid()`, `has_write_access()` and `current_setting()` once per statement, indexes five foreign keys, and stops anyone calling Supabase's `rls_auto_enable()`. Tests now guard all three. Once 015 is deployed, run the advisors again. "Unused index" notes only mean the database is new. Leaked-password protection needs the Pro plan (see 52).
 - [ ] **8.** Regenerate `src/types/database.ts`, which predates regions, editions and received cheques, and fix the type errors it reveals.
 - [ ] **9.** Import from an export. Settings → Import reads a Cheque Tracker export and shows a preview, then brings in parties, given cheques with their real status and dates, and funds added. If anything fails, nothing is saved.
   - Read both formats. v0's export has the sheets Parties, Cheques, History and Deposits. The current one has Parties, Given cheques, Given history, Funds added, Received cheques, Received history and Bank accounts.
@@ -105,7 +106,7 @@ Later:
 
 See also "Still needed before billing goes live" in `docs/editions.md`.
 
-- [ ] **52.** Sign-up: email and password with verification, Google sign-in, password reset, CAPTCHA, and custom SMTP.
+- [ ] **52.** Sign-up: email and password with verification, Google sign-in, password reset, CAPTCHA, and custom SMTP. Turn on leaked-password protection in Auth settings; it needs the Pro plan.
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
 - [ ] **54.** Renewal reminders before a pack ends.
 - [ ] **55.** Read-only UI: expired accounts stay readable and can still export, and actions that write are disabled. On the given side, a refused change currently says "Cheque not found".
