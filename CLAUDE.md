@@ -6,7 +6,7 @@ Guidance for Claude Code in this repository. For the current status and next ste
 
 Cheque Tracker is an open-source (AGPL-3.0) PWA for anyone who manages cheques. It covers the cheques you give (pay reminders, funds planning) and the cheques you receive (deposits, clearing, bounces). One codebase runs both the paid hosted service at chequetracker.com and free self-hosted copies; see [docs/editions.md](docs/editions.md).
 
-It replaces v0, which lives in the GitHub repo `vikashpatel04/cheque-tracker-v0` and the folder `../Cheque-Tracker`. Leave v0 untouched.
+It replaces v0, which lives in the GitHub repo `vikashpatel04/cheque-tracker-v0` and the folder `../Cheque-Tracker-v0`. Leave v0 untouched.
 
 ## Commands
 

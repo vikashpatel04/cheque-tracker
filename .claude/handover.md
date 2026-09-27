@@ -152,5 +152,3 @@ Then work through **Next steps** below, one at a time. Check with me before anyt
   - Hold the major upgrades and do them together later: #4 and #6 (plugin-react 6 and Vite 8, which fail CI today), #5 (react-day-picker 10) and #7 (Vitest 5).
 - **auto-pass:** it isn't declared in `supabase/config.toml`, so the integration won't deploy it. Its cron job also isn't scheduled on the dev project.
 - **Translations:** UI text isn't in translation files yet. That's needed for other languages and for the US "check" spelling.
-- **For me, not Claude:** the v0 folder's `origin` still says `Cheque-Tracker`, which now resolves to this repo. Repoint it:
-  `git -C ../Cheque-Tracker remote set-url origin https://github.com/vikashpatel04/cheque-tracker-v0.git`
