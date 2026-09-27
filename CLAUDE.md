@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for Claude Code in this repository. For the current status and next steps, read [.claude/handover.md](.claude/handover.md).
+Guidance for Claude Code in this repository. The agreed plan and its progress are in [.claude/plan.md](.claude/plan.md), and notes from the latest session are in [.claude/handover.md](.claude/handover.md).
 
 ## What this is
 
