@@ -1,6 +1,6 @@
 # Design brief: the Cheque Tracker redesign
 
-This brief is for designing the new layout and screens (items 13–14 of the plan in `.claude/plan.md`). It's self-contained: a designer doesn't need to read the code.
+This brief is for designing the new layout and screens (items 13–14 of the plan in `.claude/plan.md`). It's self-contained: a designer doesn't need to read the code. Every feature the app has today is listed in [feature-map.md](feature-map.md), with where it goes; the redesign must keep all of them.
 
 ## What the product is
 
@@ -31,7 +31,7 @@ Currency, number grouping, date format, week start, how long a cheque stays vali
 | Lender | Receives | Whose instalment bounced, and what now? |
 | Business | Both | What comes in and goes out over the next weeks? Who owes me, and whom do I owe? |
 
-Someone who only gives or only receives should never see the other half.
+Which half someone sees is a view, not an account type. They choose given, received or both in Settings, and can switch with All / Given / Received on Today and Cheques. Each view of Today answers its own questions; see "Views" in [feature-map.md](feature-map.md).
 
 ## Principles
 

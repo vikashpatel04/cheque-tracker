@@ -53,6 +53,8 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - [ ] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14. **In progress**
   - Canvas (private to the maintainer): https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG
   - Round 1, 2026-09-27: the "Passbook" direction (warm paper, cheque-ink blue for actions, green only for money in, IBM Plex Sans / Serif / Mono). It covers the system sheet, Today and Cheques at desktop and phone width, and cheque detail, add cheque and deposit on the phone. Waiting for the maintainer's review.
+  - The maintainer liked the colours and fonts. On their request, `docs/feature-map.md` now lists every current feature with its place in the redesign; it's the checklist for 68 and 14.
+  - Round 1b: Today for people who only give and for people who only receive, at desktop and phone width, plus an All / Given / Received switch. The choice is only a view, not an account type.
   - Round 2: bounce resolution, party ledger, Reports, Settings and billing, sign-up and onboarding, landing and pricing, and dark mode for Today and Cheques.
 - [ ] **14.** Build the new layout, then the received-cheque screens on it.
 
