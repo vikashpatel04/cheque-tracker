@@ -92,7 +92,9 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Also done (2026-09-28): the deposit panel (date, account, tick cheques, deposit all at once); the received cheque detail with its next step and every action (mark cleared, bounced, deposit again now or later, paid another way, got a new cheque, hand back, write off, undo, edit, delete); "Mark cleared" and "Deposit" work from rows, cards, swipe and Today; received cheques in search; Settings → Sample data ("Try with sample data" adds made-up parties named "(sample)", an account and received cheques in every state, plus given ones for an account without any; "Remove sample data" takes it all away). Plan tested in `tests/sampleData.test.ts`.
     - Checked 2026-09-29 with the sample data (the maintainer said yes to adding it): Today's Received view, the deposit panel, the received detail and its dialogs, and the received list on phones all work. Fixed on the way: the sample could be added twice (now one set at a time), "goes stale" showed for dates months away (now only within a week), short dates read "05 Oct" (now "5 Oct"), and cheques in clearing sat under "Overdue" in the phone list (now their own group). One sample set is on the dev project; Settings → Sample data removes it.
     - The maintainer will review the receiving side's wording and signs later (they said so on 2026-09-28).
-  - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
+  - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding. **In progress** (2026-09-29).
+    - Add funds done: one panel (design board Add-funds-phone): the amount, date and note, the pending cheques it covers ticked for you as you type (soonest due, smallest or largest first), what's added, covered and left over, and "Add funds and mark N funded". It says that today's total starts from zero each day. The old two-step dialog is gone.
+    - Next: Calendar, then Parties (the two-way ledger), Reports, Settings, onboarding.
 
 ## Layout and navigation
 
