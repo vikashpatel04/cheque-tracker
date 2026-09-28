@@ -111,14 +111,23 @@ Which cheques you track is a view, not an account type. Changing it never change
 - **Settings → "What you track"** picks the default: given, received, or both. It hides the other half in menus, the New menu and Reports.
 - **Today and Cheques** have an All / Given / Received switch.
 - **Given view of Today:**
-  - Numbers: needed today, due in 7 days, not funded yet.
-  - Funds added today, with Add funds.
-  - A 7-day strip of money going out.
-  - To-dos: add funds, did it pass?, returned.
-  - A 30-day outflow chart, funded vs not.
+  - Numbers:
+    - "Needed in the bank today", with the Add funds button on it.
+    - "Due in the next 7 days", with how much isn't funded.
+    - "Outstanding".
+  - Funds added today.
+  - "Going out this week": a 7-day strip, each day with a bar of funded vs not funded.
+  - To-dos: did it pass?, add funds, returned.
+  - A 30-day chart of money going out, funded vs not.
 - **Received view of Today:**
-  - Numbers: to deposit, in clearing, expected in 30 days.
-  - A 7-day strip of cheques to deposit.
-  - To-dos: deposit, cleared?, bounced, going stale, security review.
+  - Numbers:
+    - "To deposit now", with the Deposit button on it.
+    - "In clearing", which flags the slow ones.
+    - "Coming in, next 30 days", plus the security cheques held.
+  - "To deposit this week": a 7-day strip with stale warnings.
+  - To-dos: deposit, did it clear?, bounced, going stale, security review.
   - A weekly chart of money coming in.
-- **Both:** in clearing, due and net; the to-dos of both sides; a weekly in-and-out chart.
+- **All:**
+  - Numbers: in clearing; due in 7 days, with how much isn't funded; net for 7 days.
+  - The to-dos of both sides.
+  - A weekly chart of money in and out.

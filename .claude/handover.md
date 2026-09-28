@@ -26,10 +26,19 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 - **Running the app:** `.claude/launch.json` starts `npm run dev` for the browser pane. I sign in myself. If the pane can't load `localhost:5173`, open `http://127.0.0.1:5173` instead; a sign-in on one address doesn't carry over to the other.
 - **Redesign:**
   - The design is done: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. I liked the "Passbook" look: warm paper, cheque-ink blue, green only for money in, IBM Plex fonts.
-  - `docs/design-brief.md` describes it.
-  - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped.
-  - Next is building it (plan item 14), once I give the go-ahead.
-  - There are still no screens for received cheques in the app; they come with the build.
+  - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
+  - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
+  - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
+- **Next:** ask me for the go-ahead on the designs (item 68), then build (item 14) in this order:
+  1. Tokens, fonts and the new frame: sidebar, bottom tabs, New menu and search.
+  2. Today in all three views.
+  3. Cheques and cheque detail.
+  4. The received-cheque screens, with made-up received cheques (item 11).
+  5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
+
+  Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
+- **Received cheques:** there are still no screens for them in the app; they come with the build.
+- **Not pushed yet:** docs-only commits, from `a403464` onward. Nothing in them changes the database.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-27

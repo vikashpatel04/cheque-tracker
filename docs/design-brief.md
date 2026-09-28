@@ -113,9 +113,58 @@ Today's Returned page becomes a saved view and a to-do. Bulk add moves under New
 
 ## Visual system
 
-Please propose two or three directions for the open choices: **brand colour, typeface, logo mark, density**. They should feel trustworthy and calm, like good banking software, not flashy. The current logo is a plain cheque icon and can be replaced.
+### Chosen: "Passbook" (approved 2026-09-27)
 
-What's decided:
+The designs are on the canvas linked from plan item 68. Build from these values.
+
+**Fonts** (Google Fonts):
+
+- IBM Plex Serif 600 for page titles and the wordmark.
+- IBM Plex Sans 400–700 for everything else, with tabular figures for amounts.
+- IBM Plex Mono 500 for cheque numbers and the last four digits of accounts.
+
+Plex has sister faces for Devanagari and other scripts, for when translations come.
+
+**Colour tokens:**
+
+| Token | Light | Dark |
+|---|---|---|
+| Ground (paper) | `#F6F4EE` | `#10161D` |
+| Surface | `#FFFFFF` | `#18212B` |
+| Line / strong line | `#E3DFD4` / `#CFC9BA` | `#2A3543` / `#3A4656` |
+| Ink / quiet ink | `#1A1D21` / `#4A4F57` | `#E8EBEF` / `#A9B1BB` |
+| Brand, "cheque ink" (primary buttons, links, focus) | `#1F3A5F`, white text | `#9DB8E0`, text `#0E141B` |
+| Money in | `#0B7A4B` | `#5CCB8F` |
+| Waiting: text on background | `#2F4B75` on `#E7EDF6` | `#B8CCEA` on `#22314A` |
+| On its way | `#0E5F76` on `#D9F0F4` | `#7FD3E0` on `#133B45` |
+| Cleared | `#0B6B41` on `#E0F2E7` | `#5CCB8F` on `#16352A` |
+| Done | `#475467` on `#EEF0F3` | `#B6BEC8` on `#262F3A` |
+| Attention | `#8A4B00` on `#FFF0D1` | `#F4B650` on `#3A2E14` |
+| Problem | `#B42318` on `#FDE8E5` | `#F28B82` on `#3D1F1D` |
+
+Sidebar `#FBFAF6`, segmented-control track `#ECE8DE`.
+
+**Status chips:**
+
+| Family | Given | Received | Tags |
+|---|---|---|---|
+| Waiting | Pending | In hand | |
+| On its way | Funded | In clearing | |
+| Cleared | | Cleared | |
+| Done | Passed, Cancelled, Written off | Settled, Handed back, Written off, Replaced | |
+| Problem | Returned | Bounced | Overdue, Stale |
+| Attention | | | Due today, Needs funds, Going stale, Cleared? |
+| Outline | | | Security, Series |
+
+**Rules the designs follow:**
+
+- **Primary buttons:** only the main daily action is a solid button: Deposit, or Add funds. Everything else is outlined.
+- **Dates:** shown with month names ("Thu 24 Sep"), so DD/MM vs MM/DD can't confuse anyone. Date fields use the region's format.
+- **Sizes:** body text is 16px on the phone; key numbers are 34–36px on desktop and 21px in phone tiles.
+- **Corners:** 10px for controls, 12–14px for cards, fully round for chips.
+- **Logo:** a cheque outline with a green tick.
+
+What else is decided:
 
 - **Colour tokens by meaning:** `--money-in`, `--money-out`, `--status-waiting`, `--status-attention`, `--status-problem`, `--status-done`, plus the brand colour and neutrals.
 - **Light and dark mode** from the same tokens.
