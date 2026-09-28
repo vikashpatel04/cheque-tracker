@@ -82,7 +82,9 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - The cheque detail is a panel (full screen on phones): who it's to, the amount, status and tags, one card with the next step (add funds, did it pass, present again or write off, issue a replacement), details, the party with a link to its ledger, and the history with undo. Edit, cancel and delete are in its menu.
     - Returned is now the "Returned" view; /returned redirects there. The old list, Returned page and badge helpers are gone. The list's logic is tested in `tests/chequeList.test.ts`.
     - Received rows already show here; opening, depositing and swiping them use the step 4 placeholders.
-  - [ ] 4. The received-cheque screens, with made-up received cheques (11).
+  - [ ] 4. The received-cheque screens, with made-up received cheques (11). **In progress.**
+    - Done so far (2026-09-28): Settings → Bank accounts (add, edit, default, remove; `src/lib/bankAccounts.ts`, `useBankAccounts`); `PartyPicker` (choose or add a party inside a form); `ReceivedChequeForm` (one cheque, a security cheque, or a series, and editing), written and type-checked but not yet opened from anywhere; `updateReceivedCheque`, `deleteReceivedCheque` and `currencySymbol`.
+    - Still to do: wire the form into AppActions and the New menu (Received cheque, Series; respect What you track), with the "I received it / I gave it" switch; a deposit dialog (account, date, pick cheques; design board Deposit-phone); the received cheque detail with every action (clear, bounce, deposit again, paid another way, hand back, write off, replace, undo; like the given detail); replace the step-2 placeholders in AppActions (`depositReceived`, `openReceivedCheque`); received cheques in search; a "Try with sample data" button that adds made-up parties, an account and received cheques in every state, marked so they can be removed; then check it all in the browser at desktop and phone width.
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 
 ## Layout and navigation

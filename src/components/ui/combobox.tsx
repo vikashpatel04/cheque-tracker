@@ -62,8 +62,8 @@ export function Combobox({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            'w-full justify-between font-normal',
-            !selected && 'text-muted-foreground',
+            'h-12 w-full justify-between border-input px-3.5 text-base font-normal text-ink hover:bg-surface',
+            !selected && 'text-ink-faint',
             className
           )}
         >

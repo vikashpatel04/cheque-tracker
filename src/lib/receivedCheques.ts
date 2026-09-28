@@ -108,6 +108,22 @@ export async function createReceivedSeries(
   }
 }
 
+/** Fields you can edit on a received cheque. Its status and dates of deposit, clearing and so on change only through the actions below. */
+export type ReceivedChequeEdit = Partial<
+  Pick<NewReceivedCheque, 'party_id' | 'kind' | 'cheque_number' | 'bank_name' | 'amount' | 'received_on' | 'cheque_date' | 'due_date' | 'deposit_account_id' | 'notes'>
+>
+
+export async function updateReceivedCheque(chequeId: string, changes: ReceivedChequeEdit): Promise<Result> {
+  const { error } = await supabase.from('received_cheques').update(changes).eq('id', chequeId)
+  return error ? { success: false, error: error.message } : { success: true }
+}
+
+/** Deleted cheques are kept, with their history, but no longer shown. */
+export async function deleteReceivedCheque(chequeId: string): Promise<Result> {
+  const { error } = await supabase.from('received_cheques').update({ deleted_at: new Date().toISOString() }).eq('id', chequeId)
+  return error ? { success: false, error: error.message } : { success: true }
+}
+
 /** In hand → in clearing, for one or more cheques (all or nothing). */
 export function depositReceivedCheques(
   chequeIds: string[],

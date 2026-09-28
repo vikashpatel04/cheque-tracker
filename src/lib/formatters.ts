@@ -77,6 +77,12 @@ export function formatSigned(
   return `${direction === 'in' ? '+' : '−'}${format(Math.abs(value))}`
 }
 
+/** The currency's symbol as the region writes it, for amount fields: "₹", "$", "€". */
+export function currencySymbol(region: Region = getActiveRegion()): string {
+  const parts = numberFormat(region.locale, { style: 'currency', currency: region.currency }).formatToParts(0)
+  return parts.find((p) => p.type === 'currency')?.value ?? region.currency
+}
+
 /** Short form for chart axes and tiles, e.g. ₹1.2L or $1.2M. */
 export function formatCurrencyCompact(value: number, region: Region = getActiveRegion()): string {
   return numberFormat(region.locale, {
