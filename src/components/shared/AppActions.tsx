@@ -4,15 +4,42 @@ import { ChequeBulkUpload } from '@/components/cheques/BulkUpload'
 import { ChequeDetail } from '@/components/cheques/ChequeDetail'
 import { ChequeForm } from '@/components/cheques/ChequeForm'
 import { AddFundsFlow } from '@/components/deposit/AddFundsFlow'
+import { ReceivedChequeForm } from '@/components/received/ReceivedChequeForm'
+import { DirectionSwitch, type ChequeDirection } from '@/components/shared/DirectionSwitch'
 import { SearchPalette } from '@/components/shared/SearchPalette'
 import { createGivenCheque, updateGivenCheque } from '@/lib/chequeWrites'
 import { announceDataChange } from '@/lib/dataEvents'
 import { AppActionsContext, type AppActions } from '@/hooks/useAppActions'
+import { useSettings } from '@/hooks/useSettings'
 import type { Cheque } from '@/types'
+import type { ReceivedCheque } from '@/types/received'
+
+const DIRECTION_KEY = 'new-cheque-direction'
+
+/** The direction the New cheque form opens on: the last one used on this device, else what you track. */
+function lastDirection(fallback: ChequeDirection): ChequeDirection {
+  try {
+    const saved = localStorage.getItem(DIRECTION_KEY)
+    return saved === 'given' || saved === 'received' ? saved : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function rememberDirection(direction: ChequeDirection) {
+  try {
+    localStorage.setItem(DIRECTION_KEY, direction)
+  } catch {
+    // Private browsing: it's forgotten when the page closes.
+  }
+}
 
 /** Holds the dialogs that any page can open (see hooks/useAppActions.ts). */
 export function AppActionsProvider({ children }: { children: React.ReactNode }) {
+  const { settings } = useSettings()
+  const tracks = settings.tracks ?? 'both'
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
+  const [received, setReceived] = useState<{ open: boolean; cheque: ReceivedCheque | null; series?: boolean }>({ open: false, cheque: null })
   const [detailId, setDetailId] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
@@ -32,9 +59,27 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  /** Opens an empty form for a new cheque in this direction, closing the other one. */
+  const openNew = useCallback((direction: ChequeDirection, series = false) => {
+    rememberDirection(direction)
+    if (direction === 'given') {
+      setReceived({ open: false, cheque: null })
+      setForm({ open: true, cheque: null })
+    } else {
+      setForm({ open: false, cheque: null })
+      setReceived({ open: true, cheque: null, series })
+    }
+  }, [])
+
+  const directionSwitch = (direction: ChequeDirection) => <DirectionSwitch value={direction} onChange={(next) => openNew(next)} />
+
   const actions = useMemo<AppActions>(
     () => ({
-      newGivenCheque: () => setForm({ open: true, cheque: null }),
+      newCheque: (direction) => openNew(direction ?? lastDirection(tracks === 'received' ? 'received' : 'given')),
+      newGivenCheque: () => openNew('given'),
+      newReceivedCheque: () => openNew('received'),
+      newSeries: () => openNew('received', true),
+      editReceivedCheque: (cheque) => setReceived({ open: true, cheque }),
       editCheque: (cheque) => {
         setDetailId(null)
         setForm({ open: true, cheque })
@@ -53,7 +98,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
       depositReceived: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
       openReceivedCheque: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
     }),
-    [openSearch]
+    [openSearch, openNew, tracks]
   )
 
   return (
@@ -67,6 +112,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         onOpenChange={(open) => !open && setForm({ open: false, cheque: null })}
         cheque={form.cheque}
         replacing={form.replacing}
+        directionSwitch={form.replacing ? undefined : directionSwitch('given')}
         prefill={
           form.replacing
             ? {
@@ -102,6 +148,14 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
       />
 
       <ChequeBulkUpload open={importOpen} onOpenChange={setImportOpen} onComplete={announceDataChange} />
+
+      <ReceivedChequeForm
+        open={received.open}
+        onOpenChange={(open) => !open && setReceived({ open: false, cheque: null })}
+        cheque={received.cheque}
+        asSeries={received.series}
+        directionSwitch={directionSwitch('received')}
+      />
 
       <AddFundsFlow
         open={funds.open}

@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react'
+import type { ChequeDirection } from '@/components/shared/DirectionSwitch'
 import type { Cheque } from '@/types'
+import type { ReceivedCheque } from '@/types/received'
 
 /**
  * Things you can do from anywhere: the New menu, search and the cheque
@@ -7,7 +9,13 @@ import type { Cheque } from '@/types'
  * dialogs once, so any page can open them without leaving the page.
  */
 export interface AppActions {
+  /** The New cheque form, in the given direction or the one used last. */
+  newCheque: (direction?: ChequeDirection) => void
   newGivenCheque: () => void
+  newReceivedCheque: () => void
+  /** A series of received cheques: rent, instalments. */
+  newSeries: () => void
+  editReceivedCheque: (cheque: ReceivedCheque) => void
   editCheque: (cheque: Cheque) => void
   /** A new cheque in place of a written-off one, filled in from it and linked to it. */
   replaceCheque: (cheque: Cheque) => void

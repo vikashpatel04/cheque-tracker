@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, ChevronDown, FileSpreadsheet, ListPlus, Plus, Wallet, type LucideIcon } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, ChevronDown, FileSpreadsheet, ListPlus, Plus, Repeat, Wallet, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useAppActions } from '@/hooks/useAppActions'
+import { useSettings } from '@/hooks/useSettings'
 
 interface NewItem {
   label: string
@@ -20,11 +21,19 @@ interface NewItem {
   separated?: boolean
 }
 
-/** What the New menu adds. Received cheques and series join with plan item 14, step 4. */
+/**
+ * What the New menu adds. Settings → What you track hides the half you don't
+ * use; both halves show when you track both.
+ */
 function useNewItems(): NewItem[] {
   const actions = useAppActions()
   const navigate = useNavigate()
-  return [
+  const tracks = useSettings().settings.tracks ?? 'both'
+  const received: NewItem[] = [
+    { label: 'Received cheque', hint: 'A cheque someone gave you', icon: ArrowDownLeft, run: () => actions.newReceivedCheque() },
+    { label: 'Series', hint: 'Rent, instalments: many at once', icon: Repeat, run: () => actions.newSeries() },
+  ]
+  const given: NewItem[] = [
     { label: 'Given cheque', hint: 'A cheque you wrote to someone', icon: ArrowUpRight, run: () => actions.newGivenCheque() },
     {
       label: 'Several given cheques',
@@ -32,7 +41,12 @@ function useNewItems(): NewItem[] {
       icon: ListPlus,
       run: () => navigate('/bulk-add'),
     },
-    { label: 'Add funds', hint: 'Money you put in the bank for them', icon: Wallet, run: () => actions.addFunds() },
+    {
+      label: 'Add funds',
+      hint: "Today's money in the bank; funds several cheques at once",
+      icon: Wallet,
+      run: () => actions.addFunds(),
+    },
     {
       label: 'Import from Excel',
       hint: 'Given cheques from the Excel template',
@@ -41,6 +55,9 @@ function useNewItems(): NewItem[] {
       separated: true,
     },
   ]
+  if (tracks === 'given') return given
+  if (tracks === 'received') return received
+  return [...received, ...given.map((item, i) => (i === 0 ? { ...item, separated: true } : item))]
 }
 
 function ItemText({ item }: { item: NewItem }) {

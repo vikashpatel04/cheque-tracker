@@ -207,7 +207,7 @@ export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = fals
         </div>
 
         <form
-          className="flex flex-col gap-[18px] px-4 pb-28 pt-[18px]"
+          className="flex flex-1 flex-col gap-[18px] px-4 pt-[18px]"
           onSubmit={(e) => {
             e.preventDefault()
             void save()
@@ -383,7 +383,7 @@ export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = fals
             <Textarea id="received-notes" rows={2} value={draft.notes} onChange={(e) => set({ notes: e.target.value })} />
           </div>
 
-          <div className="fixed inset-x-0 bottom-0 border-t bg-background/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur sm:absolute">
+          <div className="sticky bottom-0 -mx-4 mt-auto border-t bg-background/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur">
             <Button type="submit" size="lg" className="w-full" disabled={saving}>
               {saving
                 ? 'Saving…'

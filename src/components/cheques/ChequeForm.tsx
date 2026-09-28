@@ -1,30 +1,31 @@
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { X } from 'lucide-react'
+import { toast } from 'sonner'
 import { z } from 'zod'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
+import { DateInput } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
-import { DateInput } from '@/components/ui/date-picker'
-import { useExistingChequeNumbers, describeExisting } from '@/hooks/useExistingChequeNumbers'
-import { STATUS_ACTION_META } from './StatusActions'
-import { useParties } from '@/hooks/useParties'
+import { PartyPicker } from '@/components/shared/PartyPicker'
+import { describeExisting, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
 import { useSettings } from '@/hooks/useSettings'
-import { updateChequeStatus } from '@/lib/updateChequeStatus'
-import { todayISO, formatAmountInput, parseAmount, nextChequeNumber } from '@/lib/formatters'
+import { currencySymbol, formatAmountInput, nextChequeNumber, parseAmount, todayISO } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
-import type { Cheque, ChequeStatus } from '@/types'
-import { VALID_STATUS_TRANSITIONS } from '@/types'
-import { useState, useEffect, useMemo } from 'react'
-import { toast } from 'sonner'
+import { updateChequeStatus } from '@/lib/updateChequeStatus'
+import { cn } from '@/lib/utils'
+import { VALID_STATUS_TRANSITIONS, type Cheque, type ChequeStatus } from '@/types'
+import { STATUS_ACTION_META } from './StatusActions'
 
 const chequeSchema = z.object({
-  party_id: z.string().min(1, 'Party is required'),
-  cheque_number: z.string().min(1, 'Cheque number is required'),
-  bank_name: z.string().min(1, 'Bank name is required'),
-  amount: z.coerce.number().positive('Amount must be positive'),
+  party_id: z.string().min(1, 'Choose who the cheque is to'),
+  cheque_number: z.string().min(1, 'The cheque number is needed'),
+  bank_name: z.string().min(1, 'The bank is needed'),
+  amount: z.coerce.number().positive('The amount is needed'),
   issue_date: z.string().min(1),
   due_date: z.string().min(1),
   notes: z.string().optional(),
@@ -42,21 +43,27 @@ interface ChequeFormProps {
   onStatusChange?: () => void
   /** Set when issuing a new cheque in place of a written-off one (shown as a note). */
   replacing?: Pick<Cheque, 'cheque_number' | 'write_off_reason'> | null
+  /** The "I received it / I gave it" switch, when adding. */
+  directionSwitch?: React.ReactNode
 }
 
-export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onStatusChange, replacing }: ChequeFormProps) {
-  const { parties } = useParties()
+/** Add or edit a cheque you gave (design screen 35). */
+export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onStatusChange, replacing, directionSwitch }: ChequeFormProps) {
   const { banks } = useSettings()
   const [newStatus, setNewStatus] = useState<ChequeStatus | ''>('')
   const [returnReason, setReturnReason] = useState('')
   const [amountDisplay, setAmountDisplay] = useState('')
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch, reset } = useForm<ChequeFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+    reset,
+  } = useForm<ChequeFormData>({
     resolver: zodResolver(chequeSchema),
-    defaultValues: {
-      issue_date: todayISO(),
-      due_date: todayISO(),
-    },
+    defaultValues: { issue_date: todayISO(), due_date: todayISO() },
   })
 
   useEffect(() => {
@@ -78,11 +85,7 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
       })
       setAmountDisplay(formatAmountInput(String(cheque.amount)))
     } else {
-      reset(
-        prefill
-          ? { issue_date: todayISO(), due_date: todayISO(), ...prefill }
-          : { issue_date: todayISO(), due_date: todayISO() }
-      )
+      reset(prefill ? { issue_date: todayISO(), due_date: todayISO(), ...prefill } : { issue_date: todayISO(), due_date: todayISO() })
       setAmountDisplay(prefill?.amount != null ? formatAmountInput(String(prefill.amount)) : '')
 
       // Predict the next cheque number from the last one used (editable).
@@ -106,11 +109,6 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
   const chequeNumber = watch('cheque_number') ?? ''
   const existingNumbers = useExistingChequeNumbers(open ? [chequeNumber] : [], cheque?.id)
   const duplicateWarning = describeExisting(existingNumbers.get(chequeNumber.trim()))
-
-  const partyOptions = useMemo<ComboboxOption[]>(
-    () => parties.map((p) => ({ value: p.id, label: p.name, hint: p.bank_name ?? undefined })),
-    [parties]
-  )
   const validTransitions = cheque ? VALID_STATUS_TRANSITIONS[cheque.status] : []
 
   const handleFormSubmit = async (data: ChequeFormData) => {
@@ -128,7 +126,7 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
         returnReason: newStatus === 'RETURNED' ? returnReason : undefined,
       })
       if (!result.success) {
-        toast.error(`Cheque saved, but status change failed: ${result.error ?? 'unknown error'}`)
+        toast.error(`Cheque saved, but the status change failed: ${result.error ?? 'unknown error'}`)
         return
       }
       onStatusChange?.()
@@ -136,125 +134,118 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
     onOpenChange(false)
   }
 
+  const error = (message?: string) => (message ? <p className="mt-1 text-sm text-problem">{message}</p> : null)
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{cheque ? 'Edit Cheque' : 'Add Cheque'}</SheetTitle>
-        </SheetHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-6 space-y-4">
+      <SheetContent className="flex w-full flex-col gap-0 overflow-y-auto bg-background p-0 sm:max-w-[520px] [&>button:last-child]:hidden">
+        <div className="sticky top-0 z-10 flex h-[60px] shrink-0 items-center gap-1 border-b bg-background/95 px-2 backdrop-blur">
+          <Button variant="ghost" size="icon" aria-label="Close" onClick={() => onOpenChange(false)}>
+            <X />
+          </Button>
+          <SheetTitle className="text-lg font-semibold">{cheque ? 'Edit cheque' : 'New cheque'}</SheetTitle>
+          <SheetDescription className="sr-only">A cheque you gave to someone.</SheetDescription>
+        </div>
+
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-1 flex-col gap-[18px] px-4 pt-[18px]">
+          {!cheque && directionSwitch}
+
           {!cheque && replacing && (
-            <div className="rounded-lg border bg-muted/40 p-3 text-sm">
-              New cheque in place of written-off cheque <span className="font-medium">#{replacing.cheque_number}</span>
-              {replacing.write_off_reason && (
-                <span className="text-muted-foreground"> ({replacing.write_off_reason})</span>
-              )}
-              . Details are pre-filled — enter the new cheque number and dates.
+            <div className="rounded-xl border bg-surface p-3.5 text-sm">
+              A new cheque in place of written-off cheque <span className="font-cheque font-medium">{replacing.cheque_number}</span>
+              {replacing.write_off_reason && <span className="text-ink-quiet"> ({replacing.write_off_reason})</span>}. It's
+              filled in from that one: add the new number and dates.
             </div>
           )}
-          <div>
-            <Label htmlFor="party_id">Party *</Label>
-            <Combobox
-              id="party_id"
-              options={partyOptions}
-              value={partyId}
-              onChange={(v) => setValue('party_id', v, { shouldValidate: true })}
-              placeholder="Select party"
-              searchPlaceholder="Search party..."
-              emptyText="No party found."
-            />
-            {errors.party_id && <p className="text-sm text-destructive">{errors.party_id.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="cheque_number">Cheque Number *</Label>
-            <Input id="cheque_number" {...register('cheque_number')} />
-            {errors.cheque_number && <p className="text-sm text-destructive">{errors.cheque_number.message}</p>}
-            {!errors.cheque_number && duplicateWarning && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{duplicateWarning}</p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="bank_name">Bank Name *</Label>
-            <Combobox
-              id="bank_name"
-              options={banks.map((b) => ({ value: b, label: b }))}
-              value={watch('bank_name')}
-              onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
-              placeholder="Select bank"
-              searchPlaceholder="Search bank..."
-              emptyText="No bank found. Add in settings."
-            />
-            {errors.bank_name && <p className="text-sm text-destructive">{errors.bank_name.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="amount">Amount *</Label>
-            <Input
-              id="amount"
-              inputMode="decimal"
-              placeholder="0"
-              value={amountDisplay}
-              onChange={(e) => {
-                const formatted = formatAmountInput(e.target.value)
-                setAmountDisplay(formatted)
-                setValue('amount', parseAmount(formatted), { shouldValidate: true })
-              }}
-            />
-            {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="issue_date">Issue Date *</Label>
-              <DateInput
-                id="issue_date"
-                value={watch('issue_date')}
-                onChange={(v) => setValue('issue_date', v, { shouldValidate: true })}
+
+          <PartyPicker
+            id="given-party"
+            label="To"
+            value={partyId ?? ''}
+            onChange={(v) => setValue('party_id', v, { shouldValidate: true })}
+            error={errors.party_id?.message}
+          />
+
+          <div className="flex flex-col">
+            <Label htmlFor="given-amount">Amount</Label>
+            <div className="flex h-14 items-center gap-2 rounded-lg border-2 border-brand bg-surface px-3.5 focus-within:ring-2 focus-within:ring-ring/40">
+              <span className="text-xl text-ink-quiet">{currencySymbol()}</span>
+              <input
+                id="given-amount"
+                inputMode="decimal"
+                placeholder="0"
+                className="min-w-0 flex-1 bg-transparent text-[22px] font-semibold tabular-nums outline-none"
+                value={amountDisplay}
+                onChange={(e) => {
+                  const formatted = formatAmountInput(e.target.value)
+                  setAmountDisplay(formatted)
+                  setValue('amount', parseAmount(formatted), { shouldValidate: true })
+                }}
               />
-              {errors.issue_date && <p className="text-sm text-destructive">{errors.issue_date.message}</p>}
             </div>
-            <div>
-              <Label htmlFor="due_date">Due Date *</Label>
-              <DateInput
-                id="due_date"
-                value={watch('due_date')}
-                onChange={(v) => setValue('due_date', v, { shouldValidate: true })}
+            {error(errors.amount?.message)}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col">
+              <Label htmlFor="given-number">Cheque no.</Label>
+              <Input id="given-number" inputMode="numeric" className="font-cheque" {...register('cheque_number')} />
+              {error(errors.cheque_number?.message)}
+              {!errors.cheque_number && duplicateWarning && <p className="mt-1 text-xs text-attention">{duplicateWarning}</p>}
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="given-bank">Bank</Label>
+              <Combobox
+                id="given-bank"
+                options={banks.map((b) => ({ value: b, label: b }))}
+                value={watch('bank_name')}
+                onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
+                placeholder="Choose"
+                searchPlaceholder="Find a bank"
+                emptyText="Add your banks in Settings."
               />
-              {errors.due_date && <p className="text-sm text-destructive">{errors.due_date.message}</p>}
+              {error(errors.bank_name?.message)}
             </div>
           </div>
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" {...register('notes')} rows={2} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col">
+              <Label htmlFor="given-issued">Issued on</Label>
+              <DateInput id="given-issued" value={watch('issue_date')} onChange={(v) => setValue('issue_date', v, { shouldValidate: true })} />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="given-due">Due on</Label>
+              <DateInput id="given-due" value={watch('due_date')} onChange={(v) => setValue('due_date', v, { shouldValidate: true })} />
+            </div>
+          </div>
+
+          <div className="flex flex-col">
+            <Label htmlFor="given-notes">
+              Note <span className="font-normal text-ink-quiet">(optional)</span>
+            </Label>
+            <Textarea id="given-notes" rows={2} {...register('notes')} />
           </div>
 
           {cheque && validTransitions.length > 0 && (
-            <div className="rounded-lg border bg-muted/30 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Change status
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 mb-2">
-                Applied when you save. Currently{' '}
-                <span className="font-medium">{STATUS_ACTION_META[cheque.status].label}</span>.
-              </p>
+            <section className="flex flex-col gap-2 rounded-xl border bg-surface p-4">
+              <span className="font-semibold">Change the status too</span>
+              <span className="text-sm text-ink-quiet">
+                Applied when you save. It's {STATUS_ACTION_META[cheque.status].label.toLowerCase()} now.
+              </span>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={newStatus === '' ? 'default' : 'outline'}
-                  onClick={() => setNewStatus('')}
-                >
-                  Keep {STATUS_ACTION_META[cheque.status].label}
+                <Button type="button" size="sm" variant={newStatus === '' ? 'default' : 'outline'} onClick={() => setNewStatus('')}>
+                  Keep it
                 </Button>
                 {validTransitions.map((s) => {
-                  const { label, Icon, tone } = STATUS_ACTION_META[s]
-                  const active = newStatus === s
+                  const { label, Icon } = STATUS_ACTION_META[s]
                   return (
                     <Button
                       key={s}
                       type="button"
                       size="sm"
-                      variant={active ? 'default' : 'outline'}
+                      variant={newStatus === s ? 'default' : 'outline'}
                       onClick={() => setNewStatus(s)}
-                      className={active ? undefined : tone}
+                      className={cn(newStatus !== s && s === 'RETURNED' && 'text-problem')}
                     >
                       <Icon className="h-4 w-4" />
                       {label}
@@ -263,22 +254,19 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
                 })}
               </div>
               {newStatus === 'RETURNED' && (
-                <div className="mt-3">
-                  <Label htmlFor="return_reason">Return Reason *</Label>
-                  <Textarea
-                    id="return_reason"
-                    value={returnReason}
-                    onChange={(e) => setReturnReason(e.target.value)}
-                    required
-                  />
+                <div className="mt-1 flex flex-col">
+                  <Label htmlFor="given-return-reason">Why it came back</Label>
+                  <Textarea id="given-return-reason" value={returnReason} onChange={(e) => setReturnReason(e.target.value)} required />
                 </div>
               )}
-            </div>
+            </section>
           )}
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : cheque ? 'Update Cheque' : 'Add Cheque'}
-          </Button>
+          <div className="sticky bottom-0 -mx-4 mt-auto border-t bg-background/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur">
+            <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving…' : cheque ? 'Save' : 'Add cheque'}
+            </Button>
+          </div>
         </form>
       </SheetContent>
     </Sheet>
