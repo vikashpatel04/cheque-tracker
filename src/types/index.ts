@@ -108,9 +108,17 @@ export interface Settings {
   cheque_validity_months: number | null
   /** Days a deposited cheque usually takes to clear. */
   clearing_days: number | null
+  /**
+   * What the user tracks (migration 017): the view Today and Cheques open on.
+   * Missing on databases without that migration, which means both.
+   */
+  tracks?: Tracks
   created_at: string
   updated_at: string
 }
+
+/** Cheques the user gives, receives, or both. Only a default view, never a limit. */
+export type Tracks = 'given' | 'received' | 'both'
 
 export type SettingsUpdate = Partial<Omit<Settings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
 

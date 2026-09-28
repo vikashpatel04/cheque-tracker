@@ -14,7 +14,7 @@ export function DepositWidget() {
       <div className="rounded-lg border bg-card px-3 py-2 text-sm font-medium tabular-nums">
         <span className="font-normal text-muted-foreground">Funds added today:</span> {formatCurrency(todayTotal)}
       </div>
-      <Button onClick={addFunds}>
+      <Button onClick={() => addFunds()}>
         <Wallet />
         Add funds
       </Button>

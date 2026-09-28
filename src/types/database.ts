@@ -490,6 +490,7 @@ export type Database = {
           id: string
           locale: string | null
           timezone: string | null
+          tracks: string
           updated_at: string | null
           user_id: string
           week_starts_on: number | null
@@ -509,6 +510,7 @@ export type Database = {
           id?: string
           locale?: string | null
           timezone?: string | null
+          tracks?: string
           updated_at?: string | null
           user_id: string
           week_starts_on?: number | null
@@ -528,6 +530,7 @@ export type Database = {
           id?: string
           locale?: string | null
           timezone?: string | null
+          tracks?: string
           updated_at?: string | null
           user_id?: string
           week_starts_on?: number | null

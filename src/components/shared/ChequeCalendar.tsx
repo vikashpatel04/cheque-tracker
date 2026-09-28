@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DayChequesDialog } from '@/components/shared/DayChequesDialog'
 import { formatCurrency, formatDate, isMonthFirst, todayDate } from '@/lib/formatters'
 import { getActiveRegion } from '@/lib/region'
-import { STATUS_COLORS } from '@/lib/chartUtils'
+import { STATUS_COLORS, STATUS_SOFT_COLORS } from '@/lib/chartUtils'
 import { STATUS_LABELS, type Cheque, type ChequeStatus } from '@/types'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
@@ -112,12 +112,11 @@ export function ChequeCalendar({
 
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
     const status = event.resource.status
-    const color = STATUS_COLORS[status] ?? '#6b7280'
     return {
       style: {
-        backgroundColor: color,
-        borderColor: color,
-        color: '#fff',
+        backgroundColor: STATUS_SOFT_COLORS[status] ?? 'var(--status-done-bg)',
+        color: STATUS_COLORS[status] ?? 'var(--status-done)',
+        fontWeight: 500,
         borderRadius: '4px',
         border: 'none',
         fontSize: '11px',

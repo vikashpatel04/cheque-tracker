@@ -16,6 +16,7 @@ import { CurrencyTooltip } from '@/components/shared/ChartTooltip'
 import { STATUS_COLORS, CHART_COLORS, formatChartCurrency, formatMonthLabel } from '@/lib/chartUtils'
 import { STATUS_LABELS, type Cheque, type ChequeStatus } from '@/types'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { CumulativeOutflowChart, SixMonthTrendChart } from '@/components/reports/OutlookCharts'
 import {
   BarChart,
   Bar,
@@ -43,6 +44,8 @@ export default function Reports() {
   // re-presented and paid — their current status no longer says RETURNED.
   // Imported cheques have no such history, so re-presented ones count too.
   const [everReturned, setEverReturned] = useState<Set<string>>(new Set())
+  // When each cheque passed, for the six-month trend.
+  const [passedAt, setPassedAt] = useState<Map<string, string>>(new Map())
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -52,9 +55,12 @@ export default function Reports() {
     Promise.all([
       supabase.from('cheques').select('*, party:parties(*)').is('deleted_at', null),
       supabase.from('cheque_history').select('cheque_id').eq('to_status', 'RETURNED'),
-    ]).then(([chequesRes, returnedRes]) => {
+      // Imports aren't when a cheque passed.
+      supabase.from('cheque_history').select('cheque_id, created_at').eq('to_status', 'PASSED').neq('changed_by', 'import'),
+    ]).then(([chequesRes, returnedRes, passedRes]) => {
       if (chequesRes.data) setCheques(chequesRes.data as Cheque[])
       if (returnedRes.data) setEverReturned(new Set(returnedRes.data.map((h) => h.cheque_id as string)))
+      if (passedRes.data) setPassedAt(new Map(passedRes.data.map((h) => [h.cheque_id as string, h.created_at as string])))
       setLoading(false)
     })
   }, [])
@@ -396,10 +402,10 @@ export default function Reports() {
               <ResponsiveContainer width="100%" height={320}>
                 <ComposedChart data={dailyCashFlow}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={1} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} interval={1} />
                   <YAxis
                     tickFormatter={(v) => formatChartCurrency(v)}
-                    tick={{ fontSize: 10 }}
+                    tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }}
                     width={55}
                   />
                   <Tooltip content={<CurrencyTooltip />} />
@@ -407,9 +413,9 @@ export default function Reports() {
                   {todayLabel && (
                     <ReferenceLine
                       x={todayLabel}
-                      stroke="#ef4444"
+                      stroke="var(--status-problem)"
                       strokeDasharray="3 3"
-                      label={{ value: 'Today', fill: '#ef4444', fontSize: 10, position: 'top' }}
+                      label={{ value: 'Today', fill: 'var(--status-problem)', fontSize: 10, position: 'top' }}
                     />
                   )}
                   <Bar dataKey="pending" stackId="cheques" fill={STATUS_COLORS.PENDING} name="Pending" />
@@ -429,7 +435,7 @@ export default function Reports() {
                   <Line
                     type="monotone"
                     dataKey="depositLog"
-                    stroke="#22c55e"
+                    stroke="var(--money-in)"
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     name="Funds Added"
@@ -512,6 +518,8 @@ export default function Reports() {
               </Table>
             </CardContent>
           </Card>
+
+          <CumulativeOutflowChart cheques={cheques} />
         </TabsContent>
 
         <TabsContent value="monthly" className="space-y-4 mt-4">
@@ -525,13 +533,13 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} width={55} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
+                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
                     <Tooltip content={<CurrencyTooltip />} />
                     <Legend />
-                    <Bar dataKey="issued" fill="#3b82f6" name="Issued" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="paid" fill="#22c55e" name="Paid" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="returned" fill="#ef4444" name="Returned" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="issued" fill="var(--brand)" name="Issued" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="paid" fill="var(--money-in)" name="Paid" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="returned" fill="var(--status-problem)" name="Returned" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -546,12 +554,12 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height={320}>
                   <ComposedChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} width={55} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
+                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
                     <Tooltip content={<CurrencyTooltip />} />
                     <Legend />
-                    <Area type="monotone" dataKey="stillToPay" fill="#f59e0b" stroke="#f59e0b" fillOpacity={0.15} name="Still to pay" />
-                    <Line type="monotone" dataKey="issued" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="Issued" />
+                    <Area type="monotone" dataKey="stillToPay" fill="var(--status-attention-strong)" stroke="var(--status-attention-strong)" fillOpacity={0.15} name="Still to pay" />
+                    <Line type="monotone" dataKey="issued" stroke="var(--brand)" strokeWidth={2} dot={{ r: 3 }} name="Issued" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -587,6 +595,8 @@ export default function Reports() {
               </Table>
             </CardContent>
           </Card>
+
+          <SixMonthTrendChart cheques={cheques} passedAt={passedAt} />
         </TabsContent>
 
         <TabsContent value="party" className="space-y-4 mt-4">
@@ -599,8 +609,8 @@ export default function Reports() {
               <ResponsiveContainer width="100%" height={360}>
                 <BarChart data={topPartyChart} layout="vertical" margin={{ left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
-                  <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} />
-                  <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 11 }} />
+                  <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} />
+                  <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
                   <Tooltip content={<CurrencyTooltip />} />
                   <Legend />
                   <Bar dataKey="Still to pay" stackId="a" fill={STATUS_COLORS.PENDING} radius={[0, 0, 0, 0]} />
@@ -668,10 +678,10 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={bankData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
-                    <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="bank" width={100} tick={{ fontSize: 11 }} />
+                    <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} />
+                    <YAxis type="category" dataKey="bank" width={100} tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
                     <Tooltip content={<CurrencyTooltip />} />
-                    <Bar dataKey="total" fill="#3b82f6" name="Total Outflow" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="total" fill="var(--brand)" name="Total Outflow" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -690,13 +700,13 @@ export default function Reports() {
                 <ComposedChart data={depositVsOutflow}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} />
-                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} width={55} />
+                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
                   <Tooltip content={<CurrencyTooltip />} />
                   <Legend />
-                  <Bar dataKey="deposits" fill="#22c55e" name="Funds added" barSize={8} radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="outflow" fill="#f59e0b" name="Cheque payments" barSize={8} radius={[2, 2, 0, 0]} />
-                  <Line type="monotone" dataKey="cumDeposits" stroke="#16a34a" strokeWidth={2} dot={false} name="Cum. funds added" />
-                  <Line type="monotone" dataKey="cumOutflow" stroke="#d97706" strokeWidth={2} dot={false} name="Cum. payments" />
+                  <Bar dataKey="deposits" fill="var(--money-in)" name="Funds added" barSize={8} radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="outflow" fill="var(--status-attention-strong)" name="Cheque payments" barSize={8} radius={[2, 2, 0, 0]} />
+                  <Line type="monotone" dataKey="cumDeposits" stroke="var(--money-in)" strokeWidth={2} dot={false} name="Cum. funds added" />
+                  <Line type="monotone" dataKey="cumOutflow" stroke="var(--status-attention)" strokeWidth={2} dot={false} name="Cum. payments" />
                 </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
@@ -712,10 +722,10 @@ export default function Reports() {
                 <ComposedChart data={depositVsOutflow}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} />
-                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10 }} width={55} />
+                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
                   <Tooltip content={<CurrencyTooltip />} />
-                  <Area type="monotone" dataKey="deposits" fill="#22c55e" stroke="#22c55e" fillOpacity={0.2} name="Funds added" />
-                  <Line type="monotone" dataKey="deposits" stroke="#22c55e" strokeWidth={2} dot={{ r: 2 }} />
+                  <Area type="monotone" dataKey="deposits" fill="var(--money-in)" stroke="var(--money-in)" fillOpacity={0.2} name="Funds added" />
+                  <Line type="monotone" dataKey="deposits" stroke="var(--money-in)" strokeWidth={2} dot={{ r: 2 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </CardContent>

@@ -4,7 +4,7 @@ import { Layout } from '@/components/shared/Layout'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { SettingsProvider } from '@/components/shared/SettingsProvider'
 import Login from '@/pages/Login'
-import Dashboard from '@/pages/Dashboard'
+import Today from '@/pages/Today'
 import Cheques from '@/pages/Cheques'
 import PartiesPage from '@/pages/PartiesPage'
 import Returned from '@/pages/Returned'
@@ -24,7 +24,7 @@ function AppRoutes() {
             <SettingsProvider>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Today />} />
                   <Route path="/cheques" element={<Cheques />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/bulk-add" element={<BulkAdd />} />

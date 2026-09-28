@@ -71,7 +71,12 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Frame: sidebar and top bar (search, New, bell, account) on desktop; bottom tabs with a raised + and a More sheet on phones. The New menu, search (Ctrl K, by cheque number, party or amount), Add funds and the cheque detail open from any page. The bell lists recent changes. Appearance (device, light, dark) is in the account menu and More.
     - Installed app: new icons from the logo (including maskable and Apple ones), a manifest in the Passbook colours, a service worker built per release that starts the app offline and offers "A new version is ready" instead of switching under you, an install option, and an offline notice. Checked with `npm run preview`: installs, starts offline, updates.
     - Kept for now: Returned stays in the menu until it becomes a saved view (step 3); the old dashboard sits under the new Today title until step 2; a basic Calendar page reuses the old calendar until step 5. Screens not yet rebuilt still have some fixed colours, which suit light more than dark.
-  - [ ] 2. Today in all three views.
+  - [x] 2. Today in all three views.
+    - Done 2026-09-28. Today replaces the dashboard: All, Given and Received views (switch in the page, default from Settings → What you track), the three numbers, the week strip, to-dos with one action each, and the chart for each view, at desktop and phone width. The sidebar's Today shows how many things there are to do.
+    - The figures and to-dos are pure functions in `src/lib/today.ts`, tested in `tests/today.test.ts`. Today loads only open cheques and a window of dates, page by page, so it isn't capped at 1,000 rows.
+    - Migration 017 adds `settings.tracks` (given, received or both; both by default). Until it's pushed, the app treats everyone as both and saving the setting fails politely. After it's on the dev project, regenerate `src/types/database.ts` (the `tracks` lines were added by hand to match).
+    - Nothing from the dashboard is lost: its running-total chart is now in Reports → Daily Cash Flow and its six-month trend in Reports → Monthly, until Reports is rebuilt (step 5). Recent activity is the bell. The old calendar is the Calendar page.
+    - Received to-dos and the Deposit button are wired to placeholders that say the screens are coming; step 4 connects them.
   - [ ] 3. Cheques and cheque detail.
   - [ ] 4. The received-cheque screens, with made-up received cheques (11).
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
@@ -84,7 +89,8 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
   - Done in 14, step 1. Returned stays under them until 19.
 - [ ] **16.** Always visible: a New button (received cheque, given cheque, series, add funds, import), search by cheque number, party or amount (Ctrl K), and notifications.
   - Built in 14, step 1, for given cheques. Received cheques and series join the New menu and search in step 4.
-- [ ] **17.** Today: three numbers first (in clearing, due, net), then to-dos with one action each, then one in/out chart. People who only give or only receive see only their half.
+- [x] **17.** Today: three numbers first (in clearing, due, net), then to-dos with one action each, then one in/out chart. People who only give or only receive see only their half.
+  - Done in 14, step 2. The received actions open their screens once step 4 builds them.
 - [ ] **18.** Cheques: All / Received / Given tabs, plus saved views: To deposit, In clearing, Bounced, Security, Series.
 - [ ] **19.** Returned stops being a page and becomes a saved view and a to-do. Bulk add moves under New.
 - [ ] **20.** Parties: a two-way ledger per party, showing given, received, net and bounces.
@@ -95,6 +101,7 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
   - Tabs: Overview, Cash flow, Collections (ageing in 0–30 / 31–60 / 61–90 / 90+ day buckets, and bounce rate), Payments, Parties, Bounces, and Accounts and funds.
   - Each tab exports with its filters applied.
 - [ ] **24.** Move totals into SQL. Today Dashboard and Reports load every cheque into the browser, and the totals silently go wrong past 1,000 rows.
+  - Today no longer has the problem (14, step 2: it pages through only the cheques it needs). Reports, the cheque list and parties still load everything in one request.
 
 ## Visual rules
 

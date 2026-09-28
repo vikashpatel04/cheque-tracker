@@ -15,7 +15,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null }>({ open: false, cheque: null })
   const [detailId, setDetailId] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
-  const [fundsOpen, setFundsOpen] = useState(false)
+  const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
   const [searchOpen, setSearchOpen] = useState(false)
 
   const openSearch = useCallback(() => setSearchOpen(true), [])
@@ -35,13 +35,15 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const actions = useMemo<AppActions>(
     () => ({
       newGivenCheque: () => setForm({ open: true, cheque: null }),
-      addFunds: () => setFundsOpen(true),
+      addFunds: (amount) => setFunds({ open: true, amount }),
       importCheques: () => setImportOpen(true),
       openSearch,
       openCheque: (id) => {
         setSearchOpen(false)
         setDetailId(id)
       },
+      depositReceived: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
+      openReceivedCheque: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
     }),
     [openSearch]
   )
@@ -80,7 +82,11 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
 
       <ChequeBulkUpload open={importOpen} onOpenChange={setImportOpen} onComplete={announceDataChange} />
 
-      <AddFundsFlow open={fundsOpen} onOpenChange={setFundsOpen} />
+      <AddFundsFlow
+        open={funds.open}
+        amount={funds.amount}
+        onOpenChange={(open) => setFunds((current) => ({ ...current, open }))}
+      />
     </AppActionsContext.Provider>
   )
 }

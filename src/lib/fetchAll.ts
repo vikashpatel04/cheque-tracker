@@ -13,7 +13,13 @@ const PAGE_SIZE = 1000
 export async function fetchAllRows<T>(
   table: keyof Database['public']['Tables'],
   columns = '*',
-  options: { activeOnly?: boolean } = {}
+  options: {
+    activeOnly?: boolean
+    /** Only rows whose `column` is one of `values`. */
+    oneOf?: { column: string; values: string[] }
+    /** Only rows whose `column` is between `from` and `to` (inclusive). */
+    between?: { column: string; from: string; to: string }
+  } = {}
 ): Promise<{ rows: T[]; error?: string }> {
   // The table and columns are only known at run time, so the rows can't be
   // typed here; the caller names their type instead.
@@ -23,6 +29,10 @@ export async function fetchAllRows<T>(
   for (;;) {
     let query = untyped.from(table).select(columns).order('id').range(from, from + PAGE_SIZE - 1)
     if (options.activeOnly) query = query.is('deleted_at', null)
+    if (options.oneOf) query = query.in(options.oneOf.column, options.oneOf.values)
+    if (options.between) {
+      query = query.gte(options.between.column, options.between.from).lte(options.between.column, options.between.to)
+    }
     const { data, error } = await query
     if (error) return { rows, error: `${table}: ${error.message}` }
     if (!data?.length) return { rows }

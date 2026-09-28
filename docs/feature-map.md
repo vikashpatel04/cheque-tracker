@@ -16,6 +16,8 @@ What the app does today, and where each feature goes in the redesign ([design-br
 
 ## Dashboard → Today, Calendar and Reports
 
+Built in 14, step 2 (2026-09-28): the dashboard is gone and every row below has its place. Until Reports is rebuilt (step 5), the running-total chart sits in Reports → Daily Cash Flow and the six-month trend in Reports → Monthly.
+
 | Today | In the redesign |
 |---|---|
 | Today panel: the date, an overdue badge, "Cash needed today", today's cheques, overdue cheques ("Overdue", "Overdue · Funded") | Today, given view: "Needed today" and the to-dos |

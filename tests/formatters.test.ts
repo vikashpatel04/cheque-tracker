@@ -9,7 +9,12 @@ import {
   formatDate,
   formatDateTime,
   formatDayMonth,
+  formatLongDate,
+  formatMoney,
+  formatMoneyShort,
   formatMonthLabel,
+  formatShortDate,
+  formatSigned,
   localizeIsoDates,
   parseAmount,
   parseFlexibleDate,
@@ -110,5 +115,31 @@ describe('other regions', () => {
 
   it('computes today in the region time zone', () => {
     expect(todayISO(use('IN'))).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+})
+
+describe('figures and dates on Today', () => {
+  it('drops decimals from whole amounts and shortens them for tiles', () => {
+    use('IN')
+    expect(formatMoney(20000)).toBe('₹20,000')
+    expect(formatMoney(19037.5)).toBe('₹19,037.50')
+    expect(formatMoneyShort(173000)).toBe('₹1.73L')
+    expect(formatMoneyShort(6500)).toBe('₹6.5K')
+    expect(formatSigned(15000, 'in')).toBe('+₹15,000')
+    expect(formatSigned(72000, 'out')).toBe('−₹72,000')
+    expect(formatSigned(0, 'out')).toBe('₹0')
+    use('US')
+    expect(formatMoney(125000)).toBe('$125,000')
+    expect(formatMoneyShort(1234567)).toBe('$1.23M')
+  })
+
+  it('names the month so day and month order never confuse', () => {
+    use('IN')
+    expect(formatShortDate('2026-09-24')).toMatch(/^Thu 24 Sep( 2026)?$/)
+    expect(formatLongDate('2026-09-27')).toBe('Sunday, 27 September')
+    use('US')
+    expect(formatShortDate('2026-09-24')).toMatch(/^Thu Sep 24( 2026)?$/)
+    expect(formatLongDate('2026-09-27')).toBe('Sunday, September 27')
+    expect(formatShortDate('2020-01-02')).toBe('Thu Jan 2 2020')
   })
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -12,16 +12,22 @@ import { AllocationModal } from './AllocationModal'
 interface AddFundsFlowProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Starts the amount at what's needed, e.g. from a to-do. */
+  amount?: number
 }
 
 /**
  * Add funds: the amount put into the bank today, then which pending cheques it
  * covers. Saving marks those cheques Funded, all at once.
  */
-export function AddFundsFlow({ open, onOpenChange }: AddFundsFlowProps) {
+export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFundsFlowProps) {
   const [amount, setAmount] = useState('')
   const [notes, setNotes] = useState('')
   const [allocating, setAllocating] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (open && suggested) setAmount(String(suggested))
+  }, [open, suggested])
 
   const confirmAmount = () => {
     const value = parseFloat(amount)

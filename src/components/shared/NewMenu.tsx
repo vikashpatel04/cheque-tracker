@@ -25,19 +25,19 @@ function useNewItems(): NewItem[] {
   const actions = useAppActions()
   const navigate = useNavigate()
   return [
-    { label: 'Given cheque', hint: 'A cheque you wrote to someone', icon: ArrowUpRight, run: actions.newGivenCheque },
+    { label: 'Given cheque', hint: 'A cheque you wrote to someone', icon: ArrowUpRight, run: () => actions.newGivenCheque() },
     {
       label: 'Several given cheques',
       hint: 'Many at once, with numbers counting up',
       icon: ListPlus,
       run: () => navigate('/bulk-add'),
     },
-    { label: 'Add funds', hint: 'Money you put in the bank for them', icon: Wallet, run: actions.addFunds },
+    { label: 'Add funds', hint: 'Money you put in the bank for them', icon: Wallet, run: () => actions.addFunds() },
     {
       label: 'Import from Excel',
       hint: 'Given cheques from the Excel template',
       icon: FileSpreadsheet,
-      run: actions.importCheques,
+      run: () => actions.importCheques(),
       separated: true,
     },
   ]

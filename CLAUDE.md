@@ -52,6 +52,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
   - Stack: React 19, Vite 6, TypeScript, Tailwind v4, shadcn/ui (`src/components/ui`), React Router 7, React Hook Form + Zod.
   - Code layout: `src/pages` (pages), `src/hooks` (data hooks), `src/lib` (RPC wrappers and logic), `src/types` (types).
   - **Look ("Passbook"):** colour tokens by meaning, light and dark, in `src/index.css`, used as Tailwind colours (`text-money-in`, `bg-attention-soft`, `border-line`, …). Never hardcode a colour in a component. IBM Plex fonts are bundled through Fontsource. Status chips come from `src/lib/statusChips.ts`. See [docs/design-brief.md](docs/design-brief.md).
+  - **Today:** the figures and to-dos are pure functions in `src/lib/today.ts` (tested); `useTodayData` loads the cheques once for Today and the sidebar count. Which view shows first comes from `settings.tracks`.
   - **Frame:** `Layout` has the sidebar and top bar on desktop (`lg` and up) and bottom tabs on phones. Pages start with `PageHeader`. The New menu, search (Ctrl K) and the cheque dialogs live once in `AppActionsProvider`; open them with `useAppActions()`. After saving anything, call `announceDataChange()` (`src/lib/dataEvents.ts`) so every list refreshes.
   - **Installed app (PWA):** `pwa/service-worker.js` is built into `dist/sw.js` by `vite.config.ts`, and registered in production only by `src/lib/pwa.ts`, which also offers new versions and installing. Icons are in `public/icons/`. Test it with `npm run build`, then `npm run preview`.
   - `SettingsProvider` loads the user's settings and shows `RegionSetup` until a region is chosen. After that it keys the app by region, so the app remounts when the region changes.
@@ -77,7 +78,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 ## Database changes
 
 - **Migrations:**
-  - Add a numbered migration; the next one is `supabase/migrations/015_…`.
+  - Add a numbered migration; the next one is `supabase/migrations/018_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
 - **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy.

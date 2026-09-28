@@ -47,6 +47,8 @@
   --status-attention: #8a4b00;
   --status-attention-bg: #fff0d1;
   --status-attention-line: #e8c98e;
+  /* Bars for money not funded yet. */
+  --status-attention-strong: #e8a33d;
   --status-problem: #b42318;
   --status-problem-bg: #fde8e5;
   --status-problem-line: #f1b8b0;
@@ -92,6 +94,7 @@
   --status-attention: #f4b650;
   --status-attention-bg: #3a2e14;
   --status-attention-line: #6b5424;
+  --status-attention-strong: #f4b650;
   --status-problem: #f28b82;
   --status-problem-bg: #3d1f1d;
   --status-problem-line: #6b2c27;
@@ -179,6 +182,7 @@
   --color-attention: var(--status-attention);
   --color-attention-soft: var(--status-attention-bg);
   --color-attention-line: var(--status-attention-line);
+  --color-attention-strong: var(--status-attention-strong);
   --color-problem: var(--status-problem);
   --color-problem-soft: var(--status-problem-bg);
   --color-problem-line: var(--status-problem-line);

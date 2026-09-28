@@ -92,9 +92,9 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
   }
 
   const actionItems = [
-    { label: 'Add a given cheque', icon: ArrowUpRight, run: actions.newGivenCheque },
-    { label: 'Add funds', icon: Wallet, run: actions.addFunds },
-    { label: 'Import cheques from Excel', icon: FileSpreadsheet, run: actions.importCheques },
+    { label: 'Add a given cheque', icon: ArrowUpRight, run: () => actions.newGivenCheque() },
+    { label: 'Add funds', icon: Wallet, run: () => actions.addFunds() },
+    { label: 'Import cheques from Excel', icon: FileSpreadsheet, run: () => actions.importCheques() },
   ].filter((a) => !q || a.label.toLowerCase().includes(q))
 
   const places = NAV_ITEMS.filter((item) => !q || item.label.toLowerCase().includes(q))

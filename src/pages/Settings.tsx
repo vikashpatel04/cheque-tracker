@@ -28,6 +28,7 @@ import type { AllocationSort, Cheque, ChequeHistory, DailyDeposit, Party } from 
 import type { BankAccount, ReceivedCheque, ReceivedChequeHistory } from '@/types/received'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { TracksCard } from '@/components/settings/TracksCard'
 
 export default function SettingsPage() {
   const { settings, region, updateSettings } = useSettings()
@@ -124,6 +125,8 @@ export default function SettingsPage() {
       <PageHeader title="Settings" />
 
       <PlanCard />
+
+      <TracksCard />
 
       <RegionSettingsCard />
 

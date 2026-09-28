@@ -129,6 +129,15 @@ describe('region settings', () => {
     await expect(t.asUser(U1, `UPDATE settings SET cheque_validity_months = 30 WHERE user_id = $1`, [U1])).rejects.toThrow(/validity/)
     await expect(t.asUser(U1, `UPDATE settings SET clearing_days = 45 WHERE user_id = $1`, [U1])).rejects.toThrow(/clearing_days/)
   })
+
+  it('tracks both directions until the user picks one', async () => {
+    const before = await t.asUser<{ tracks: string }>(U1, 'SELECT tracks FROM settings WHERE user_id = $1', [U1])
+    expect(before.rows).toEqual([{ tracks: 'both' }])
+    await t.asUser(U1, `UPDATE settings SET tracks = 'given' WHERE user_id = $1`, [U1])
+    const after = await t.asUser<{ tracks: string }>(U1, 'SELECT tracks FROM settings WHERE user_id = $1', [U1])
+    expect(after.rows).toEqual([{ tracks: 'given' }])
+    await expect(t.asUser(U1, `UPDATE settings SET tracks = 'nothing' WHERE user_id = $1`, [U1])).rejects.toThrow(/tracks/)
+  })
 })
 
 describe('self-hosted edition (billing off)', () => {

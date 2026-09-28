@@ -12,13 +12,14 @@ import { SourceLink } from '@/components/shared/SourceLink'
 import { isActivePath, NAV_ITEMS, RETURNED_ITEM, type NavItem } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
+import { useTodos } from '@/hooks/useTodayData'
 import { useOnline } from '@/lib/pwa'
 import { cn } from '@/lib/utils'
 
 /** The search shortcut as this device writes it. */
 const SEARCH_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'
 
-function SidebarLink({ item }: { item: NavItem }) {
+function SidebarLink({ item, count }: { item: NavItem; count?: number }) {
   return (
     <NavLink
       to={item.to}
@@ -32,6 +33,14 @@ function SidebarLink({ item }: { item: NavItem }) {
     >
       <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
       <span className="flex-1">{item.label}</span>
+      {!!count && (
+        <span
+          aria-label={`${count} to do`}
+          className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-brand px-[7px] text-xs font-semibold text-brand-ink"
+        >
+          {count}
+        </span>
+      )}
     </NavLink>
   )
 }
@@ -60,6 +69,7 @@ function SidebarPlan() {
 }
 
 function Sidebar() {
+  const { todos } = useTodos()
   return (
     <nav
       aria-label="Main"
@@ -69,7 +79,7 @@ function Sidebar() {
         <AppLogo size="sm" />
       </Link>
       {NAV_ITEMS.map((item) => (
-        <SidebarLink key={item.to} item={item} />
+        <SidebarLink key={item.to} item={item} count={item.to === '/' ? todos.length : undefined} />
       ))}
       <div className="mt-3 border-t border-line-soft pt-3">
         <SidebarLink item={RETURNED_ITEM} />

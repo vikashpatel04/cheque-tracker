@@ -7,10 +7,15 @@ import { createContext, useContext } from 'react'
  */
 export interface AppActions {
   newGivenCheque: () => void
-  addFunds: () => void
+  /** Add funds, optionally starting from the amount that's needed. */
+  addFunds: (amount?: number) => void
   importCheques: () => void
   openSearch: () => void
+  /** A given cheque's detail. */
   openCheque: (id: string) => void
+  /** Received cheques: deposit these, or open one. Their screens come with plan item 14, step 4. */
+  depositReceived: (ids: string[]) => void
+  openReceivedCheque: (id: string) => void
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null)

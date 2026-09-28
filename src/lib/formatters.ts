@@ -40,6 +40,43 @@ export function formatCurrency(value: number, region: Region = getActiveRegion()
   return numberFormat(region.locale, { style: 'currency', currency: region.currency }).format(value)
 }
 
+/**
+ * For figures people read at a glance: no decimals when the amount is whole
+ * ("₹20,000"), two when it isn't ("₹19,037.50").
+ */
+export function formatMoney(value: number, region: Region = getActiveRegion()): string {
+  const digits = Math.round(Math.abs(value) * 100) % 100 === 0 ? 0 : 2
+  return numberFormat(region.locale, {
+    style: 'currency',
+    currency: region.currency,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value)
+}
+
+/** Three significant figures, for small tiles: "₹1.73L", "₹6.5K", "$1.2M". */
+export function formatMoneyShort(value: number, region: Region = getActiveRegion()): string {
+  return numberFormat(region.locale, {
+    style: 'currency',
+    currency: region.currency,
+    notation: 'compact',
+    maximumSignificantDigits: 3,
+  }).format(value)
+}
+
+/**
+ * Money with its direction: "+₹15,000" coming in, "−₹72,000" going out
+ * (a real minus sign). `format` picks the full or the short form.
+ */
+export function formatSigned(
+  value: number,
+  direction: 'in' | 'out',
+  format: (value: number, region?: Region) => string = formatMoney
+): string {
+  if (value === 0) return format(0)
+  return `${direction === 'in' ? '+' : '−'}${format(Math.abs(value))}`
+}
+
 /** Short form for chart axes and tiles, e.g. ₹1.2L or $1.2M. */
 export function formatCurrencyCompact(value: number, region: Region = getActiveRegion()): string {
   return numberFormat(region.locale, {
