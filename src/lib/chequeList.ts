@@ -253,15 +253,20 @@ export function sortRows(rows: ListRow[], key: SortKey, dir: SortDir): ListRow[]
 
 export interface DayGroup {
   key: string
-  /** 'overdue', 'today', a date (yyyy-MM-dd) for upcoming days, or a month (yyyy-MM) for finished cheques. */
-  kind: 'overdue' | 'today' | 'day' | 'month'
+  /** 'overdue', 'clearing' (received cheques deposited and waiting), 'today', a date (yyyy-MM-dd) for upcoming days, or a month (yyyy-MM) for finished cheques. */
+  kind: 'overdue' | 'clearing' | 'today' | 'day' | 'month'
   value: string
   rows: ListRow[]
   in: number
   out: number
 }
 
-/** For the "upcoming" order: overdue, today, each coming day, then finished cheques by month. */
+const GROUP_ORDER: DayGroup['kind'][] = ['overdue', 'clearing', 'today', 'day', 'month']
+
+/**
+ * For the "upcoming" order: overdue, in clearing, today, each coming day,
+ * then finished cheques by month, latest first.
+ */
 export function groupByDay(rows: ListRow[], today: string): DayGroup[] {
   const groups: DayGroup[] = []
   const find = (kind: DayGroup['kind'], value: string) => {
@@ -276,7 +281,9 @@ export function groupByDay(rows: ListRow[], today: string): DayGroup[] {
   for (const row of rows) {
     const group = !row.open
       ? find('month', row.due.slice(0, 7))
-      : row.due < today
+      : row.received?.status === 'DEPOSITED'
+        ? find('clearing', '')
+        : row.due < today
         ? find('overdue', '')
         : row.due === today
           ? find('today', today)
@@ -285,5 +292,8 @@ export function groupByDay(rows: ListRow[], today: string): DayGroup[] {
     if (row.direction === 'in') group.in += row.amount ?? 0
     else group.out += row.amount ?? 0
   }
-  return groups
+  const rank = (g: DayGroup) => GROUP_ORDER.indexOf(g.kind)
+  return groups.sort(
+    (a, b) => rank(a) - rank(b) || (a.kind === 'month' ? b.value.localeCompare(a.value) : a.value.localeCompare(b.value))
+  )
 }

@@ -254,9 +254,9 @@ export function formatLongDate(date: string | Date, region: Region = getActiveRe
   return format(toCalendarDate(date, region), isMonthFirst(region) ? 'EEEE, MMMM d' : 'EEEE, d MMMM')
 }
 
-/** Short day and month for chart labels, in the user's order: "26 Sep" or "Sep 26". */
+/** Short day and month for chart labels, in the user's order: "6 Sep" or "Sep 6". */
 export function formatDayMonth(date: Date, region: Region = getActiveRegion()): string {
-  return format(date, isMonthFirst(region) ? 'MMM dd' : 'dd MMM')
+  return format(date, isMonthFirst(region) ? 'MMM d' : 'd MMM')
 }
 
 /** Month label for a yyyy-MM key, e.g. "Sep 26". */

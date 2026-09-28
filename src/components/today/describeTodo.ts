@@ -1,7 +1,8 @@
 import { ArrowDownLeft, Check, CircleX, Hourglass, ShieldCheck, TriangleAlert, Wallet, type LucideIcon } from 'lucide-react'
 import { formatMoney, formatShortDate } from '@/lib/formatters'
 import type { ChipTone } from '@/lib/statusChips'
-import { isReceivedTodo, type Todo } from '@/lib/today'
+import { STALE_WARNING_DAYS } from '@/lib/receivedSchedule'
+import { isReceivedTodo, plusDays, type Todo } from '@/lib/today'
 import type { Cheque } from '@/types'
 import type { ReceivedCheque } from '@/types/received'
 
@@ -93,7 +94,8 @@ export function describeTodo(todo: Todo, today: string): TodoText {
     }
     case 'deposit': {
       const one = todo.cheques.length === 1
-      const stale = todo.staleOn ? ` · goes stale on ${formatShortDate(todo.staleOn)}` : ''
+      // Only worth saying when it's close.
+      const stale = todo.staleOn && todo.staleOn <= plusDays(today, STALE_WARNING_DAYS) ? ` · goes stale on ${formatShortDate(todo.staleOn)}` : ''
       return {
         title: one
           ? `Deposit the cheque from ${party(todo.cheques[0])}`

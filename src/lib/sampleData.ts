@@ -133,6 +133,8 @@ export async function addSampleData(today: string, validityMonths: number): Prom
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { error: 'Not signed in' }
+  // One set at a time, even if the button is pressed twice.
+  if (await hasSampleData()) return { error: 'Sample data is already here. Remove it first to add a fresh set.', added: 0 }
   const plan = samplePlan(today, validityMonths)
 
   const { count: givenCount } = await supabase.from('cheques').select('id', { count: 'exact', head: true }).is('deleted_at', null)

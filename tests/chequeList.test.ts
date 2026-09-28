@@ -142,7 +142,8 @@ describe('the Cheques list', () => {
     expect(open.map((r) => r.due)).toEqual([...open.map((r) => r.due)].sort())
 
     const groups = groupByDay(sorted, TODAY)
-    expect(groups.map((g) => g.kind)).toEqual(['overdue', 'today', 'day', 'day', 'month', 'month', 'month'])
+    expect(groups.map((g) => g.kind)).toEqual(['overdue', 'clearing', 'today', 'day', 'day', 'month', 'month', 'month'])
+    expect(groups.filter((g) => g.kind === 'month').map((g) => g.value)).toEqual(['2026-09', '2026-08', '2026-07'])
     const todayGroup = groups.find((g) => g.kind === 'today')!
     expect([todayGroup.in, todayGroup.out]).toEqual([25000, 20000])
   })

@@ -25,6 +25,8 @@ function groupLabel(group: DayGroup, today: string) {
   switch (group.kind) {
     case 'overdue':
       return { text: 'Overdue', className: 'text-problem' }
+    case 'clearing':
+      return { text: 'In clearing', className: 'text-progress' }
     case 'today':
       return { text: `Today · ${formatShortDate(today)}`, className: 'text-attention' }
     case 'day':

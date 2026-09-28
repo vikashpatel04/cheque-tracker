@@ -45,10 +45,12 @@ export function SampleDataCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
-        <Button variant="outline" disabled={busy || present === null} onClick={() => void add()}>
-          <FlaskConical />
-          {busy && !present ? 'Adding…' : present ? 'Add another set' : 'Try with sample data'}
-        </Button>
+        {!present && (
+          <Button variant="outline" disabled={busy || present === null} onClick={() => void add()}>
+            <FlaskConical />
+            {busy ? 'Adding…' : 'Try with sample data'}
+          </Button>
+        )}
         {present && (
           <Button variant="destructive" disabled={busy} onClick={() => void remove()}>
             <Trash2 />

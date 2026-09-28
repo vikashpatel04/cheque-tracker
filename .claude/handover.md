@@ -30,7 +30,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - **Building it (item 14) started on 2026-09-28, web version first.** Step 1 is done: the Passbook colours (light and dark), fonts, the new frame (sidebar and top bar on desktop, bottom tabs on phones, New menu, search, activity bell, appearance), and the installed app (icons, offline start, update prompt, install option). `CLAUDE.md` says where each piece lives.
   - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
   - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
-  - Step 4 is nearly done: the received-cheque screens are built and connected (see its notes in `plan.md`). What's left is to add the sample data (my call, since it writes to the dev project: Settings → Sample data → Try with sample data), check the received screens in the browser, and fix what shows up.
+  - Step 4 is done: the received-cheque screens (form, deposit, detail and every action, search) and Settings → Sample data. One sample set is on the dev project (I said yes on 2026-09-29); remove it any time in Settings. I'll review the receiving side's wording and signs later.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
@@ -38,7 +38,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   1. ~~Tokens, fonts and the new frame~~ (done).
   2. ~~Today in all three views~~ (done).
   3. ~~Cheques and cheque detail~~ (done).
-  (Step 4 is in progress; continue from its note in `plan.md`.)
+  4. ~~The received-cheque screens~~ (done).
   4. The received-cheque screens, with made-up received cheques (item 11).
   5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 

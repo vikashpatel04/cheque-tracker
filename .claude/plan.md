@@ -48,7 +48,8 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - On 2026-09-27 the maintainer's v0 export went into the dev project: 97 parties, 82 given cheques and 7 funds added. The card still needs a look at phone width, as part of 12.
 - [ ] **10.** Add cheque IDs to the export, so a later import brings history back too.
   - Moved on 2026-09-27: do it with 57. IDs alone don't bring history back; the export also needs exact times and the data that undo relies on.
-- [ ] **11.** Made-up sample data for both sides, since a v0 export has no received cheques. Later it can become a "try with sample data" option for new sign-ups. Real cheque, party or bank data never goes in the repo or the tests.
+- [x] **11.** Made-up sample data for both sides, since a v0 export has no received cheques. Later it can become a "try with sample data" option for new sign-ups. Real cheque, party or bank data never goes in the repo or the tests.
+  - Done in 14, step 4: Settings → Sample data (`src/lib/sampleData.ts`). Onboarding (step 5) can offer the same button to new sign-ups.
   - Moved on 2026-09-27: build it with the received screens in 14. Received cheques have no screens yet, so sample ones would be invisible.
 - [x] **12.** Try the app with the maintainer, who signs in themselves: region setup, Settings, then the main screens. Fix what breaks.
   - On 2026-09-27 the maintainer went through the screens with the imported data, and everything showed properly. The layout problems in 15–24 are for the redesign.
@@ -86,10 +87,11 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Returned is now the "Returned" view; /returned redirects there. The old list, Returned page and badge helpers are gone. The list's logic is tested in `tests/chequeList.test.ts`.
     - Received rows already show here; opening, depositing and swiping them use the step 4 placeholders.
     - Revised after the maintainer's review (2026-09-28, items 70–72): every row, card and to-do shows its next step as a button (Mark funded, Mark passed, Decide), and the same step on swipe; per-cheque "Add funds" is gone; given amounts have no minus sign; Add funds explains that it records today's money and starts from zero each day. The table shows from 1280px wide, cards (two columns on tablets) below that. The new logo is in.
-  - [ ] 4. The received-cheque screens, with made-up received cheques (11). **In progress.**
+  - [x] 4. The received-cheque screens, with made-up received cheques (11).
     - Done so far (2026-09-28): Settings → Bank accounts (add, edit, default, remove; `src/lib/bankAccounts.ts`, `useBankAccounts`); `PartyPicker` (choose or add a party inside a form); the received-cheque form (one cheque, a security cheque or a series, and editing), opened from New → Received cheque or Series, with the "I received it / I gave it" switch (the given form got the same look); the New menu follows What you track.
     - Also done (2026-09-28): the deposit panel (date, account, tick cheques, deposit all at once); the received cheque detail with its next step and every action (mark cleared, bounced, deposit again now or later, paid another way, got a new cheque, hand back, write off, undo, edit, delete); "Mark cleared" and "Deposit" work from rows, cards, swipe and Today; received cheques in search; Settings → Sample data ("Try with sample data" adds made-up parties named "(sample)", an account and received cheques in every state, plus given ones for an account without any; "Remove sample data" takes it all away). Plan tested in `tests/sampleData.test.ts`.
-    - Left: the maintainer presses "Try with sample data" (it writes to the dev project, so it's their call), then we check the received screens in the browser at desktop and phone width and fix what shows up. The maintainer will review the receiving side's wording and signs after that.
+    - Checked 2026-09-29 with the sample data (the maintainer said yes to adding it): Today's Received view, the deposit panel, the received detail and its dialogs, and the received list on phones all work. Fixed on the way: the sample could be added twice (now one set at a time), "goes stale" showed for dates months away (now only within a week), short dates read "05 Oct" (now "5 Oct"), and cheques in clearing sat under "Overdue" in the phone list (now their own group). One sample set is on the dev project; Settings → Sample data removes it.
+    - The maintainer will review the receiving side's wording and signs later (they said so on 2026-09-28).
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 
 ## Layout and navigation
