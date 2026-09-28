@@ -49,6 +49,8 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 ## Decided on 2026-09-28
 
+- After reviewing steps 1 to 3 (plan items 70–72): cheques you give show no minus sign; each cheque's next step is a button (Pending → Mark funded, Funded → Mark passed, Returned → decide); Add funds is only the daily batch for money put into the bank today, which funds the ticked cheques at once and starts from zero each day, and the app says so. I'll review the receiving side's wording and signs later.
+- My own logo is the app's logo: `public/logo.webp` and the icons in `public/icons/`, made from it.
 - Build the web version (the PWA) first; I decide about native apps once it's done. Keep the Passbook look exactly as designed.
 - Fonts are bundled with the app instead of loaded from Google, so the installed app works offline and makes no third-party requests.
 - Light or dark follows the device unless you pick one under Appearance; the choice is saved per device.

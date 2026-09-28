@@ -161,10 +161,13 @@ Sidebar `#FBFAF6`, segmented-control track `#ECE8DE`.
 **Rules the designs follow:**
 
 - **Primary buttons:** only the main daily action is a solid button: Deposit, or Add funds. Everything else is outlined.
+- **Next step on every cheque** (2026-09-28): each row, card and to-do has one outlined button for its next step: Mark funded, Mark passed, Decide; Deposit or Mark cleared on the receiving side. Swiping a card offers the same step.
+- **No minus signs for cheques you give** (2026-09-28): their amounts are plain; the question that matters is what's needed today. Received amounts keep "+" for now. Only net figures, which can go either way, carry a sign.
+- **Add funds is the daily batch** (2026-09-28): money put into the bank today, then tick the cheques it covers and they're all funded at once. "Funds added today" starts from zero each day, and an info button next to it says so.
 - **Dates:** shown with month names ("Thu 24 Sep"), so DD/MM vs MM/DD can't confuse anyone. Date fields use the region's format.
 - **Sizes:** body text is 16px on the phone; key numbers are 34–36px on desktop and 21px in phone tiles.
 - **Corners:** 10px for controls, 12–14px for cards, fully round for chips.
-- **Logo:** a cheque outline with a green tick.
+- **Logo:** the maintainer's own logo since 2026-09-28: a cream cheque card on a navy backing, with a navy badge holding a cream tick. It's `public/logo.webp` in the app and `public/icons/` for the installed app and browser tabs (made from the original with sharp). The canvas boards still show the earlier drawn mark.
 
 What else is decided:
 

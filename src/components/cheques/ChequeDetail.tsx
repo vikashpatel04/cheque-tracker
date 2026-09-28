@@ -275,7 +275,6 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
                 replaced={replacedBy.length > 0}
                 note={note}
                 busy={status.submitting}
-                onAddFunds={() => app.addFunds(amount)}
                 onFunded={() => status.requestStatus(cheque, 'DEPOSITED')}
                 onFundAndPass={() => status.requestChained(cheque)}
                 onPassed={() => status.requestStatus(cheque, 'PASSED')}
@@ -395,7 +394,6 @@ interface NextStepProps {
   replaced: boolean
   note: string | null
   busy: boolean
-  onAddFunds: () => void
   onFunded: () => void
   onFundAndPass: () => void
   onPassed: () => void
@@ -426,22 +424,17 @@ function NextStep(props: NextStepProps) {
     case 'PENDING':
       return card(
         'plain',
-        'It needs funds',
-        `${due}. Add the money to your bank, or mark it funded if it's already there.`,
+        'Is the money in the bank?',
+        `${due}. Mark it funded once there's enough in the account to cover it.`,
         <>
-          <Button size="lg" disabled={busy} onClick={props.onAddFunds}>
+          <Button size="lg" disabled={busy} onClick={props.onFunded}>
             <Wallet />
-            Add funds
+            Mark funded
           </Button>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="lg" disabled={busy} onClick={props.onFunded}>
-              Mark funded
-            </Button>
-            <Button variant="outline" size="lg" disabled={busy} onClick={props.onFundAndPass}>
-              <CheckCheck />
-              It passed
-            </Button>
-          </div>
+          <Button variant="outline" size="lg" disabled={busy} onClick={props.onFundAndPass}>
+            <CheckCheck />
+            It already passed
+          </Button>
           <Button variant="ghost" className="text-problem hover:text-problem" disabled={busy} onClick={props.onReturned}>
             It came back unpaid…
           </Button>

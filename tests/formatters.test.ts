@@ -15,6 +15,7 @@ import {
   formatMonthLabel,
   formatShortDate,
   formatSigned,
+  formatNet,
   localizeIsoDates,
   parseAmount,
   parseFlexibleDate,
@@ -126,7 +127,9 @@ describe('figures and dates on Today', () => {
     expect(formatMoneyShort(173000)).toBe('₹1.73L')
     expect(formatMoneyShort(6500)).toBe('₹6.5K')
     expect(formatSigned(15000, 'in')).toBe('+₹15,000')
-    expect(formatSigned(72000, 'out')).toBe('−₹72,000')
+    expect(formatSigned(72000, 'out')).toBe('₹72,000')
+    expect(formatNet(6500)).toBe('+₹6,500')
+    expect(formatNet(-45406)).toBe('−₹45,406')
     expect(formatSigned(0, 'out')).toBe('₹0')
     use('US')
     expect(formatMoney(125000)).toBe('$125,000')

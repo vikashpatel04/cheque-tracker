@@ -55,7 +55,6 @@ export function OutgoingChart({ days }: { days: GivenDay[] }) {
       <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 border-t border-line-soft pt-2 text-sm">
         <span className="text-ink-quiet">30-day total</span>
         <span className="font-semibold tabular-nums">
-          {'−'}
           {formatMoney(funded + notFunded)}
           {notFunded > 0 && ` · ${formatMoney(notFunded)} not funded`}
         </span>

@@ -1,4 +1,4 @@
-import { Ban, CheckCheck, EllipsisVertical, PanelRight, Pencil, Repeat, Undo2, Wallet } from 'lucide-react'
+import { Ban, CheckCheck, EllipsisVertical, PanelRight, Pencil, Repeat, Undo2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,12 +29,6 @@ export function GivenRowMenu({ cheque, actions, className }: { cheque: Cheque; a
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
-        {cheque.status === 'PENDING' && (
-          <DropdownMenuItem onSelect={() => actions.addFunds(cheque)}>
-            <Wallet className="text-ink-quiet" />
-            Add funds for it
-          </DropdownMenuItem>
-        )}
         {transitions.map((status) => {
           const { label, Icon } = STATUS_ACTION_META[status]
           return (

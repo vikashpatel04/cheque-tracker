@@ -40,7 +40,7 @@ Built in 14, step 3 (2026-09-28): the Cheques list, its views and filters, the r
 |---|---|
 | Search by cheque number or party; filter by status (several at once), party and bank; sort by due date, issue date, amount or party, up or down | Cheques: search, filters, sort |
 | Columns: cheque no., party, bank, amount, issue date, due date, status, days until due | Table columns on desktop, card lines on the phone. Days until due reads "in 3 days" or "2 days overdue" |
-| Row menu: mark Funded, Passed, Returned (with a reason) or Cancelled; Funded and Passed in one step; Edit; Undo | Row menu and cheque detail; swipe on the phone |
+| Row menu: mark Funded, Passed, Returned (with a reason) or Cancelled; Funded and Passed in one step; Edit; Undo | The next step as a button on every row and card (Mark funded, Mark passed, Decide); everything else in the row menu and cheque detail; swipe on the phone |
 | Export the list as PDF or Excel | Cheques → Export, with the filters applied |
 | Add a cheque: party, cheque no., bank, amount, issue date, due date, notes | Add cheque, given |
 | Bulk add page: many rows at once, cheque numbers counting up, also for one party | New → Add several, and "Add cheques" in a party's ledger |

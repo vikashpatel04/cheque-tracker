@@ -52,7 +52,10 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add funds</DialogTitle>
-            <DialogDescription>Money you put into the bank today to cover cheques you gave.</DialogDescription>
+            <DialogDescription>
+              The money you put into the bank today. Next, tick the cheques it covers and they're all marked funded at
+              once. Today's total starts again from zero tomorrow.
+            </DialogDescription>
           </DialogHeader>
           <form
             className="space-y-4"

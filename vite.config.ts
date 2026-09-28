@@ -11,8 +11,8 @@ const escapeHtml = (s: string) =>
 /** The paper colour of the Passbook look, light and dark (src/index.css). */
 const GROUND = { light: '#F6F4EE', dark: '#10161D' }
 
-/** Files in public/icons, served at /icons. */
-const ICONS = readdirSync(path.resolve(__dirname, 'public/icons')).map((file) => `/icons/${file}`)
+/** The logo and the files in public/icons, saved for offline use with each build. */
+const ICONS = ['/logo.webp', ...readdirSync(path.resolve(__dirname, 'public/icons')).map((file) => `/icons/${file}`)]
 
 /**
  * Puts the product name into index.html and generates the web manifest, so a
@@ -77,7 +77,7 @@ function serviceWorker(): Plugin {
     enforce: 'post',
     generateBundle(_options, bundle) {
       const built = Object.keys(bundle)
-        .filter((file) => /\.(js|css|woff2|png|svg)$/.test(file))
+        .filter((file) => /\.(js|css|woff2|png|svg|webp)$/.test(file))
         .map((file) => `/${file}`)
       const files = [...new Set(['/index.html', '/manifest.json', ...ICONS, ...built])].sort()
       const template = readFileSync(path.resolve(__dirname, 'pwa/service-worker.js'), 'utf8')

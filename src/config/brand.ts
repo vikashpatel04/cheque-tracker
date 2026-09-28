@@ -10,8 +10,8 @@ export const brand = {
   name: env.VITE_APP_NAME || 'Cheque Tracker',
   tagline: env.VITE_APP_TAGLINE || 'Track every cheque. Never miss a date.',
   siteUrl: env.VITE_SITE_URL || 'https://chequetracker.com',
-  /** An image to show instead of the built-in logo mark, e.g. "/icons/my-logo.svg". */
-  logoUrl: env.VITE_APP_LOGO || undefined,
+  /** The logo image in the app. Replace public/logo.webp, or point this at another image in public/. */
+  logoUrl: env.VITE_APP_LOGO || '/logo.webp',
   /**
    * Where users of this deployment can get its source code. Unset by default,
    * so no link is shown. The AGPL (section 13) requires offering the source to

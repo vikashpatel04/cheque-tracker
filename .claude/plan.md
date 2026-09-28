@@ -20,6 +20,9 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **5.** The hosted service sells prepaid packs through Razorpay.
 - **6.** PWA only for now; native apps later.
   - Reconfirmed on 2026-09-28: rework the web version (the PWA) first. The maintainer decides about native apps once it's done.
+- **70.** Cheques you give show their amount without a minus sign (decided 2026-09-28). People who give cheques think about when money is needed, not about signs; the figures that matter are for today ("Needed in the bank today"). Received amounts keep their "+" until the maintainer reviews the receiving side.
+- **71.** Every cheque shows its next step as a button (decided 2026-09-28): Pending → Mark funded, Funded → Mark passed, Returned → decide what happens. "Add funds" isn't a per-cheque action: it's the daily batch for money put into the bank today, where you tick the cheques it covers and they're all marked funded at once. Its total starts at zero again each day, and the app says so where you add funds.
+- **72.** The maintainer's own logo replaces the drawn mark (2026-09-28): `public/logo.webp` in the app, and icons made from it in `public/icons/`.
 
 ## Order of work
 
@@ -82,6 +85,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - The cheque detail is a panel (full screen on phones): who it's to, the amount, status and tags, one card with the next step (add funds, did it pass, present again or write off, issue a replacement), details, the party with a link to its ledger, and the history with undo. Edit, cancel and delete are in its menu.
     - Returned is now the "Returned" view; /returned redirects there. The old list, Returned page and badge helpers are gone. The list's logic is tested in `tests/chequeList.test.ts`.
     - Received rows already show here; opening, depositing and swiping them use the step 4 placeholders.
+    - Revised after the maintainer's review (2026-09-28, items 70–72): every row, card and to-do shows its next step as a button (Mark funded, Mark passed, Decide), and the same step on swipe; per-cheque "Add funds" is gone; given amounts have no minus sign; Add funds explains that it records today's money and starts from zero each day. The table shows from 1280px wide, cards (two columns on tablets) below that. The new logo is in.
   - [ ] 4. The received-cheque screens, with made-up received cheques (11). **In progress.**
     - Done so far (2026-09-28): Settings → Bank accounts (add, edit, default, remove; `src/lib/bankAccounts.ts`, `useBankAccounts`); `PartyPicker` (choose or add a party inside a form); `ReceivedChequeForm` (one cheque, a security cheque, or a series, and editing), written and type-checked but not yet opened from anywhere; `updateReceivedCheque`, `deleteReceivedCheque` and `currencySymbol`.
     - Still to do: wire the form into AppActions and the New menu (Received cheque, Series; respect What you track), with the "I received it / I gave it" switch; a deposit dialog (account, date, pick cheques; design board Deposit-phone); the received cheque detail with every action (clear, bounce, deposit again, paid another way, hand back, write off, replace, undo; like the given detail); replace the step-2 placeholders in AppActions (`depositReceived`, `openReceivedCheque`); received cheques in search; a "Try with sample data" button that adds made-up parties, an account and received cheques in every state, marked so they can be removed; then check it all in the browser at desktop and phone width.
@@ -115,6 +119,7 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
 ## Visual rules
 
 - [ ] **25.** Money in is green (↙). Money out is neutral ink with a minus sign (↗).
+  - Changed by 70: money out is neutral ink with no minus sign.
 - [ ] **26.** Red is only for problems and amber for attention. Status shows as an icon plus text, never colour alone.
 - [ ] **27.** Amounts use tabular figures: compact in tiles, full in tables, grouped the way the region writes numbers.
 - [ ] **28.** Semantic tokens (`--money-in`, `--money-out`, `--status-*`) replace hardcoded colours, which also gives dark mode.

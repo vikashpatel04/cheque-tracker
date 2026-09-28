@@ -27,7 +27,7 @@ Edit `.env.local`:
 | `VITE_SUPABASE_ANON_KEY` | Yes | Supabase → Settings → API → publishable (or legacy anon) key |
 | `VITE_APP_NAME` | No | The name shown in the app, page title and web manifest |
 | `VITE_APP_TAGLINE` | No | One line shown in the page description and manifest |
-| `VITE_APP_LOGO` | No | An image shown instead of the built-in logo, e.g. `/icons/my-logo.svg` (put it in `public/`) |
+| `VITE_APP_LOGO` | No | An image shown instead of `public/logo.webp`, e.g. `/my-logo.webp` (put it in `public/`) |
 | `VITE_SITE_URL` | No | Your site's address |
 | `VITE_SOURCE_URL` | If you change the code | Where your users can get your version's source code (see [below](#if-you-change-the-code)) |
 

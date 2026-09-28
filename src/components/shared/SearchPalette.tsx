@@ -15,7 +15,7 @@ import { NAV_ITEMS } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
 import { useDataChanges } from '@/lib/dataEvents'
 import { fetchAllRows } from '@/lib/fetchAll'
-import { formatCurrency, formatShortDate } from '@/lib/formatters'
+import { formatMoney, formatShortDate } from '@/lib/formatters'
 import type { Cheque, Party } from '@/types'
 
 const MAX_CHEQUES = 8
@@ -139,7 +139,7 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
                         {formatShortDate(cheque.due_date)}
                       </span>
                     </span>
-                    <span className="shrink-0 font-semibold tabular-nums">−{formatCurrency(Number(cheque.amount))}</span>
+                    <span className="shrink-0 font-semibold tabular-nums">{formatMoney(Number(cheque.amount))}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>

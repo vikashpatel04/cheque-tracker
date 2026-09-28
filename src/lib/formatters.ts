@@ -65,16 +65,26 @@ export function formatMoneyShort(value: number, region: Region = getActiveRegion
 }
 
 /**
- * Money with its direction: "+₹15,000" coming in, "−₹72,000" going out
- * (a real minus sign). `format` picks the full or the short form.
+ * Money with its direction: "+₹15,000" coming in, and plain "₹72,000" for a
+ * cheque you give (plan item 70: no minus signs on the giving side). `format`
+ * picks the full or the short form.
  */
 export function formatSigned(
   value: number,
   direction: 'in' | 'out',
   format: (value: number, region?: Region) => string = formatMoney
 ): string {
+  if (value === 0 || direction === 'out') return format(Math.abs(value))
+  return `+${format(Math.abs(value))}`
+}
+
+/** A net figure, which can go either way: "+₹6,500" or "−₹45,406" (a real minus sign). */
+export function formatNet(
+  value: number,
+  format: (value: number, region?: Region) => string = formatMoney
+): string {
   if (value === 0) return format(0)
-  return `${direction === 'in' ? '+' : '−'}${format(Math.abs(value))}`
+  return `${value > 0 ? '+' : '−'}${format(Math.abs(value))}`
 }
 
 /** The currency's symbol as the region writes it, for amount fields: "₹", "$", "€". */

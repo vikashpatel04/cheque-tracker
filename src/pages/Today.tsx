@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { DayChequesDialog } from '@/components/shared/DayChequesDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ChequeListDialog } from '@/components/today/ChequeListDialog'
+import { FundsAddedToday } from '@/components/today/FundsAddedToday'
 import { Tile } from '@/components/today/Tile'
 import { TodoList } from '@/components/today/TodoList'
 import { InOutChart, IncomingChart, OutgoingChart } from '@/components/today/TodayCharts'
@@ -23,6 +24,7 @@ import {
   formatMoney,
   formatMoneyShort,
   formatShortDate,
+  formatNet,
   formatSigned,
   todayISO,
 } from '@/lib/formatters'
@@ -115,14 +117,16 @@ export default function Today() {
     [view, given, received, today, rules]
   )
 
-  const markPassed = async (cheque: Cheque) => {
-    const result = await updateChequeStatus(cheque.id, 'PASSED', { changedBy: 'manual' })
+  /** Mark one cheque funded or passed, with an undo in the message. */
+  const setStatus = async (cheque: Cheque, status: 'DEPOSITED' | 'PASSED') => {
+    const word = status === 'DEPOSITED' ? 'funded' : 'passed'
+    const result = await updateChequeStatus(cheque.id, status, { changedBy: 'manual' })
     if (!result.success) {
-      toast.error(`Couldn't mark it passed: ${result.error}`)
+      toast.error(`Couldn't mark it ${word}: ${result.error}`)
       return
     }
     announceDataChange()
-    toast.success(`Marked passed: the cheque to ${cheque.party?.name ?? 'the party'}`, {
+    toast.success(`Marked ${word}: the cheque to ${cheque.party?.name ?? 'the party'}`, {
       action: {
         label: 'Undo',
         onClick: async () => {
@@ -137,11 +141,12 @@ export default function Today() {
   const onAction = (todo: Todo) => {
     switch (todo.kind) {
       case 'fund': {
+        if (todo.cheques.length === 1) return void setStatus(todo.cheques[0], 'DEPOSITED')
         const needed = todo.cheques.reduce((sum, c) => sum + Number(c.amount), 0)
         return actions.addFunds(needed)
       }
       case 'passed':
-        if (todo.cheques.length === 1) return void markPassed(todo.cheques[0])
+        if (todo.cheques.length === 1) return void setStatus(todo.cheques[0], 'PASSED')
         return setList({
           title: `Did ${todo.cheques.length} funded cheques pass?`,
           description: 'Open each one to mark it passed, or returned if it bounced.',
@@ -178,8 +183,8 @@ export default function Today() {
       <>
         {formatLongDate(today)}
         <span className="max-lg:hidden">
-          {' '}
-          · funds added today: <span className="font-semibold tabular-nums text-ink">{formatMoney(todayTotal)}</span>
+          {' · '}
+          <FundsAddedToday total={todayTotal} />
         </span>
       </>
     ) : (
@@ -213,7 +218,10 @@ export default function Today() {
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <span>
                     {neededText}
-                    <span className="lg:hidden"> · added today {formatMoney(todayTotal)}</span>
+                    <span className="lg:hidden">
+                      {' · '}
+                      <FundsAddedToday total={todayTotal} label="added today" />
+                    </span>
                   </span>
                   <Button className="max-lg:h-12 max-lg:text-base lg:text-sm" onClick={() => actions.addFunds(needed.amount || undefined)}>
                     <Wallet />
@@ -333,8 +341,8 @@ export default function Today() {
               <Tile
                 label="Net, next 7 days"
                 shortLabel="Net, 7 days"
-                value={formatSigned(Math.abs(net), net >= 0 ? 'in' : 'out')}
-                shortValue={formatSigned(Math.abs(net), net >= 0 ? 'in' : 'out', formatMoneyShort)}
+                value={formatNet(net)}
+                shortValue={formatNet(net, formatMoneyShort)}
                 tone={net >= 0 ? 'in' : 'out'}
               >
                 <span className="lg:hidden">in minus out</span>

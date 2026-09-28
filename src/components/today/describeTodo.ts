@@ -49,18 +49,19 @@ export function describeTodo(todo: Todo, today: string): TodoText {
           ? ` · ${party(todo.funded[0])} (${formatMoney(Number(todo.funded[0].amount))}) is already funded`
           : ` · ${plural(todo.funded.length, 'other')} already funded`
         : ''
+      // One cheque: mark it funded. Several: Add funds records today's money and funds them all at once.
       return {
         title: one
-          ? `Add funds for ${party(first)}`
+          ? `The cheque to ${party(first)} needs funds`
           : todo.group === 'overdue'
-            ? `Add funds for ${todo.cheques.length} overdue cheques`
-            : `Add funds for ${todo.cheques.length} cheques due ${todo.date === today ? 'today' : formatShortDate(todo.date)}`,
+            ? `${todo.cheques.length} overdue cheques need funds`
+            : `${todo.cheques.length} cheques due ${todo.date === today ? 'today' : formatShortDate(todo.date)} need funds`,
         detail: one ? `${when}${funded}` : `${names(todo.cheques)}${todo.group === 'week' ? '' : ` · ${when.toLowerCase()}`}`,
         icon: Wallet,
         tone: 'attention',
         direction,
-        action: 'Add funds',
-        primary: todo.group !== 'week',
+        action: one ? 'Mark funded' : 'Add funds',
+        primary: !one && todo.group !== 'week',
       }
     }
     case 'passed': {

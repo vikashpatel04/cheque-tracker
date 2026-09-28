@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { CircleX, Download, FileSpreadsheet, FileText, Landmark, ListFilter, Search, Wallet, Check } from 'lucide-react'
+import { Check, Download, FileSpreadsheet, FileText, Landmark, ListFilter, Search, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChequeCards, type SwipeAction } from '@/components/cheques/ChequeCards'
+import { ChequeCards } from '@/components/cheques/ChequeCards'
 import { ChequeTable } from '@/components/cheques/ChequeTable'
 import {
   AccountField,
@@ -24,6 +24,7 @@ import {
   StatusField,
   type FilterChoices,
 } from '@/components/cheques/ListFilters'
+import { nextAction } from '@/components/cheques/nextAction'
 import { useGivenActions } from '@/components/cheques/useGivenActions'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAppActions } from '@/hooks/useAppActions'
@@ -187,16 +188,7 @@ export default function Cheques() {
     else app.openReceivedCheque(row.id)
   }
 
-  const swipeAction = (row: ListRow): SwipeAction | null => {
-    const g = row.given
-    const r = row.received
-    if (g?.status === 'PENDING') return { label: 'Add funds', icon: Wallet, run: () => givenActions.addFunds(g) }
-    if (g?.status === 'DEPOSITED') return { label: 'Passed', icon: Check, run: () => givenActions.setStatus(g, 'PASSED') }
-    if (g?.status === 'RETURNED' && row.open) return { label: 'Decide', icon: CircleX, run: () => app.openCheque(g.id) }
-    if (r?.status === 'IN_HAND' && r.kind === 'REGULAR') return { label: 'Deposit', icon: Landmark, run: () => app.depositReceived([r.id]) }
-    if (r && (r.status === 'DEPOSITED' || r.status === 'BOUNCED')) return { label: 'Open', icon: CircleX, run: () => app.openReceivedCheque(r.id) }
-    return null
-  }
+  const next = (row: ListRow) => nextAction(row, givenActions, app)
 
   /* ---------- Export ---------- */
 
@@ -443,7 +435,7 @@ export default function Cheques() {
           </div>
         ) : (
           <>
-            <div className="max-lg:hidden">
+            <div className="max-xl:hidden">
               <ChequeTable
                 rows={visible.slice(0, shown)}
                 today={today}
@@ -452,17 +444,18 @@ export default function Cheques() {
                 onToggle={toggle}
                 onToggleAll={toggleAll}
                 onOpen={openRow}
+                nextAction={next}
                 givenActions={givenActions}
               />
             </div>
-            <div className="lg:hidden">
+            <div className="xl:hidden">
               <ChequeCards
                 rows={visible.slice(0, shown)}
                 today={today}
                 rules={rules}
                 grouped={filters.sort === 'upcoming'}
                 onOpen={openRow}
-                swipeAction={swipeAction}
+                nextAction={next}
               />
             </div>
             {visible.length > shown && (
@@ -475,7 +468,7 @@ export default function Cheques() {
       </div>
 
       {selectedRows.length > 0 && (
-        <div className="sticky bottom-4 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-brand px-5 py-3 text-brand-ink shadow-pop max-lg:hidden">
+        <div className="sticky bottom-4 z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-brand px-5 py-3 text-brand-ink shadow-pop max-xl:hidden">
           <span className="text-[15px] font-semibold">{selectedRows.length} selected</span>
           <span className="text-[15px] tabular-nums opacity-80">
             {[totals(selectedRows).in ? formatSigned(totals(selectedRows).in, 'in') : null, totals(selectedRows).out ? formatSigned(totals(selectedRows).out, 'out') : null]

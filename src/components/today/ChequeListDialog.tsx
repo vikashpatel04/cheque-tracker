@@ -38,7 +38,7 @@ export function ChequeListDialog({ title, description, cheques, onClose, onSelec
                     <span className="font-cheque">{c.cheque_number}</span> · {c.bank_name} · due {formatShortDate(c.due_date)}
                   </span>
                 </span>
-                <span className="shrink-0 font-semibold tabular-nums">{'−'}{formatMoney(Number(c.amount))}</span>
+                <span className="shrink-0 font-semibold tabular-nums">{formatMoney(Number(c.amount))}</span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
               </button>
             </li>

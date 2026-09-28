@@ -1,6 +1,8 @@
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { GivenRowMenu } from '@/components/cheques/GivenRowMenu'
+import type { NextAction } from '@/components/cheques/nextAction'
 import { RowStatus, RowTags } from '@/components/cheques/RowChips'
 import type { GivenActions } from '@/components/cheques/useGivenActions'
 import { dueNote, rowTags, type ListRow } from '@/lib/chequeList'
@@ -16,26 +18,28 @@ interface ChequeTableProps {
   onToggle: (key: string) => void
   onToggleAll: (select: boolean) => void
   onOpen: (row: ListRow) => void
+  nextAction: (row: ListRow) => NextAction | null
   givenActions: GivenActions
 }
 
-/** The cheque list on wider screens: one row per cheque, with selection and a menu. */
-export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAll, onOpen, givenActions }: ChequeTableProps) {
+/** The cheque list on wide screens: one row per cheque, its next step as a button, and a menu for the rest. */
+export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAll, onOpen, nextAction, givenActions }: ChequeTableProps) {
   const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.key))
   const someSelected = !allSelected && rows.some((r) => selected.has(r.key))
   return (
     <div className="overflow-x-auto rounded-xl border bg-surface">
-      <table className="w-full min-w-[700px] table-fixed border-collapse text-left">
+      <table className="w-full min-w-[900px] table-fixed border-collapse text-left">
         <colgroup>
           <col className="w-[48px]" />
           <col className="w-[40px]" />
           <col className="w-[112px]" />
           <col />
           <col className="w-[100px]" />
-          <col className="hidden w-[112px] xl:table-column" />
+          <col className="hidden w-[112px] 2xl:table-column" />
           <col className="hidden w-[108px] 2xl:table-column" />
-          <col className="w-[128px]" />
-          <col className="w-[140px] xl:w-[220px]" />
+          <col className="w-[120px]" />
+          <col className="w-[180px] 2xl:w-[220px]" />
+          <col className="w-[140px]" />
           <col className="w-[48px]" />
         </colgroup>
         <thead className="bg-sidebar text-[13px] font-semibold text-ink-quiet">
@@ -53,12 +57,13 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
             <th>Due</th>
             <th>Party</th>
             <th>Cheque no.</th>
-            <th className="hidden xl:table-cell">Bank</th>
+            <th className="hidden 2xl:table-cell">Bank</th>
             <th className="hidden 2xl:table-cell">Issued</th>
             <th className="pr-3 text-right">Amount</th>
             <th>Status</th>
+            <th>Next step</th>
             <th>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">More</span>
             </th>
           </tr>
         </thead>
@@ -67,6 +72,7 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
             const isSelected = selected.has(row.key)
             const note = dueNote(row, today)
             const tags = rowTags(row, today, rules)
+            const next = nextAction(row)
             return (
               <tr
                 key={row.key}
@@ -77,11 +83,7 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                 )}
               >
                 <td className="pl-5" onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => onToggle(row.key)}
-                    aria-label={`Select cheque ${row.number}`}
-                  />
+                  <Checkbox checked={isSelected} onCheckedChange={() => onToggle(row.key)} aria-label={`Select cheque ${row.number}`} />
                 </td>
                 <td>
                   <span
@@ -100,9 +102,7 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                 </td>
                 <td className="py-2 text-sm tabular-nums">
                   <div>{formatShortDate(row.due)}</div>
-                  {note && (
-                    <div className={cn('text-xs', note.endsWith('overdue') ? 'text-problem' : 'text-ink-quiet')}>{note}</div>
-                  )}
+                  {note && <div className={cn('text-xs', note.endsWith('overdue') ? 'text-problem' : 'text-ink-quiet')}>{note}</div>}
                 </td>
                 <td className="truncate pr-3">
                   <button
@@ -115,9 +115,10 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                   >
                     {row.party}
                   </button>
+                  <div className="truncate text-xs text-ink-quiet 2xl:hidden">{row.bank}</div>
                 </td>
                 <td className="font-cheque truncate text-sm text-ink-nav">{row.number}</td>
-                <td className="hidden truncate pr-3 text-sm text-ink-quiet xl:table-cell">{row.bank}</td>
+                <td className="hidden truncate pr-3 text-sm text-ink-quiet 2xl:table-cell">{row.bank}</td>
                 <td className="hidden text-sm tabular-nums text-ink-quiet 2xl:table-cell">{formatShortDate(row.issued)}</td>
                 <td
                   className={cn(
@@ -130,13 +131,15 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                 <td className="py-2">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <RowStatus row={row} />
-                    <span className="contents max-xl:hidden">
-                      <RowTags tags={tags} limit={2} />
-                    </span>
-                    <span className="contents xl:hidden">
-                      <RowTags tags={tags} limit={1} />
-                    </span>
+                    <RowTags tags={tags} limit={1} />
                   </div>
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  {next && (
+                    <Button variant="outline" size="sm" className="w-full" onClick={next.run}>
+                      {next.label}
+                    </Button>
+                  )}
                 </td>
                 <td onClick={(e) => e.stopPropagation()}>
                   {row.given && <GivenRowMenu cheque={row.given} actions={givenActions} />}

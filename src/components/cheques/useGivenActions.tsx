@@ -16,7 +16,6 @@ export interface GivenActions {
   undo: (cheque: Cheque) => void
   edit: (cheque: Cheque) => void
   open: (cheque: Cheque) => void
-  addFunds: (cheque: Cheque) => void
 }
 
 /**
@@ -39,7 +38,6 @@ export function useGivenActions() {
     undo: (cheque) => void rollback.requestRollback(cheque),
     edit: app.editCheque,
     open: (cheque) => app.openCheque(cheque.id),
-    addFunds: (cheque) => app.addFunds(Number(cheque.amount)),
   }
 
   const dialogs = (
