@@ -30,6 +30,7 @@ import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { TracksCard } from '@/components/settings/TracksCard'
 import { BankAccountsCard } from '@/components/settings/BankAccountsCard'
+import { SampleDataCard } from '@/components/settings/SampleDataCard'
 
 export default function SettingsPage() {
   const { settings, region, updateSettings } = useSettings()
@@ -237,6 +238,8 @@ export default function SettingsPage() {
       </Card>
 
       <ImportCard />
+
+      <SampleDataCard />
 
       <Card className="border-destructive">
         <CardHeader>

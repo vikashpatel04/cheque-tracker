@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpRight, FileSpreadsheet, Users, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, FileSpreadsheet, Repeat, Users, Wallet } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import {
   Command,
@@ -10,19 +10,20 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { StatusPill } from '@/components/shared/StatusPill'
+import { RowStatus } from '@/components/cheques/RowChips'
 import { NAV_ITEMS } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
 import { useDataChanges } from '@/lib/dataEvents'
 import { fetchAllRows } from '@/lib/fetchAll'
-import { formatMoney, formatShortDate } from '@/lib/formatters'
+import { givenRow, receivedRow, type ListRow } from '@/lib/chequeList'
+import { formatShortDate, formatSigned } from '@/lib/formatters'
+import { cn } from '@/lib/utils'
 import type { Cheque, Party } from '@/types'
+import type { ReceivedCheque } from '@/types/received'
 
 const MAX_CHEQUES = 8
 const MAX_PARTIES = 5
 
-/** Statuses still in play come first in results. */
-const OPEN_STATUSES = new Set(['PENDING', 'DEPOSITED', 'RETURNED'])
 
 interface SearchPaletteProps {
   open: boolean
@@ -34,15 +35,16 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
   const navigate = useNavigate()
   const actions = useAppActions()
   const [query, setQuery] = useState('')
-  const [cheques, setCheques] = useState<Cheque[] | null>(null)
+  const [cheques, setCheques] = useState<ListRow[] | null>(null)
   const [parties, setParties] = useState<Party[]>([])
 
   const load = useCallback(async () => {
-    const [chequeRows, partyRows] = await Promise.all([
+    const [given, received, partyRows] = await Promise.all([
       fetchAllRows<Cheque>('cheques', '*, party:parties(*)', { activeOnly: true }),
+      fetchAllRows<ReceivedCheque>('received_cheques', '*, party:parties(*)', { activeOnly: true }),
       fetchAllRows<Party>('parties', '*', { activeOnly: true }),
     ])
-    setCheques(chequeRows.rows)
+    setCheques([...given.rows.map(givenRow), ...received.rows.map(receivedRow)])
     setParties(partyRows.rows)
   }, [])
 
@@ -65,20 +67,21 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
 
   const chequeResults = useMemo(() => {
     if (!q || !cheques) return []
-    const scored: { cheque: Cheque; score: number }[] = []
-    for (const cheque of cheques) {
-      const number = cheque.cheque_number.toLowerCase()
+    const scored: { row: ListRow; score: number }[] = []
+    for (const row of cheques) {
+      const number = row.number.toLowerCase()
       let score = 0
       if (number === q) score = 4
       else if (number.includes(q)) score = 3
-      else if (cheque.party?.name?.toLowerCase().includes(q)) score = 2
-      else if (digits && String(Number(cheque.amount)).startsWith(String(Number(digits)))) score = 1
-      if (score) scored.push({ cheque, score: score + (OPEN_STATUSES.has(cheque.status) ? 0.5 : 0) })
+      else if (row.party.toLowerCase().includes(q)) score = 2
+      else if (digits && row.amount !== null && String(row.amount).startsWith(String(Number(digits)))) score = 1
+      // Cheques still in play come first.
+      if (score) scored.push({ row, score: score + (row.open ? 0.5 : 0) })
     }
     return scored
-      .sort((a, b) => b.score - a.score || b.cheque.due_date.localeCompare(a.cheque.due_date))
+      .sort((a, b) => b.score - a.score || b.row.due.localeCompare(a.row.due))
       .slice(0, MAX_CHEQUES)
-      .map((s) => s.cheque)
+      .map((s) => s.row)
   }, [q, digits, cheques])
 
   const partyResults = useMemo(
@@ -92,6 +95,8 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
   }
 
   const actionItems = [
+    { label: 'Add a received cheque', icon: ArrowDownLeft, run: () => actions.newReceivedCheque() },
+    { label: 'Add a series of received cheques', icon: Repeat, run: () => actions.newSeries() },
     { label: 'Add a given cheque', icon: ArrowUpRight, run: () => actions.newGivenCheque() },
     { label: 'Add funds', icon: Wallet, run: () => actions.addFunds() },
     { label: 'Import cheques from Excel', icon: FileSpreadsheet, run: () => actions.importCheques() },
@@ -121,25 +126,33 @@ export function SearchPalette({ open, onOpenChange }: SearchPaletteProps) {
 
             {chequeResults.length > 0 && (
               <CommandGroup heading="Cheques">
-                {chequeResults.map((cheque) => (
-                  <CommandItem key={cheque.id} value={`cheque-${cheque.id}`} onSelect={() => actions.openCheque(cheque.id)}>
+                {chequeResults.map((row) => (
+                  <CommandItem
+                    key={row.key}
+                    value={row.key}
+                    onSelect={() => (row.given ? actions.openCheque(row.id) : actions.openReceivedCheque(row.id))}
+                  >
                     <span
                       aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-money-out-soft text-money-out"
+                      className={cn(
+                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+                        row.direction === 'in' ? 'bg-money-in-soft text-money-in' : 'bg-money-out-soft text-money-out'
+                      )}
                     >
-                      <ArrowUpRight className="!size-[18px]" />
+                      {row.direction === 'in' ? <ArrowDownLeft className="!size-[18px]" /> : <ArrowUpRight className="!size-[18px]" />}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="flex items-center gap-2">
-                        <span className="truncate font-semibold">{cheque.party?.name ?? 'Unknown party'}</span>
-                        <StatusPill status={cheque.status} />
+                        <span className="truncate font-semibold">{row.party}</span>
+                        <RowStatus row={row} />
                       </span>
                       <span className="truncate text-sm text-ink-quiet">
-                        <span className="font-cheque">{cheque.cheque_number}</span> · {cheque.bank_name} · due{' '}
-                        {formatShortDate(cheque.due_date)}
+                        <span className="font-cheque">{row.number}</span> · {row.bank} · due {formatShortDate(row.due)}
                       </span>
                     </span>
-                    <span className="shrink-0 font-semibold tabular-nums">{formatMoney(Number(cheque.amount))}</span>
+                    <span className={cn('shrink-0 font-semibold tabular-nums', row.direction === 'in' && 'text-money-in')}>
+                      {row.amount === null ? '' : formatSigned(row.amount, row.direction)}
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>

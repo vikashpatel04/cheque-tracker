@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { ReceivedActionMode } from '@/components/received/ReceivedActionDialog'
 import type { ChequeDirection } from '@/components/shared/DirectionSwitch'
 import type { Cheque } from '@/types'
 import type { ReceivedCheque } from '@/types/received'
@@ -25,9 +26,11 @@ export interface AppActions {
   openSearch: () => void
   /** A given cheque's detail. */
   openCheque: (id: string) => void
-  /** Received cheques: deposit these, or open one. Their screens come with plan item 14, step 4. */
+  /** Deposit received cheques: these ones ticked, or the ones due today when the list is empty. */
   depositReceived: (ids: string[]) => void
   openReceivedCheque: (id: string) => void
+  /** One action on a received cheque, such as marking it cleared. */
+  actOnReceived: (mode: ReceivedActionMode, cheque: ReceivedCheque) => void
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null)

@@ -97,7 +97,9 @@ Built in 14, step 3 (2026-09-28): the Cheques list, its views and filters, the r
 | Delete all data, after typing a confirmation | Settings → Data |
 | New: what you track (given, received or both), bank accounts, notifications, profile | |
 
-## Received cheques: in the database, no screens yet
+## Received cheques
+
+Built in 14, step 4 (2026-09-28): the form (one, security or a series), the deposit panel, the cheque detail with every action and undo, bank accounts in Settings, search, and sample data to try it.
 
 | Capability | In the redesign |
 |---|---|

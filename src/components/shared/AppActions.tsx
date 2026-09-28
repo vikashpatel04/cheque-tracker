@@ -4,6 +4,9 @@ import { ChequeBulkUpload } from '@/components/cheques/BulkUpload'
 import { ChequeDetail } from '@/components/cheques/ChequeDetail'
 import { ChequeForm } from '@/components/cheques/ChequeForm'
 import { AddFundsFlow } from '@/components/deposit/AddFundsFlow'
+import { DepositDialog } from '@/components/received/DepositDialog'
+import { ReceivedActionDialog, type ReceivedActionMode } from '@/components/received/ReceivedActionDialog'
+import { ReceivedChequeDetail } from '@/components/received/ReceivedChequeDetail'
 import { ReceivedChequeForm } from '@/components/received/ReceivedChequeForm'
 import { DirectionSwitch, type ChequeDirection } from '@/components/shared/DirectionSwitch'
 import { SearchPalette } from '@/components/shared/SearchPalette'
@@ -41,6 +44,9 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
   const [received, setReceived] = useState<{ open: boolean; cheque: ReceivedCheque | null; series?: boolean }>({ open: false, cheque: null })
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [receivedId, setReceivedId] = useState<string | null>(null)
+  const [depositIds, setDepositIds] = useState<string[] | null>(null)
+  const [receivedAction, setReceivedAction] = useState<{ mode: ReceivedActionMode; cheque: ReceivedCheque } | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
   const [searchOpen, setSearchOpen] = useState(false)
@@ -95,8 +101,15 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         setSearchOpen(false)
         setDetailId(id)
       },
-      depositReceived: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
-      openReceivedCheque: () => toast.info('Received cheques get their own screens in the next part of the redesign.'),
+      depositReceived: (ids) => {
+        setReceivedId(null)
+        setDepositIds(ids)
+      },
+      openReceivedCheque: (id) => {
+        setSearchOpen(false)
+        setReceivedId(id)
+      },
+      actOnReceived: (mode, cheque) => setReceivedAction({ mode, cheque }),
     }),
     [openSearch, openNew, tracks]
   )
@@ -155,6 +168,16 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         cheque={received.cheque}
         asSeries={received.series}
         directionSwitch={directionSwitch('received')}
+      />
+
+      <ReceivedChequeDetail chequeId={receivedId} onClose={() => setReceivedId(null)} onDeposit={(ids) => setDepositIds(ids)} />
+
+      <DepositDialog ids={depositIds} onClose={() => setDepositIds(null)} />
+
+      <ReceivedActionDialog
+        mode={receivedAction?.mode ?? null}
+        cheque={receivedAction?.cheque ?? null}
+        onClose={() => setReceivedAction(null)}
       />
 
       <AddFundsFlow

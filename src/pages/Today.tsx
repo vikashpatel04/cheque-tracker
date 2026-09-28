@@ -160,7 +160,8 @@ export default function Today() {
       case 'going_stale':
         return actions.depositReceived([todo.cheque.id])
       case 'clearing':
-        return actions.openReceivedCheque(todo.cheques[0].id)
+        if (todo.cheques.length === 1) return actions.actOnReceived('clear', todo.cheques[0])
+        return navigate('/cheques?dir=received&view=in_clearing')
       case 'bounced':
       case 'stale':
       case 'security':
@@ -368,11 +369,21 @@ export default function Today() {
                   ? "Add the cheques you write to people. Today then shows what's due, what needs funds, and what went through."
                   : 'Cheques people give you show here: what to deposit and when, what is clearing, and what bounced.'}
               </p>
-              {view === 'given' && (
+              {view === 'given' ? (
                 <Button onClick={() => actions.newGivenCheque()}>
                   <ArrowUpRight />
                   Add a given cheque
                 </Button>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => actions.newReceivedCheque()}>
+                    <ArrowDownLeft />
+                    Add a received cheque
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/settings')}>
+                    Try with sample data
+                  </Button>
+                </div>
               )}
             </section>
           ) : (

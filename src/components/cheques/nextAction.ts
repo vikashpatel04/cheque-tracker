@@ -29,7 +29,7 @@ export function nextAction(row: ListRow, given: GivenActions, app: AppActions): 
   const r = row.received
   if (!r) return null
   if (r.status === 'IN_HAND' && r.kind === 'REGULAR') return { label: 'Deposit', short: 'Deposit', icon: Landmark, run: () => app.depositReceived([r.id]) }
-  if (r.status === 'DEPOSITED') return { label: 'Mark cleared', short: 'Cleared', icon: Check, run: () => app.openReceivedCheque(r.id) }
+  if (r.status === 'DEPOSITED') return { label: 'Mark cleared', short: 'Cleared', icon: Check, run: () => app.actOnReceived('clear', r) }
   if (r.status === 'BOUNCED') return { label: 'Decide', short: 'Decide', icon: CircleHelp, run: () => app.openReceivedCheque(r.id) }
   return null
 }

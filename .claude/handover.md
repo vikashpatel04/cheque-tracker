@@ -30,7 +30,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - **Building it (item 14) started on 2026-09-28, web version first.** Step 1 is done: the Passbook colours (light and dark), fonts, the new frame (sidebar and top bar on desktop, bottom tabs on phones, New menu, search, activity bell, appearance), and the installed app (icons, offline start, update prompt, install option). `CLAUDE.md` says where each piece lives.
   - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
   - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
-  - Step 4 is under way: see its note in `plan.md` for what's built (bank accounts in Settings, the received-cheque form, not yet wired) and what's left.
+  - Step 4 is nearly done: the received-cheque screens are built and connected (see its notes in `plan.md`). What's left is to add the sample data (my call, since it writes to the dev project: Settings → Sample data → Try with sample data), check the received screens in the browser, and fix what shows up.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
