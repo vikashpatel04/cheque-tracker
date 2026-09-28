@@ -23,8 +23,8 @@ Built in 14, step 2 (2026-09-28): the dashboard is gone and every row below has 
 | Today panel: the date, an overdue badge, "Cash needed today", today's cheques, overdue cheques ("Overdue", "Overdue · Funded") | Today, given view: "Needed today" and the to-dos |
 | Next 7 days strip; tapping a day lists its cheques | Today, given and received views: a 7-day strip that opens the same day list |
 | Tiles: total outstanding (and how many are due this month), due this week, overdue, returned | Today's numbers in the given view, and Reports → Overview |
-| Monthly calendar with month and agenda views, status colours, and tapping a cheque or a day | Calendar |
-| Day list: every cheque due on a day | Calendar and the 7-day strip |
+| Monthly calendar with month and agenda views, status colours, and tapping a cheque or a day | Calendar (built in 14, step 5): its own month grid and agenda, with the chosen day's cheques |
+| Day list: every cheque due on a day | Calendar's day panel; the 7-day strip opens it |
 | 30-day outflow forecast, pending vs funded | Today, given view: the chart |
 | Cumulative outflow curve | Reports → Cash flow |
 | Status breakdown by amount | Reports → Overview |

@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { parseISO } from 'date-fns'
 import { ArrowDownLeft, ArrowUpRight, Landmark, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DayChequesDialog } from '@/components/shared/DayChequesDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ChequeListDialog } from '@/components/today/ChequeListDialog'
 import { FundsAddedToday } from '@/components/today/FundsAddedToday'
@@ -86,7 +84,6 @@ export default function Today() {
   const actions = useAppActions()
   const { given, received, loading, error } = useTodayData()
   const { todayTotal } = useDeposits()
-  const [day, setDay] = useState<Date | null>(null)
   const [list, setList] = useState<{ title: string; description?: string; cheques: Cheque[] } | null>(null)
 
   const today = todayISO()
@@ -355,7 +352,7 @@ export default function Today() {
           )}
 
           {view === 'given' && !nothingGiven && (
-            <GivenWeekStrip days={givenSummary.week} onSelectDay={(date) => setDay(parseISO(date))} />
+            <GivenWeekStrip days={givenSummary.week} onSelectDay={(date) => navigate(`/calendar?date=${date}&dir=given`)} />
           )}
           {view === 'received' && !nothingReceived && <ReceivedWeekStrip days={receivedSummary.week} />}
 
@@ -409,16 +406,6 @@ export default function Today() {
         </div>
       )}
 
-      <DayChequesDialog
-        cheques={given}
-        date={day}
-        onChangeDate={setDay}
-        onClose={() => setDay(null)}
-        onSelectCheque={(id) => {
-          setDay(null)
-          actions.openCheque(id)
-        }}
-      />
       <ChequeListDialog
         title={list?.title ?? null}
         description={list?.description}

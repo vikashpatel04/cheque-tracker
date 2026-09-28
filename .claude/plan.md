@@ -94,7 +94,8 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - The maintainer will review the receiving side's wording and signs later (they said so on 2026-09-28).
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding. **In progress** (2026-09-29).
     - Add funds done: one panel (design board Add-funds-phone): the amount, date and note, the pending cheques it covers ticked for you as you type (soonest due, smallest or largest first), what's added, covered and left over, and "Add funds and mark N funded". It says that today's total starts from zero each day. The old two-step dialog is gone.
-    - Next: Calendar, then Parties (the two-way ledger), Reports, Settings, onboarding.
+    - Calendar done: its own month grid (money in and out per day, dots for what needs you or went wrong, grey when done), Month and Agenda, All / Given / Received, and the chosen day's cheques with Add funds or Deposit; month, day and view live in the address bar. Today's week strip opens the day here. The react-big-calendar library and the old day dialog are gone. Month logic tested in `tests/calendar.test.ts`.
+    - Next: Parties (the two-way ledger), Reports, Settings, onboarding.
 
 ## Layout and navigation
 
