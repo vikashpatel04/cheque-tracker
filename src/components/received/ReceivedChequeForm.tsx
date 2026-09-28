@@ -36,6 +36,8 @@ interface ReceivedChequeFormProps {
   asSeries?: boolean
   /** The "I received it / I gave it" switch, when adding. */
   directionSwitch?: React.ReactNode
+  /** Start with this party, e.g. when adding from their page. */
+  partyId?: string
 }
 
 interface Draft {
@@ -77,7 +79,7 @@ function blank(defaultAccount: string | null, asSeries: boolean): Draft {
 }
 
 /** Add or edit a cheque you received: one, a security cheque, or a whole series (design screen 35). */
-export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = false, directionSwitch }: ReceivedChequeFormProps) {
+export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = false, directionSwitch, partyId }: ReceivedChequeFormProps) {
   const { accounts, defaultAccount } = useBankAccounts()
   const [draft, setDraft] = useState<Draft>(() => blank(null, asSeries))
   const [tried, setTried] = useState(false)
@@ -104,11 +106,11 @@ export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = fals
         count: '12',
       })
     } else {
-      setDraft(blank(defaultAccount?.id ?? null, asSeries))
+      setDraft({ ...blank(defaultAccount?.id ?? null, asSeries), party_id: partyId ?? '' })
     }
     // Only when the form opens; the default account can load a moment later.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, cheque, asSeries])
+  }, [open, cheque, asSeries, partyId])
 
   useEffect(() => {
     if (open && !cheque && defaultAccount && draft.account === NO_ACCOUNT) {

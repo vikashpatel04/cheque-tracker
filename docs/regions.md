@@ -35,7 +35,7 @@ Validity and clearing times follow usual bank practice in each country. Confirm 
 
 ## Adding a country
 
-1. Add an entry to `REGION_PRESETS` in `src/config/regions.ts`: currency, locale, time zones, date format, week start, cheque validity, clearing time and suggested banks.
+1. Add an entry to `REGION_PRESETS` in `src/config/regions.ts`: currency, locale, time zones, date format, week start, cheque validity, clearing time, suggested banks and the calling code (used for WhatsApp links to phone numbers written without one).
 2. Check the rules with someone who uses cheques there.
 3. If its formats are unusual, add a case to `tests/formatters.test.ts`, then run `npm test`.
 

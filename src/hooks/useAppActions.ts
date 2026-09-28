@@ -11,11 +11,12 @@ import type { ReceivedCheque } from '@/types/received'
  */
 export interface AppActions {
   /** The New cheque form, in the given direction or the one used last. */
-  newCheque: (direction?: ChequeDirection) => void
-  newGivenCheque: () => void
-  newReceivedCheque: () => void
-  /** A series of received cheques: rent, instalments. */
-  newSeries: () => void
+  newCheque: (direction?: ChequeDirection, partyId?: string) => void
+  /** A new given or received cheque, optionally to or from this party. */
+  newGivenCheque: (partyId?: string) => void
+  newReceivedCheque: (partyId?: string) => void
+  /** A series of received cheques: rent, instalments. Optionally from this party. */
+  newSeries: (partyId?: string) => void
   editReceivedCheque: (cheque: ReceivedCheque) => void
   editCheque: (cheque: Cheque) => void
   /** A new cheque in place of a written-off one, filled in from it and linked to it. */

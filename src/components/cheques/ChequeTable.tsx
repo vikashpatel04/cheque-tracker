@@ -20,10 +20,12 @@ interface ChequeTableProps {
   onOpen: (row: ListRow) => void
   nextAction: (row: ListRow) => NextAction | null
   givenActions: GivenActions
+  /** On a party's own page the party column says nothing new; the bank takes its place. */
+  hideParty?: boolean
 }
 
 /** The cheque list on wide screens: one row per cheque, its next step as a button, and a menu for the rest. */
-export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAll, onOpen, nextAction, givenActions }: ChequeTableProps) {
+export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAll, onOpen, nextAction, givenActions, hideParty }: ChequeTableProps) {
   const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.key))
   const someSelected = !allSelected && rows.some((r) => selected.has(r.key))
   return (
@@ -33,9 +35,9 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
           <col className="w-[48px]" />
           <col className="w-[40px]" />
           <col className="w-[112px]" />
-          <col />
+          {!hideParty && <col />}
           <col className="w-[100px]" />
-          <col className="hidden w-[112px] 2xl:table-column" />
+          {hideParty ? <col /> : <col className="hidden w-[112px] 2xl:table-column" />}
           <col className="hidden w-[108px] 2xl:table-column" />
           <col className="w-[120px]" />
           <col className="w-[180px] 2xl:w-[220px]" />
@@ -55,9 +57,9 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
               <span className="sr-only">Direction</span>
             </th>
             <th>Due</th>
-            <th>Party</th>
+            {!hideParty && <th>Party</th>}
             <th>Cheque no.</th>
-            <th className="hidden 2xl:table-cell">Bank</th>
+            <th className={cn(!hideParty && 'hidden 2xl:table-cell')}>Bank</th>
             <th className="hidden 2xl:table-cell">Issued</th>
             <th className="pr-3 text-right">Amount</th>
             <th>Status</th>
@@ -104,7 +106,7 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                   <div>{formatShortDate(row.due)}</div>
                   {note && <div className={cn('text-xs', note.endsWith('overdue') ? 'text-problem' : 'text-ink-quiet')}>{note}</div>}
                 </td>
-                <td className="truncate pr-3">
+                <td className={cn('truncate pr-3', hideParty && 'hidden')}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -118,7 +120,7 @@ export function ChequeTable({ rows, today, rules, selected, onToggle, onToggleAl
                   <div className="truncate text-xs text-ink-quiet 2xl:hidden">{row.bank}</div>
                 </td>
                 <td className="font-cheque truncate text-sm text-ink-nav">{row.number}</td>
-                <td className="hidden truncate pr-3 text-sm text-ink-quiet 2xl:table-cell">{row.bank}</td>
+                <td className={cn('truncate pr-3 text-sm text-ink-quiet', !hideParty && 'hidden 2xl:table-cell')}>{row.bank}</td>
                 <td className="hidden text-sm tabular-nums text-ink-quiet 2xl:table-cell">{formatShortDate(row.issued)}</td>
                 <td
                   className={cn(

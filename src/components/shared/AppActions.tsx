@@ -43,6 +43,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const tracks = settings.tracks ?? 'both'
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
   const [received, setReceived] = useState<{ open: boolean; cheque: ReceivedCheque | null; series?: boolean }>({ open: false, cheque: null })
+  /** The party a new cheque starts with, when added from a party's page. */
+  const [newParty, setNewParty] = useState<string | undefined>()
   const [detailId, setDetailId] = useState<string | null>(null)
   const [receivedId, setReceivedId] = useState<string | null>(null)
   const [depositIds, setDepositIds] = useState<string[] | null>(null)
@@ -66,8 +68,9 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   }, [])
 
   /** Opens an empty form for a new cheque in this direction, closing the other one. */
-  const openNew = useCallback((direction: ChequeDirection, series = false) => {
+  const openNew = useCallback((direction: ChequeDirection, series = false, partyId?: string) => {
     rememberDirection(direction)
+    if (partyId !== undefined) setNewParty(partyId)
     if (direction === 'given') {
       setReceived({ open: false, cheque: null })
       setForm({ open: true, cheque: null })
@@ -77,14 +80,14 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
     }
   }, [])
 
-  const directionSwitch = (direction: ChequeDirection) => <DirectionSwitch value={direction} onChange={(next) => openNew(next)} />
+  const directionSwitch = (direction: ChequeDirection) => <DirectionSwitch value={direction} onChange={(next) => openNew(next, false, newParty)} />
 
   const actions = useMemo<AppActions>(
     () => ({
-      newCheque: (direction) => openNew(direction ?? lastDirection(tracks === 'received' ? 'received' : 'given')),
-      newGivenCheque: () => openNew('given'),
-      newReceivedCheque: () => openNew('received'),
-      newSeries: () => openNew('received', true),
+      newCheque: (direction, partyId) => openNew(direction ?? lastDirection(tracks === 'received' ? 'received' : 'given'), false, partyId ?? ''),
+      newGivenCheque: (partyId) => openNew('given', false, partyId ?? ''),
+      newReceivedCheque: (partyId) => openNew('received', false, partyId ?? ''),
+      newSeries: (partyId) => openNew('received', true, partyId ?? ''),
       editReceivedCheque: (cheque) => setReceived({ open: true, cheque }),
       editCheque: (cheque) => {
         setDetailId(null)
@@ -134,7 +137,9 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
                 amount: Number(form.replacing.amount),
                 cheque_number: '',
               }
-            : undefined
+            : newParty
+              ? { party_id: newParty }
+              : undefined
         }
         onSubmit={async (data) => {
           const { error } = form.cheque
@@ -167,6 +172,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         onOpenChange={(open) => !open && setReceived({ open: false, cheque: null })}
         cheque={received.cheque}
         asSeries={received.series}
+        partyId={newParty || undefined}
         directionSwitch={directionSwitch('received')}
       />
 

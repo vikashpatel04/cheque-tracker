@@ -37,6 +37,8 @@ export interface RegionPreset {
   clearingDays: number
   /** Suggested entries for the bank list. */
   banks: string[]
+  /** International calling code without the "+", added to phone numbers written without one (WhatsApp links). */
+  callingCode: string
 }
 
 export const REGION_PRESETS: RegionPreset[] = [
@@ -51,6 +53,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 3,
     clearingDays: 2,
     banks: ['SBI', 'HDFC', 'ICICI', 'Bank of Baroda', 'Axis Bank', 'Kotak Mahindra', 'Punjab National Bank'],
+    callingCode: '91',
   },
   {
     country: 'AE',
@@ -62,6 +65,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 6,
     clearingDays: 2,
     banks: [],
+    callingCode: '971',
   },
   {
     country: 'SG',
@@ -73,6 +77,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 6,
     clearingDays: 2,
     banks: [],
+    callingCode: '65',
   },
   {
     country: 'GB',
@@ -84,6 +89,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 6,
     clearingDays: 2,
     banks: [],
+    callingCode: '44',
   },
   {
     country: 'US',
@@ -106,6 +112,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 6,
     clearingDays: 2,
     banks: [],
+    callingCode: '1',
   },
   {
     country: 'CA',
@@ -125,6 +132,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 6,
     clearingDays: 2,
     banks: [],
+    callingCode: '1',
   },
   {
     country: 'AU',
@@ -144,6 +152,7 @@ export const REGION_PRESETS: RegionPreset[] = [
     chequeValidityMonths: 15,
     clearingDays: 3,
     banks: [],
+    callingCode: '61',
   },
 ]
 

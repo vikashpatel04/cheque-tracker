@@ -17,6 +17,8 @@ interface ChequeCardsProps {
   grouped: boolean
   onOpen: (row: ListRow) => void
   nextAction: (row: ListRow) => NextAction | null
+  /** On a party's own page the party name says nothing new: cards lead with the cheque number. */
+  hideParty?: boolean
 }
 
 const ACTION_WIDTH = 96
@@ -44,7 +46,21 @@ function groupTotal(group: DayGroup) {
 }
 
 /** One cheque as a card, with its next step as a button. Swiping left offers the same step. */
-function Card({ row, today, rules, onOpen, next }: { row: ListRow; today: string; rules: AlertRules; onOpen: () => void; next: NextAction | null }) {
+function Card({
+  row,
+  today,
+  rules,
+  onOpen,
+  next,
+  hideParty,
+}: {
+  row: ListRow
+  today: string
+  rules: AlertRules
+  onOpen: () => void
+  next: NextAction | null
+  hideParty?: boolean
+}) {
   const [shift, setShift] = useState(0)
   const gesture = useRef<{ x: number; y: number; from: number; swiping: boolean } | null>(null)
   const justSwiped = useRef(false)
@@ -130,13 +146,17 @@ function Card({ row, today, rules, onOpen, next }: { row: ListRow; today: string
               e.stopPropagation()
               open()
             }}
-            className="truncate text-left text-base font-semibold"
+            className={cn('truncate text-left text-base font-semibold', hideParty && 'font-cheque')}
           >
-            {row.party}
+            {hideParty ? row.number : row.party}
           </button>
           <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-ink-quiet">
-            <span className="font-cheque shrink-0">{row.number}</span>
-            <span aria-hidden="true">·</span>
+            {!hideParty && (
+              <>
+                <span className="font-cheque shrink-0">{row.number}</span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
             <span className="truncate">{row.bank}</span>
           </span>
           <span className="flex flex-wrap gap-1.5">
@@ -166,11 +186,11 @@ function Card({ row, today, rules, onOpen, next }: { row: ListRow; today: string
 }
 
 /** The cheque list below desktop width: cards, grouped by day when in upcoming order. */
-export function ChequeCards({ rows, today, rules, grouped, onOpen, nextAction }: ChequeCardsProps) {
+export function ChequeCards({ rows, today, rules, grouped, onOpen, nextAction, hideParty }: ChequeCardsProps) {
   const card = (row: ListRow) => (
-    <Card key={row.key} row={row} today={today} rules={rules} onOpen={() => onOpen(row)} next={nextAction(row)} />
+    <Card key={row.key} row={row} today={today} rules={rules} onOpen={() => onOpen(row)} next={nextAction(row)} hideParty={hideParty} />
   )
-  if (!grouped) return <div className="grid gap-2 md:grid-cols-2">{rows.map(card)}</div>
+  if (!grouped) return <div className="grid grid-cols-1 gap-2 md:grid-cols-2">{rows.map(card)}</div>
   return (
     <div className="flex flex-col gap-4">
       {groupByDay(rows, today).map((group) => {
@@ -181,7 +201,7 @@ export function ChequeCards({ rows, today, rules, grouped, onOpen, nextAction }:
               <span className={cn('text-[13px] font-bold uppercase tracking-[0.06em]', label.className)}>{label.text}</span>
               <span className="text-[13px] tabular-nums text-ink-quiet">{groupTotal(group)}</span>
             </div>
-            <div className="grid gap-2 md:grid-cols-2">{group.rows.map(card)}</div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">{group.rows.map(card)}</div>
           </section>
         )
       })}

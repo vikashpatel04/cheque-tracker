@@ -71,6 +71,8 @@ Built in 14, step 3 (2026-09-28): the Cheques list, its views and filters, the r
 | Bulk upload parties from an Excel template | New → Import |
 | Party detail: info, totals (issued, paid, outstanding, returned and still owed), their cheques with a status filter, add cheques for this party | Party ledger, both directions |
 
+Built in 14, step 5 (2026-09-29): the Parties list (still to pay, still to collect, net, bounces and next date for each, sortable and searchable) and the party ledger (contact with phone and WhatsApp links, the four totals, every cheque both ways with a direction and status filter and its next step, new cheques and several given cheques for the party). The party form now has the look of the cheque forms; Active and Delete are in it. Import parties from Excel stays on the Parties page for now.
+
 ## Reports
 
 | Today | In the redesign |

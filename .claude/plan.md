@@ -95,7 +95,11 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding. **In progress** (2026-09-29).
     - Add funds done: one panel (design board Add-funds-phone): the amount, date and note, the pending cheques it covers ticked for you as you type (soonest due, smallest or largest first), what's added, covered and left over, and "Add funds and mark N funded". It says that today's total starts from zero each day. The old two-step dialog is gone.
     - Calendar done: its own month grid (money in and out per day, dots for what needs you or went wrong, grey when done), Month and Agenda, All / Given / Received, and the chosen day's cheques with Add funds or Deposit; month, day and view live in the address bar. Today's week strip opens the day here. The react-big-calendar library and the old day dialog are gone. Month logic tested in `tests/calendar.test.ts`.
-    - Next: Parties (the two-way ledger), Reports, Settings, onboarding.
+    - Parties done (2026-09-29): the list shows, per party, what you still pay, what you still collect, the net in words ("₹X to collect" / "to pay", no minus), bounces and the next date, with search, All / You pay / Pay you, four orders and "Show inactive", all in the address bar; a table on desktop, cards on phones and tablets, totals underneath. Logic in `src/lib/parties.ts`, tested in `tests/parties.test.ts`.
+    - Party ledger done (2026-09-29), replacing the old party detail: name, contact, a phone link and a WhatsApp link (a number written without a country code gets the one from the user's region preset, `callingCode` in `src/config/regions.ts`); Edit (the party form, restyled like the cheque forms, with Active and Delete); New cheque for this party (received cheque, series, given cheque, several given cheques; follows What you track); tiles for what you gave, what they gave, the net still due and bounces; All / Given / Received with counts and a status filter; every cheque with its next step (the Cheques table with the bank in place of the party, or cards led by the cheque number).
+    - Ledger choices: open cheques first, soonest due, then finished ones newest first (the brief says newest first; this puts what needs doing on top). No running "net so far" column, because given amounts carry no minus (70). "Send a reminder" from the brief waits for the maintainer's review of the receiving side; the WhatsApp link opens the chat meanwhile.
+    - Fixed on the way: the party cards on phones were wider than the screen; the parties list flashed back to loading after every save; the party form reopened with the old values after an edit.
+    - Next: Reports, Settings, onboarding.
 
 ## Layout and navigation
 
@@ -111,7 +115,8 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
   - Done in 14, step 3, with given views too (needs funds, funded, overdue, returned).
 - [x] **19.** Returned stops being a page and becomes a saved view and a to-do. Bulk add moves under New.
   - Done in 14, steps 1 to 3.
-- [ ] **20.** Parties: a two-way ledger per party, showing given, received, net and bounces.
+- [x] **20.** Parties: a two-way ledger per party, showing given, received, net and bounces.
+  - Done in 14, step 5 (2026-09-29): the Parties list and the party ledger.
 - [ ] **21.** Settings: profile, region, bank accounts, notifications, plan and billing, data.
 - [ ] **22.** Mobile: bottom tabs (Today · Cheques · + · Parties · More), cards instead of tables, swipe to deposit or confirm, and full-screen forms.
   - Bottom tabs (step 1), cheque cards with swipe and a full-screen detail (step 3) are done. Forms go full screen with their redesign (steps 4 and 5).

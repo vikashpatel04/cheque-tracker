@@ -7,8 +7,8 @@ export function useParties(includeInactive = false) {
   const [parties, setParties] = useState<Party[]>([])
   const [loading, setLoading] = useState(true)
 
+  // `loading` is only for the first load: refreshes after a save keep showing the current list.
   const fetchParties = useCallback(async () => {
-    setLoading(true)
     let query = supabase
       .from('parties')
       .select('*')

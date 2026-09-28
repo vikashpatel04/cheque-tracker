@@ -1,12 +1,12 @@
 import { Routes, Route } from 'react-router-dom'
-import { PartyDetail } from '@/components/parties/PartyDetail'
 import Parties from './Parties'
+import PartyLedger from './PartyLedger'
 
 export default function PartiesPage() {
   return (
     <Routes>
       <Route index element={<Parties />} />
-      <Route path=":id" element={<PartyDetail />} />
+      <Route path=":id" element={<PartyLedger />} />
     </Routes>
   )
 }
