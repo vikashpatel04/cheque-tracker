@@ -16,6 +16,9 @@ import { useTodos } from '@/hooks/useTodayData'
 import { useOnline } from '@/lib/pwa'
 import { cn } from '@/lib/utils'
 
+/** How wide pages get on big screens; they're centred in the space beside the sidebar. */
+const CONTENT_WIDTH = 'mx-auto w-full max-w-[1400px]'
+
 /** The search shortcut as this device writes it. */
 const SEARCH_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'
 
@@ -91,7 +94,9 @@ function Sidebar() {
 function TopBar() {
   const { openSearch } = useAppActions()
   return (
-    <header className="sticky top-0 z-30 hidden h-[68px] items-center gap-4 border-b bg-background/95 px-10 backdrop-blur lg:flex">
+    <header className="sticky top-0 z-30 hidden h-[68px] border-b bg-background/95 backdrop-blur lg:block">
+      {/* Same width and centring as the page below, so their edges line up on wide screens. */}
+      <div className={cn(CONTENT_WIDTH, 'flex h-full items-center gap-4 lg:px-10')}>
       <button
         type="button"
         onClick={openSearch}
@@ -107,6 +112,7 @@ function TopBar() {
       <NewMenuButton />
       <ActivityBell />
       <AccountMenu />
+      </div>
     </header>
   )
 }
@@ -187,7 +193,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <PlanBanner />
           {/* min-w-0 + overflow-x-hidden so wide tables and charts scroll inside
               their own wrappers instead of scrolling the page. */}
-          <main className="w-full min-w-0 max-w-[1400px] overflow-x-hidden px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8">
+          <main className={cn(CONTENT_WIDTH, 'min-w-0 overflow-x-hidden px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8')}>
             {children}
           </main>
         </div>
