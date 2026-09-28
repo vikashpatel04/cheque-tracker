@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { announceDataChange, useDataChanges } from '@/lib/dataEvents'
+import { createGivenCheque, updateGivenCheque, type NewGivenCheque } from '@/lib/chequeWrites'
 import type { Cheque, ChequeStatus } from '@/types'
 import type { TablesUpdate } from '@/types/database'
 
@@ -59,42 +61,17 @@ export function useCheques(filters?: ChequeFilters) {
   useEffect(() => {
     fetchCheques()
   }, [fetchCheques])
+  useDataChanges(fetchCheques)
 
-  const createCheque = async (cheque: {
-    party_id: string
-    cheque_number: string
-    bank_name: string
-    amount: number
-    issue_date: string
-    due_date: string
-    notes?: string
-    replaces_cheque_id?: string
-  }) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Not authenticated' }
-
-    const { data, error } = await supabase
-      .from('cheques')
-      .insert({ ...cheque, user_id: user.id, status: 'PENDING' })
-      .select('*, party:parties(*)')
-      .single()
-
-    if (!error) await fetchCheques()
-    return { data, error: error?.message }
-  }
-
-  const updateCheque = async (id: string, updates: TablesUpdate<'cheques'>) => {
-    const { error } = await supabase.from('cheques').update(updates).eq('id', id)
-    if (!error) await fetchCheques()
-    return { error: error?.message }
-  }
+  const createCheque = (cheque: NewGivenCheque) => createGivenCheque(cheque)
+  const updateCheque = (id: string, updates: TablesUpdate<'cheques'>) => updateGivenCheque(id, updates)
 
   const softDeleteCheque = async (id: string) => {
     const { error } = await supabase
       .from('cheques')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-    if (!error) await fetchCheques()
+    if (!error) announceDataChange()
     return { error: error?.message }
   }
 

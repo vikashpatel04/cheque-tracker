@@ -3,11 +3,190 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * The "Passbook" look (docs/design-brief.md, "Chosen: Passbook"). Colours are
+ * named by meaning, and the shadcn/ui names further down point at them. The
+ * .dark values are the design's fixed light-to-dark map. Change a colour here,
+ * never in a component.
+ */
+:root {
+  --radius: 0.625rem;
+
+  --ground: #f6f4ee;
+  --surface: #ffffff;
+  --sidebar: #fbfaf6;
+  --line: #e3dfd4;
+  --line-strong: #cfc9ba;
+  --line-field: #d9d4c7;
+  --line-soft: #f0ede6;
+  --ink: #1a1d21;
+  --ink-quiet: #4a4f57;
+  --ink-nav: #3a3f46;
+  --ink-faint: #8a8f96;
+  --brand: #1f3a5f;
+  --brand-hover: #152a45;
+  --brand-ink: #ffffff;
+  --brand-soft: #e4eaf3;
+  --track: #ece8de;
+  --thumb: #ffffff;
+  --hover: #efece4;
+
+  --money-in: #0b7a4b;
+  --money-in-soft: #e0f2e7;
+  --money-out: #1a1d21;
+  --money-out-soft: #eceae4;
+
+  --status-waiting: #2f4b75;
+  --status-waiting-bg: #e7edf6;
+  --status-progress: #0e5f76;
+  --status-progress-bg: #d9f0f4;
+  --status-cleared: #0b6b41;
+  --status-cleared-bg: #e0f2e7;
+  --status-done: #475467;
+  --status-done-bg: #eef0f3;
+  --status-attention: #8a4b00;
+  --status-attention-bg: #fff0d1;
+  --status-attention-line: #e8c98e;
+  --status-problem: #b42318;
+  --status-problem-bg: #fde8e5;
+  --status-problem-line: #f1b8b0;
+
+  --elevation-thumb: 0 1px 2px rgba(26, 29, 33, 0.12);
+  --elevation-fab: 0 4px 12px rgba(31, 58, 95, 0.28);
+  --elevation-pop: 0 10px 30px rgba(26, 29, 33, 0.14);
+}
+
+.dark {
+  --ground: #10161d;
+  --surface: #18212b;
+  --sidebar: #141b23;
+  --line: #2a3543;
+  --line-strong: #3a4656;
+  --line-field: #334052;
+  --line-soft: #222c38;
+  --ink: #e8ebef;
+  --ink-quiet: #a9b1bb;
+  --ink-nav: #c3cad3;
+  --ink-faint: #6f7884;
+  --brand: #9db8e0;
+  --brand-hover: #c9d7ec;
+  --brand-ink: #0e141b;
+  --brand-soft: #22314a;
+  --track: #222c38;
+  --thumb: #3a4656;
+  --hover: #222c38;
+
+  --money-in: #5ccb8f;
+  --money-in-soft: #16352a;
+  --money-out: #e8ebef;
+  --money-out-soft: #262f3a;
+
+  --status-waiting: #b8ccea;
+  --status-waiting-bg: #22314a;
+  --status-progress: #7fd3e0;
+  --status-progress-bg: #133b45;
+  --status-cleared: #5ccb8f;
+  --status-cleared-bg: #16352a;
+  --status-done: #b6bec8;
+  --status-done-bg: #262f3a;
+  --status-attention: #f4b650;
+  --status-attention-bg: #3a2e14;
+  --status-attention-line: #6b5424;
+  --status-problem: #f28b82;
+  --status-problem-bg: #3d1f1d;
+  --status-problem-line: #6b2c27;
+
+  --elevation-thumb: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --elevation-fab: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --elevation-pop: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* shadcn/ui names, pointing at the tokens above. */
+:root {
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-ink);
+  --secondary: var(--track);
+  --secondary-foreground: var(--ink);
+  --muted: var(--track);
+  --muted-foreground: var(--ink-quiet);
+  --accent: var(--hover);
+  --accent-foreground: var(--ink);
+  --destructive: var(--status-problem);
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--brand);
+  --chart-1: var(--money-in);
+  --chart-2: var(--money-out);
+  --chart-3: var(--status-progress);
+  --chart-4: var(--status-attention);
+  --chart-5: var(--status-problem);
+  --sidebar-foreground: var(--ink-nav);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-ink);
+  --sidebar-accent: var(--brand-soft);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--brand);
+}
+
+@theme {
+  --font-sans: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-field: var(--line-field);
+  --color-line-soft: var(--line-soft);
+  --color-ink: var(--ink);
+  --color-ink-quiet: var(--ink-quiet);
+  --color-ink-nav: var(--ink-nav);
+  --color-ink-faint: var(--ink-faint);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-track: var(--track);
+  --color-thumb: var(--thumb);
+  --color-hover: var(--hover);
+  --color-money-in: var(--money-in);
+  --color-money-in-soft: var(--money-in-soft);
+  --color-money-out: var(--money-out);
+  --color-money-out-soft: var(--money-out-soft);
+  --color-waiting: var(--status-waiting);
+  --color-waiting-soft: var(--status-waiting-bg);
+  --color-progress: var(--status-progress);
+  --color-progress-soft: var(--status-progress-bg);
+  --color-cleared: var(--status-cleared);
+  --color-cleared-soft: var(--status-cleared-bg);
+  --color-done: var(--status-done);
+  --color-done-soft: var(--status-done-bg);
+  --color-attention: var(--status-attention);
+  --color-attention-soft: var(--status-attention-bg);
+  --color-attention-line: var(--status-attention-line);
+  --color-problem: var(--status-problem);
+  --color-problem-soft: var(--status-problem-bg);
+  --color-problem-line: var(--status-problem-line);
+
+  --shadow-thumb: var(--elevation-thumb);
+  --shadow-fab: var(--elevation-fab);
+  --shadow-pop: var(--elevation-pop);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -41,82 +220,38 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
   }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Page titles and the wordmark. */
+@utility font-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+/* Cheque numbers and the last digits of accounts. */
+@utility font-cheque {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+/* Keeps fixed bars clear of the phone's home indicator in the installed app. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* react-big-calendar theme overrides */

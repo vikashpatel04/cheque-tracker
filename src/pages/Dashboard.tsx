@@ -12,12 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { supabase } from '@/lib/supabase'
 import { isLegacyRepresented } from '@/lib/chequeTags'
 import { toast } from 'sonner'
-import { formatCurrency, formatDateTime, formatDayMonth, todayISO } from '@/lib/formatters'
+import { formatCurrency, formatDateTime, formatDayMonth, formatLongDate, todayISO } from '@/lib/formatters'
+import { useDataChanges } from '@/lib/dataEvents'
 import { getActiveRegion } from '@/lib/region'
 
 import { ChequeDetail } from '@/components/cheques/ChequeDetail'
 import { ChequeForm } from '@/components/cheques/ChequeForm'
 import { ChequeCalendar } from '@/components/shared/ChequeCalendar'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { DepositWidget } from '@/components/deposit/DepositWidget'
 import { CurrencyTooltip } from '@/components/shared/ChartTooltip'
 import { TodayPanel } from '@/components/shared/TodayPanel'
 import { Next7DaysStrip } from '@/components/shared/Next7DaysStrip'
@@ -77,6 +80,7 @@ export default function Dashboard() {
   useEffect(() => {
     loadDashboardData()
   }, [loadDashboardData])
+  useDataChanges(loadDashboardData)
 
   const todayStr = todayISO()
   const today = useMemo(() => parseISO(todayStr), [todayStr])
@@ -193,12 +197,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <p className="text-sm text-muted-foreground">
-          Cash flow overview and upcoming cheque liabilities
-        </p>
-      </div>
+      <PageHeader title="Today" subtitle={formatLongDate(todayStr)} actions={<DepositWidget />} />
 
       {/* HERO — answers: how much cash do I need today? */}
       {loading ? (

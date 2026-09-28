@@ -58,7 +58,7 @@ Both run the same code from this repository; only the configuration differs. [Ho
 
 ### Everywhere
 - Amounts, dates and "today" follow your region.
-- Installable as a PWA, and usable on phones.
+- Installs as an app on phones and computers (a PWA), starts offline, and has light and dark looks.
 - Row-level security keeps each user's data separate.
 
 ---

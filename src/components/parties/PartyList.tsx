@@ -111,7 +111,7 @@ export function PartyList() {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Switch checked={showActiveOnly} onCheckedChange={setShowActiveOnly} id="active-only" />
-            <Label htmlFor="active-only" className="text-sm">
+            <Label htmlFor="active-only" className="mb-0">
               Active cheques only
             </Label>
           </div>

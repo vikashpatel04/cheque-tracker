@@ -1,6 +1,6 @@
 # Name and logo
 
-The code in this repository is free software under the [AGPL-3.0](./LICENSE). The **Cheque Tracker** name, the logo (`public/cheque.png`) and the chequetracker.com domain are not covered by that licence. They identify the official project and the hosted service.
+The code in this repository is free software under the [AGPL-3.0](./LICENSE). The **Cheque Tracker** name, the logo (the cheque-with-a-tick mark in `src/components/shared/AppLogo.tsx` and the icons in `public/icons/`) and the chequetracker.com domain are not covered by that licence. They identify the official project and the hosted service.
 
 ## You're welcome to
 
@@ -18,7 +18,7 @@ The code in this repository is free software under the [AGPL-3.0](./LICENSE). Th
 Give it its own identity. It only takes configuration:
 
 - `VITE_APP_NAME` and `VITE_APP_TAGLINE` set the name in the app, the page title and the web manifest.
-- Replace `public/cheque.png` with your own icon.
+- Replace the files in `public/icons/` with your own icons, keeping their names and sizes, and set `VITE_APP_LOGO` to your logo image.
 - Set `VITE_SOURCE_URL` to your repository, as the AGPL requires (see [docs/self-hosting.md](./docs/self-hosting.md#if-you-change-the-code)).
 
 For anything not covered here, open an issue or contact the maintainer, [@vikashpatel04](https://github.com/vikashpatel04).

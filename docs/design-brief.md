@@ -117,7 +117,9 @@ Today's Returned page becomes a saved view and a to-do. Bulk add moves under New
 
 The designs are on the canvas linked from plan item 68. Build from these values.
 
-**Fonts** (Google Fonts):
+In the code (plan item 14, step 1): the tokens are CSS variables in `src/index.css`, light under `:root` and dark under `.dark`, and Tailwind colours by the same meaning: `ground`, `surface`, `line`, `line-strong`, `line-field`, `line-soft`, `ink`, `ink-quiet`, `ink-nav`, `ink-faint`, `brand`, `brand-soft`, `track`, `thumb`, `money-in`, `money-out`, and each status as `waiting`, `progress`, `cleared`, `done`, `attention` and `problem`, with a `-soft` background. shadcn/ui's own names point at them. Light or dark follows the device, or the choice under Appearance (account menu on desktop, More on phones), saved per device.
+
+**Fonts** (bundled with the app through Fontsource rather than loaded from Google, so the installed app works offline and makes no third-party requests; Latin and Latin Extended only for now):
 
 - IBM Plex Serif 600 for page titles and the wordmark.
 - IBM Plex Sans 400–700 for everything else, with tabular figures for amounts.

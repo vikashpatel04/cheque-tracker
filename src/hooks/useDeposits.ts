@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { announceDataChange, useDataChanges } from '@/lib/dataEvents'
 import { todayISO } from '@/lib/formatters'
 import { recordDeposit } from '@/lib/updateChequeStatus'
 import type { DailyDeposit } from '@/types'
@@ -31,18 +32,19 @@ export function useDeposits() {
     setLoading(false)
   }, [])
 
-  useEffect(() => {
-    fetchTodayTotal()
-    fetchAllDeposits()
+  const refresh = useCallback(() => {
+    void fetchTodayTotal()
+    void fetchAllDeposits()
   }, [fetchTodayTotal, fetchAllDeposits])
+
+  useEffect(refresh, [refresh])
+  useDataChanges(refresh)
 
   /** Log today's deposit and mark the allocated cheques DEPOSITED, atomically. */
   const addDeposit = async (amount: number, chequeIds: string[], notes?: string) => {
     const result = await recordDeposit(amount, todayISO(), chequeIds, notes)
-    if (result.success) {
-      await fetchTodayTotal()
-      await fetchAllDeposits()
-    }
+    // Funds added also mark cheques Funded, so every list refreshes.
+    if (result.success) announceDataChange()
     return { error: result.error }
   }
 

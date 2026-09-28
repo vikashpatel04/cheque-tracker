@@ -27,6 +27,7 @@ import { fetchAllRows } from '@/lib/fetchAll'
 import type { AllocationSort, Cheque, ChequeHistory, DailyDeposit, Party } from '@/types'
 import type { BankAccount, ReceivedCheque, ReceivedChequeHistory } from '@/types/received'
 import { toast } from 'sonner'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function SettingsPage() {
   const { settings, region, updateSettings } = useSettings()
@@ -120,7 +121,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h2 className="text-2xl font-bold">Settings</h2>
+      <PageHeader title="Settings" />
 
       <PlanCard />
 

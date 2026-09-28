@@ -1,9 +1,10 @@
 import { ChequeList } from '@/components/cheques/ChequeList'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function Cheques() {
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Cheques</h2>
+    <div>
+      <PageHeader title="Cheques" />
       <ChequeList />
     </div>
   )

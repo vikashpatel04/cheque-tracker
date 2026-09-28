@@ -19,6 +19,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **4.** The given side says "Funded" instead of "Deposited" (the database value stays `DEPOSITED`), and the word "Parties" stays.
 - **5.** The hosted service sells prepaid packs through Razorpay.
 - **6.** PWA only for now; native apps later.
+  - Reconfirmed on 2026-09-28: rework the web version (the PWA) first. The maintainer decides about native apps once it's done.
 
 ## Order of work
 
@@ -50,7 +51,8 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - On 2026-09-27 the maintainer went through the screens with the imported data, and everything showed properly. The layout problems in 15–24 are for the redesign.
 - [x] **13.** Write the brief for Claude Design from this plan, covering screens 30–40.
   - The brief is `docs/design-brief.md`.
-- [ ] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14. **In progress:** designs done, waiting for the maintainer's go-ahead to build.
+- [x] **68.** Design screens 30–40 from the brief on a Claude Design canvas. The maintainer reviews them before 14.
+  - Approved on 2026-09-28: build them, keeping the Passbook look exactly as designed.
   - Canvas (private to the maintainer): https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG
   - Round 1, 2026-09-27: the "Passbook" direction (warm paper, cheque-ink blue for actions, green only for money in, IBM Plex Sans / Serif / Mono). It covers the system sheet, Today and Cheques at desktop and phone width, and cheque detail, add cheque and deposit on the phone. Waiting for the maintainer's review.
   - The maintainer liked the colours and fonts. On their request, `docs/feature-map.md` now lists every current feature with its place in the redesign; it's the checklist for 68 and 14.
@@ -63,14 +65,25 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Dark mode for Today and Cheques on the phone, derived from the light screens with a fixed colour map.
     - The landing and pricing page, with placeholders for prices and trial length.
   - 27 boards in all. Not designed: the pack checkout (with 53), and desktop versions of the phone-only screens, which follow the same patterns.
-- [ ] **14.** Build the new layout, then the received-cheque screens on it.
+- [ ] **14.** Build the new layout, then the received-cheque screens on it. **In progress** (started 2026-09-28), web version first, in this order:
+  - [x] 1. Colours, fonts and the frame: sidebar, bottom tabs, New menu, search, notifications. The installed app (PWA) keeps working: icons, offline start, updates.
+    - Done 2026-09-28. Passbook tokens (light and dark) in `src/index.css`; IBM Plex bundled; restyled buttons, fields, cards, dialogs, menus and tabs; status chips with icons.
+    - Frame: sidebar and top bar (search, New, bell, account) on desktop; bottom tabs with a raised + and a More sheet on phones. The New menu, search (Ctrl K, by cheque number, party or amount), Add funds and the cheque detail open from any page. The bell lists recent changes. Appearance (device, light, dark) is in the account menu and More.
+    - Installed app: new icons from the logo (including maskable and Apple ones), a manifest in the Passbook colours, a service worker built per release that starts the app offline and offers "A new version is ready" instead of switching under you, an install option, and an offline notice. Checked with `npm run preview`: installs, starts offline, updates.
+    - Kept for now: Returned stays in the menu until it becomes a saved view (step 3); the old dashboard sits under the new Today title until step 2; a basic Calendar page reuses the old calendar until step 5. Screens not yet rebuilt still have some fixed colours, which suit light more than dark.
+  - [ ] 2. Today in all three views.
+  - [ ] 3. Cheques and cheque detail.
+  - [ ] 4. The received-cheque screens, with made-up received cheques (11).
+  - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 
 ## Layout and navigation
 
 Why: the dashboard stacks about ten blocks, and four of them show the same "what's due". The header only has Add funds. The cheque list is a 9-column table that scrolls sideways on phones. Returned is its own page, and colours are hardcoded.
 
-- [ ] **15.** Main sections: Today, Cheques, Calendar, Parties, Reports, Settings.
+- [x] **15.** Main sections: Today, Cheques, Calendar, Parties, Reports, Settings.
+  - Done in 14, step 1. Returned stays under them until 19.
 - [ ] **16.** Always visible: a New button (received cheque, given cheque, series, add funds, import), search by cheque number, party or amount (Ctrl K), and notifications.
+  - Built in 14, step 1, for given cheques. Received cheques and series join the New menu and search in step 4.
 - [ ] **17.** Today: three numbers first (in clearing, due, net), then to-dos with one action each, then one in/out chart. People who only give or only receive see only their half.
 - [ ] **18.** Cheques: All / Received / Given tabs, plus saved views: To deposit, In clearing, Bounced, Security, Series.
 - [ ] **19.** Returned stops being a page and becomes a saved view and a to-do. Bulk add moves under New.
@@ -89,7 +102,9 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
 - [ ] **26.** Red is only for problems and amber for attention. Status shows as an icon plus text, never colour alone.
 - [ ] **27.** Amounts use tabular figures: compact in tiles, full in tables, grouped the way the region writes numbers.
 - [ ] **28.** Semantic tokens (`--money-in`, `--money-out`, `--status-*`) replace hardcoded colours, which also gives dark mode.
+  - Tokens and dark mode are in (14, step 1). The fixed colours left in Today, the cheque list and Reports go as each screen is rebuilt.
 - [ ] **29.** Still to choose: brand colour, typeface, logo, a density setting, empty states, and a first-run checklist.
+  - Chosen with Passbook (68): brand colour, typefaces and logo. The first-run checklist is designed (onboarding). Still open: density and empty states.
 
 ## Screens for the design brief
 
@@ -148,6 +163,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
 - [ ] **62.** Dependabot: check CI on #1 and #2 (GitHub Actions) and #3 (grouped updates); the maintainer merges the ones that pass. Hold the major upgrades and do them together later: #4 and #6 (plugin-react 6 and Vite 8, which fail CI today), #5 (react-day-picker 10) and #7 (Vitest 5).
 - [ ] **63.** auto-pass: declare it in `supabase/config.toml` so the integration deploys it, and schedule its cron job on the dev project.
 - [ ] **64.** Translations: move UI text into translation files, for other languages and the US spelling "check".
+- [ ] **69.** Load less up front: the app is one 2.5 MB script (750 kB compressed). Load Excel and PDF export, charts and the calendar only when they're needed, so the app opens faster on phones.
 
 ## The maintainer's decisions
 

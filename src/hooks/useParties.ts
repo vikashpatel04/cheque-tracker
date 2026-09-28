@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { announceDataChange, useDataChanges } from '@/lib/dataEvents'
 import type { Party } from '@/types'
 
 export function useParties(includeInactive = false) {
@@ -26,6 +27,7 @@ export function useParties(includeInactive = false) {
   useEffect(() => {
     fetchParties()
   }, [fetchParties])
+  useDataChanges(fetchParties)
 
   const createParty = async (party: Omit<Party, 'id' | 'user_id' | 'deleted_at' | 'created_at'>) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -37,13 +39,13 @@ export function useParties(includeInactive = false) {
       .select()
       .single()
 
-    if (!error) await fetchParties()
+    if (!error) announceDataChange()
     return { data, error: error?.message }
   }
 
   const updateParty = async (id: string, updates: Partial<Party>) => {
     const { error } = await supabase.from('parties').update(updates).eq('id', id)
-    if (!error) await fetchParties()
+    if (!error) announceDataChange()
     return { error: error?.message }
   }
 
@@ -52,7 +54,7 @@ export function useParties(includeInactive = false) {
       .from('parties')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-    if (!error) await fetchParties()
+    if (!error) announceDataChange()
     return { error: error?.message }
   }
 

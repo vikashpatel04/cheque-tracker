@@ -112,7 +112,7 @@ export function PartyForm({ open, onOpenChange, party, onSubmit, onDelete }: Par
           {party && (
             <div className="flex items-center gap-2">
               <Switch checked={isActive} onCheckedChange={(v) => setValue('is_active', v)} />
-              <Label>Active</Label>
+              <Label className="mb-0">Active</Label>
             </div>
           )}
           <Button type="submit" className="w-full" disabled={isSubmitting || deleting}>

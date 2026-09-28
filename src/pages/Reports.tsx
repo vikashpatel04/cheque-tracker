@@ -15,6 +15,7 @@ import { useDeposits } from '@/hooks/useDeposits'
 import { CurrencyTooltip } from '@/components/shared/ChartTooltip'
 import { STATUS_COLORS, CHART_COLORS, formatChartCurrency, formatMonthLabel } from '@/lib/chartUtils'
 import { STATUS_LABELS, type Cheque, type ChequeStatus } from '@/types'
+import { PageHeader } from '@/components/shared/PageHeader'
 import {
   BarChart,
   Bar,
@@ -265,10 +266,7 @@ export default function Reports() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Reports</h2>
-          <p className="text-sm text-muted-foreground">Detailed analytics and export-ready summaries</p>
-        </div>
+        <PageHeader title="Reports" subtitle="Detailed analytics and export-ready summaries" />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i}>
@@ -295,10 +293,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Reports</h2>
-        <p className="text-sm text-muted-foreground">Detailed analytics and export-ready summaries</p>
-      </div>
+      <PageHeader title="Reports" subtitle="Detailed analytics and export-ready summaries" />
 
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">

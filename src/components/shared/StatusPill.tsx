@@ -1,30 +1,19 @@
 import { STATUS_LABELS, type ChequeStatus } from '@/types'
-import { cn } from '@/lib/utils'
-
-const statusStyles: Record<ChequeStatus, string> = {
-  PENDING: 'bg-amber-100 text-amber-800 border-amber-200',
-  DEPOSITED: 'bg-blue-100 text-blue-800 border-blue-200',
-  PASSED: 'bg-gray-100 text-gray-700 border-gray-200',
-  RETURNED: 'bg-red-100 text-red-800 border-red-200',
-  CANCELLED: 'bg-slate-100 text-slate-700 border-slate-200',
-  WRITTEN_OFF: 'bg-zinc-100 text-zinc-700 border-zinc-300 line-through decoration-zinc-400',
-}
+import { Chip } from '@/components/shared/Chip'
+import { GIVEN_STATUS_CHIPS } from '@/lib/statusChips'
 
 interface StatusPillProps {
   status: ChequeStatus
+  size?: 'sm' | 'md'
   className?: string
 }
 
-export function StatusPill({ status, className }: StatusPillProps) {
+/** A given cheque's status as a chip. */
+export function StatusPill({ status, size = 'sm', className }: StatusPillProps) {
+  const chip = GIVEN_STATUS_CHIPS[status]
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
-        statusStyles[status],
-        className
-      )}
-    >
+    <Chip tone={chip?.tone ?? 'done'} icon={chip?.icon} size={size} className={className}>
       {STATUS_LABELS[status] ?? status}
-    </span>
+    </Chip>
   )
 }

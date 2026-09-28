@@ -185,6 +185,22 @@ export function isMonthFirst(region: Region = getActiveRegion()): boolean {
   return region.dateFormat.startsWith('MM')
 }
 
+/**
+ * A date with the month named, so the day and month order can't confuse
+ * anyone: "Thu 24 Sep" (or "Thu Sep 24"), plus the year when it isn't this year.
+ */
+export function formatShortDate(date: string | Date, region: Region = getActiveRegion()): string {
+  const day = toCalendarDate(date, region)
+  const pattern = isMonthFirst(region) ? 'EEE MMM d' : 'EEE d MMM'
+  const thisYear = day.getFullYear() === nowInUserTimeZone(region).getFullYear()
+  return format(day, thisYear ? pattern : `${pattern} yyyy`)
+}
+
+/** The full date for page headings: "Sunday, 27 September" (or "Sunday, September 27"). */
+export function formatLongDate(date: string | Date, region: Region = getActiveRegion()): string {
+  return format(toCalendarDate(date, region), isMonthFirst(region) ? 'EEEE, MMMM d' : 'EEEE, d MMMM')
+}
+
 /** Short day and month for chart labels, in the user's order: "26 Sep" or "Sep 26". */
 export function formatDayMonth(date: Date, region: Region = getActiveRegion()): string {
   return format(date, isMonthFirst(region) ? 'MMM dd' : 'dd MMM')

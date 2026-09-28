@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-09-27, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-09-28, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -23,14 +23,16 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked.
   - My v0 data is imported there as sample data: 97 parties, 82 given cheques and 7 funds added. There are no received cheques yet.
   - `.env.local` points at it.
-- **Running the app:** `.claude/launch.json` starts `npm run dev` for the browser pane. I sign in myself. If the pane can't load `localhost:5173`, open `http://127.0.0.1:5173` instead; a sign-in on one address doesn't carry over to the other.
+- **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself. If the pane can't load `localhost:5173`, open `http://127.0.0.1:5173` instead; a sign-in on one address doesn't carry over to the other.
+  - To test the installed app (service worker, offline start, updates), run `npm run build`, then the "preview" configuration (port 4173). The dev server has no service worker on purpose.
 - **Redesign:**
-  - The design is done: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. I liked the "Passbook" look: warm paper, cheque-ink blue, green only for money in, IBM Plex fonts.
+  - The design is done and approved: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. I liked the "Passbook" look: warm paper, cheque-ink blue, green only for money in, IBM Plex fonts. Keep it exactly.
+  - **Building it (item 14) started on 2026-09-28, web version first.** Step 1 is done: the Passbook colours (light and dark), fonts, the new frame (sidebar and top bar on desktop, bottom tabs on phones, New menu, search, activity bell, appearance), and the installed app (icons, offline start, update prompt, install option). `CLAUDE.md` says where each piece lives.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
-- **Next:** ask me for the go-ahead on the designs (item 68), then build (item 14) in this order:
-  1. Tokens, fonts and the new frame: sidebar, bottom tabs, New menu and search.
+- **Next:** continue item 14 from step 2:
+  1. ~~Tokens, fonts and the new frame~~ (done).
   2. Today in all three views.
   3. Cheques and cheque detail.
   4. The received-cheque screens, with made-up received cheques (item 11).
@@ -38,8 +40,15 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Received cheques:** there are still no screens for them in the app; they come with the build.
-- **Not pushed yet:** docs-only commits, from `a403464` onward. Nothing in them changes the database.
+- **Not pushed yet:** commits from `a403464` onward: docs, then the redesign's step 1. None of them changes the database.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
+
+## Decided on 2026-09-28
+
+- Build the web version (the PWA) first; I decide about native apps once it's done. Keep the Passbook look exactly as designed.
+- Fonts are bundled with the app instead of loaded from Google, so the installed app works offline and makes no third-party requests.
+- Light or dark follows the device unless you pick one under Appearance; the choice is saved per device.
+- Until their screens are rebuilt: Returned stays in the menu (it becomes a saved view in step 3), and the old dashboard sits under the new Today title (step 2).
 
 ## Decided on 2026-09-27
 

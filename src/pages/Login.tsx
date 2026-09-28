@@ -44,14 +44,14 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 bg-muted/30">
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <AppLogo size="lg" showText={false} />
           </div>
-          <CardTitle className="text-2xl">{brand.name}</CardTitle>
-          <CardDescription>Sign in to manage your cheques</CardDescription>
+          <CardTitle className="font-title text-3xl text-brand">{brand.name}</CardTitle>
+          <CardDescription className="text-[15px]">{brand.tagline}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -66,8 +66,8 @@ export default function Login() {
               {errors.password && <p className="text-sm text-destructive mt-1">{errors.password.message}</p>}
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
         </CardContent>

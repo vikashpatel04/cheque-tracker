@@ -27,6 +27,7 @@ Edit `.env.local`:
 | `VITE_SUPABASE_ANON_KEY` | Yes | Supabase → Settings → API → publishable (or legacy anon) key |
 | `VITE_APP_NAME` | No | The name shown in the app, page title and web manifest |
 | `VITE_APP_TAGLINE` | No | One line shown in the page description and manifest |
+| `VITE_APP_LOGO` | No | An image shown instead of the built-in logo, e.g. `/icons/my-logo.svg` (put it in `public/`) |
 | `VITE_SITE_URL` | No | Your site's address |
 | `VITE_SOURCE_URL` | If you change the code | Where your users can get your version's source code (see [below](#if-you-change-the-code)) |
 
@@ -90,7 +91,12 @@ On Vercel:
 2. Add the variables from step 2.
 3. Deploy.
 
-Vercel detects Vite, and `vercel.json` handles client-side routing and cache headers. Any static host works if it serves `index.html` for unknown paths.
+Vercel detects Vite, and `vercel.json` handles client-side routing and cache headers. Any static host works if it:
+
+- serves `index.html` for unknown paths, and
+- serves `sw.js` and `index.html` with `Cache-Control: no-cache`, so installed apps find new versions. Files in `assets/` never change and can be cached for a year.
+
+The app installs on phones and computers (it's a PWA) and starts without a connection once it has been opened. Each build makes its own `sw.js` from `pwa/service-worker.js`; the dev server has none.
 
 ## Upgrading
 

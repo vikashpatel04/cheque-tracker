@@ -1,9 +1,10 @@
 import { PartyList } from '@/components/parties/PartyList'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function Parties() {
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Parties</h2>
+    <div>
+      <PageHeader title="Parties" />
       <PartyList />
     </div>
   )

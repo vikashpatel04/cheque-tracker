@@ -66,13 +66,13 @@ export default function RegionSetup() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-muted/30">
+    <div className="flex min-h-dvh items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <AppLogo size="lg" showText={false} />
           </div>
-          <CardTitle className="text-2xl">Set up your region</CardTitle>
+          <CardTitle className="font-title text-3xl">Set up your region</CardTitle>
           <CardDescription>
             Where do you use cheques? This sets your currency, date format and time zone. You can change any of
             them later in Settings.

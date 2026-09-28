@@ -8,10 +8,10 @@ What the app does today, and where each feature goes in the redesign ([design-br
 |---|---|
 | Sign in with email and password | Sign-in screen. Sign-up, password reset and Google come with item 52 |
 | First-run region setup, with a preview of amounts, dates and time zone, and sign out | Onboarding, step 2 |
-| Header: "Funds added today ₹…" and an Add funds button | Today in the given view, and New → Add funds |
+| Header: "Funds added today ₹…" and an Add funds button | Today in the given view, and New → Add funds. Until step 2 it sits beside the Today title |
 | Plan banner: trial ending, read-only | Banner at the top, and Settings → Plan and billing |
 | Menu: Dashboard, Cheques, Parties, Returned, Reports, Settings | Today, Cheques, Calendar, Parties, Reports, Settings. Returned becomes a saved view |
-| Installs as an app on phones (PWA) | Unchanged |
+| Installs as an app on phones (PWA) | Kept and improved: new icons, starts offline, offers updates and installing (built in 14, step 1) |
 | Auto-pass: funded cheques become Passed at a set time on their due date | Unchanged; its setting lives in Settings → Preferences |
 
 ## Dashboard → Today, Calendar and Reports

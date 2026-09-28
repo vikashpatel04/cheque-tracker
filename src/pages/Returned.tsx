@@ -9,6 +9,7 @@ import { RePresentDrawer } from '@/components/cheques/RePresentDrawer'
 import { WriteOffDialog } from '@/components/cheques/WriteOffDialog'
 import { getChequeTags, isLegacyRepresented, stripTagLines } from '@/lib/chequeTags'
 import type { Cheque } from '@/types'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 /**
  * Our cheques that bounced. Each one needs a decision: re-present the same
@@ -47,12 +48,10 @@ export default function Returned() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold">Returned Cheques</h2>
-        <p className="text-sm text-muted-foreground">
-          Our cheques that bounced. Re-present the same cheque, or write it off and issue a new one.
-        </p>
-      </div>
+      <PageHeader
+        title="Returned cheques"
+        subtitle="Cheques you gave that bounced. Re-present the same cheque, or write it off and issue a new one."
+      />
 
       <Card>
         <CardContent className="p-4 flex flex-wrap gap-4 items-center">

@@ -16,7 +16,7 @@ export function PlanBanner() {
     return (
       <div
         role="status"
-        className="flex items-center gap-2 border-b bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200 md:px-6"
+        className="flex items-center gap-2 border-b bg-attention-soft px-4 py-2 text-sm text-attention lg:px-10"
       >
         <AlertTriangle className="h-4 w-4 shrink-0" />
         Your plan has ended. Your cheques are safe and you can still view and export them. Renew to add or
@@ -32,7 +32,7 @@ export function PlanBanner() {
       return (
         <div
           role="status"
-          className="flex items-center gap-2 border-b bg-muted/60 px-4 py-2 text-sm md:px-6"
+          className="flex items-center gap-2 border-b bg-waiting-soft px-4 py-2 text-sm text-waiting lg:px-10"
         >
           <Clock className="h-4 w-4 shrink-0" />
           {days === 0 ? 'Your free trial ends today.' : `Your free trial ends in ${days} day${days === 1 ? '' : 's'}.`}

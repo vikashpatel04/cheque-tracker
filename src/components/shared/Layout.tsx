@@ -1,139 +1,191 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  FileText,
-  Users,
-  RotateCcw,
-  BarChart3,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-} from 'lucide-react'
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/useAuth'
-import { DepositWidget } from '@/components/deposit/DepositWidget'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Menu, Plus, Search, WifiOff } from 'lucide-react'
+import { AccountMenu } from '@/components/shared/AccountMenu'
+import { ActivityBell } from '@/components/shared/ActivityBell'
+import { AppActionsProvider } from '@/components/shared/AppActions'
 import { AppLogo } from '@/components/shared/AppLogo'
+import { MoreSheet } from '@/components/shared/MoreSheet'
+import { NewMenuButton, NewSheet } from '@/components/shared/NewMenu'
 import { PlanBanner } from '@/components/shared/PlanBanner'
 import { SourceLink } from '@/components/shared/SourceLink'
+import { isActivePath, NAV_ITEMS, RETURNED_ITEM, type NavItem } from '@/components/shared/navigation'
+import { useAppActions } from '@/hooks/useAppActions'
+import { daysLeft, usePlan } from '@/hooks/usePlan'
+import { useOnline } from '@/lib/pwa'
+import { cn } from '@/lib/utils'
 
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/cheques', label: 'Cheques', icon: FileText },
-  { to: '/parties', label: 'Parties', icon: Users },
-  { to: '/returned', label: 'Returned', icon: RotateCcw },
-  { to: '/reports', label: 'Reports', icon: BarChart3 },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
+/** The search shortcut as this device writes it. */
+const SEARCH_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'
 
-interface SidebarProps {
-  mobileOpen: boolean
-  onMobileClose: () => void
+function SidebarLink({ item }: { item: NavItem }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/'}
+      className={({ isActive }) =>
+        cn(
+          'flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] transition-colors',
+          isActive ? 'bg-brand-soft font-semibold text-brand' : 'font-medium text-ink-nav hover:bg-hover'
+        )
+      }
+    >
+      <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+      <span className="flex-1">{item.label}</span>
+    </NavLink>
+  )
 }
 
-function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
-  const { signOut } = useAuth()
-  const navigate = useNavigate()
+/** The plan, on instances that sell plans. Paid plans don't nag. */
+function SidebarPlan() {
+  const plan = usePlan()
+  if (plan.loading || !plan.billingEnabled) return null
+  const trial = plan.current?.source === 'trial' && plan.current.expires_at ? daysLeft(plan.current.expires_at) : null
+  if (plan.hasAccess && trial === null) return null
+  return (
+    <Link
+      to="/settings"
+      className="flex flex-col gap-1 rounded-xl border bg-surface p-3.5 text-ink transition-colors hover:bg-hover"
+    >
+      <span className="text-sm font-semibold">
+        {!plan.hasAccess
+          ? 'Your plan has ended'
+          : trial === 0
+            ? 'Free trial · ends today'
+            : `Free trial · ${trial} day${trial === 1 ? '' : 's'} left`}
+      </span>
+      <span className="text-[13px] font-medium text-brand">{plan.hasAccess ? 'Choose a pack' : 'Renew'}</span>
+    </Link>
+  )
+}
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/login')
-  }
+function Sidebar() {
+  return (
+    <nav
+      aria-label="Main"
+      className="sticky top-0 hidden h-dvh flex-col gap-1 overflow-y-auto border-r bg-sidebar px-4 py-5 lg:flex"
+    >
+      <Link to="/" className="flex items-center gap-2.5 px-2.5 pb-[22px] pt-1.5">
+        <AppLogo size="sm" />
+      </Link>
+      {NAV_ITEMS.map((item) => (
+        <SidebarLink key={item.to} item={item} />
+      ))}
+      <div className="mt-3 border-t border-line-soft pt-3">
+        <SidebarLink item={RETURNED_ITEM} />
+      </div>
+      <div className="flex-1" />
+      <SidebarPlan />
+      <SourceLink className="px-3 pt-2 text-xs text-ink-quiet" />
+    </nav>
+  )
+}
+
+function TopBar() {
+  const { openSearch } = useAppActions()
+  return (
+    <header className="sticky top-0 z-30 hidden h-[68px] items-center gap-4 border-b bg-background/95 px-10 backdrop-blur lg:flex">
+      <button
+        type="button"
+        onClick={openSearch}
+        className="flex h-11 w-[460px] max-w-[45%] items-center gap-2.5 rounded-[10px] border border-line-field bg-surface pl-3.5 pr-2.5 text-left text-[15px] text-ink-faint transition-colors hover:border-line-strong"
+      >
+        <Search className="h-[18px] w-[18px] shrink-0 text-ink-quiet" aria-hidden="true" />
+        <span className="flex-1 truncate">Search cheque no., party or amount</span>
+        <kbd className="rounded-md border border-line-field bg-background px-[7px] py-[3px] font-mono text-xs text-ink-quiet">
+          {SEARCH_SHORTCUT}
+        </kbd>
+      </button>
+      <div className="flex-1" />
+      <NewMenuButton />
+      <ActivityBell />
+      <AccountMenu />
+    </header>
+  )
+}
+
+const MORE_PATHS = [...NAV_ITEMS.filter((item) => item.underMore), RETURNED_ITEM].map((item) => item.to)
+
+function BottomTabs() {
+  const { pathname } = useLocation()
+  const [newOpen, setNewOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const tabs = NAV_ITEMS.filter((item) => !item.underMore)
+  const moreActive = MORE_PATHS.some((to) => isActivePath(pathname, to))
+
+  const tabClass = (active: boolean) =>
+    cn(
+      'flex h-[60px] flex-col items-center justify-center gap-[3px] text-xs transition-colors',
+      active ? 'font-bold text-brand' : 'font-medium text-ink-quiet'
+    )
+
+  const tab = (item: NavItem) => (
+    <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => tabClass(isActive)}>
+      <item.icon className="h-[22px] w-[22px]" aria-hidden="true" />
+      <span>{item.label}</span>
+    </NavLink>
+  )
 
   return (
     <>
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
-          onClick={onMobileClose}
-          aria-hidden="true"
-        />
-      )}
-
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-background transition-transform md:translate-x-0',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        )}
+      <nav
+        aria-label="Main"
+        className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t bg-sidebar lg:hidden"
       >
-        <div className="flex items-center justify-between gap-2 p-4 border-b">
-          <AppLogo size="sm" className="min-w-0 flex-1" />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden h-11 w-11 shrink-0"
-            onClick={onMobileClose}
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              onClick={onMobileClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                )
-              }
+        <div className="grid h-[72px] grid-cols-5 items-center pb-2">
+          {tab(tabs[0])}
+          {tab(tabs[1])}
+          <div className="flex justify-center">
+            <button
+              type="button"
+              aria-label="New"
+              onClick={() => setNewOpen(true)}
+              className="-mt-[18px] flex h-14 w-14 items-center justify-center rounded-full bg-brand text-brand-ink shadow-fab transition-colors hover:bg-brand-hover"
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="p-3 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 min-h-[44px]"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
-          <SourceLink className="block px-3 pt-2" />
+              <Plus className="h-[26px] w-[26px]" strokeWidth={2.4} aria-hidden="true" />
+            </button>
+          </div>
+          {tab(tabs[2])}
+          <button type="button" onClick={() => setMoreOpen(true)} className={tabClass(moreActive)} aria-current={moreActive ? 'page' : undefined}>
+            <Menu className="h-[22px] w-[22px]" aria-hidden="true" />
+            <span>More</span>
+          </button>
         </div>
-      </aside>
+      </nav>
+      <NewSheet open={newOpen} onOpenChange={setNewOpen} />
+      <MoreSheet open={moreOpen} onOpenChange={setMoreOpen} />
     </>
   )
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  const [mobileOpen, setMobileOpen] = useState(false)
-
+function OfflineBanner() {
+  const online = useOnline()
+  if (online) return null
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-      <div className="md:pl-64 min-w-0">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 backdrop-blur px-4 md:px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden h-11 w-11 shrink-0"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex-1 min-w-0" />
-          <DepositWidget />
-        </header>
-        <PlanBanner />
-        {/* min-w-0 + overflow-x-hidden so tables/charts with `overflow-x-auto`
-            wrappers scroll internally instead of forcing the page to scroll. */}
-        <main className="p-4 md:p-6 min-w-0 overflow-x-hidden">{children}</main>
-      </div>
+    <div role="status" className="flex items-center gap-2 border-b bg-attention-soft px-4 py-2 text-sm text-attention lg:px-10">
+      <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
+      You're offline. What you see may be out of date, and changes can't be saved until you're back online.
     </div>
+  )
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <AppActionsProvider>
+      <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-col">
+          <TopBar />
+          <OfflineBanner />
+          <PlanBanner />
+          {/* min-w-0 + overflow-x-hidden so wide tables and charts scroll inside
+              their own wrappers instead of scrolling the page. */}
+          <main className="w-full min-w-0 max-w-[1400px] overflow-x-hidden px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8">
+            {children}
+          </main>
+        </div>
+        <BottomTabs />
+      </div>
+    </AppActionsProvider>
   )
 }

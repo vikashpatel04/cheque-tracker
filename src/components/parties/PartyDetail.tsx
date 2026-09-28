@@ -15,6 +15,7 @@ import { formatCurrency, formatDate } from '@/lib/formatters'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { PartyForm } from './PartyForm'
 import { useParties } from '@/hooks/useParties'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export function PartyDetail() {
   const { id } = useParams<{ id: string }>()
@@ -111,12 +112,7 @@ export function PartyDetail() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/parties')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h2 className="text-2xl font-bold">{party.name}</h2>
-      </div>
+      <PageHeader back={() => navigate('/parties')} title={party.name} />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -138,7 +134,7 @@ export function PartyDetail() {
                 setParty({ ...party, is_active: v })
               }}
             />
-            <Label>Active</Label>
+            <Label className="mb-0">Active</Label>
           </div>
         </CardContent>
       </Card>

@@ -11,6 +11,7 @@ import Returned from '@/pages/Returned'
 import Reports from '@/pages/Reports'
 import SettingsPage from '@/pages/Settings'
 import BulkAdd from '@/pages/BulkAdd'
+import CalendarPage from '@/pages/Calendar'
 
 function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ function AppRoutes() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/cheques" element={<Cheques />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/bulk-add" element={<BulkAdd />} />
                   <Route path="/parties/:partyId/bulk-add" element={<BulkAdd />} />
                   <Route path="/parties/*" element={<PartiesPage />} />
@@ -46,7 +48,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-center" richColors closeButton />
     </BrowserRouter>
   )
 }

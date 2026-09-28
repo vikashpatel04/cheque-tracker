@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Plus, Trash2, Save, ArrowLeft } from 'lucide-react'
+import { Plus, Trash2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { todayISO, formatAmountInput, parseAmount, nextChequeNumber } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 interface BulkRow {
   id: string
@@ -166,33 +167,31 @@ export default function BulkAdd() {
 
   return (
     <div className="space-y-4 pb-12">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold">
-              {isPartyWise ? 'Party-wise Bulk Add' : 'Bulk Add Cheques'}
-            </h2>
-            {isPartyWise && selectedParty && (
-              <p className="text-muted-foreground mt-0.5">
-                Adding multiple cheques for <strong>{selectedParty.name}</strong>
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handleAddRow()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Row
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || rows.length === 0}>
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? 'Saving...' : 'Save All'}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        back={() => navigate(-1)}
+        title={isPartyWise ? 'Add cheques for a party' : 'Add several cheques'}
+        subtitle={
+          isPartyWise && selectedParty ? (
+            <>
+              Given cheques for <strong className="font-semibold text-ink">{selectedParty.name}</strong>
+            </>
+          ) : (
+            'Given cheques, many at once'
+          )
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => handleAddRow()}>
+              <Plus />
+              Add row
+            </Button>
+            <Button onClick={handleSubmit} disabled={loading || rows.length === 0}>
+              <Save />
+              {loading ? 'Saving…' : 'Save all'}
+            </Button>
+          </>
+        }
+      />
 
       <div className="space-y-4 mt-6">
         {rows.map((row) => (
