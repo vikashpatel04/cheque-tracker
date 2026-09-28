@@ -63,7 +63,7 @@ export function WriteOffDialog({ cheque, open, onOpenChange, onSuccess }: WriteO
           <DialogTitle>Write off cheque {cheque ? `#${cheque.cheque_number}` : ''}</DialogTitle>
           <DialogDescription>
             Use this when the returned cheque can't be used again. It will be closed as{' '}
-            <span className="font-medium">Written Off</span>. You can then issue a new cheque in its place.
+            <span className="font-medium">Written off</span>. You can then issue a new cheque in its place.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">

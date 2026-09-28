@@ -7,7 +7,6 @@ import Login from '@/pages/Login'
 import Today from '@/pages/Today'
 import Cheques from '@/pages/Cheques'
 import PartiesPage from '@/pages/PartiesPage'
-import Returned from '@/pages/Returned'
 import Reports from '@/pages/Reports'
 import SettingsPage from '@/pages/Settings'
 import BulkAdd from '@/pages/BulkAdd'
@@ -30,7 +29,7 @@ function AppRoutes() {
                   <Route path="/bulk-add" element={<BulkAdd />} />
                   <Route path="/parties/:partyId/bulk-add" element={<BulkAdd />} />
                   <Route path="/parties/*" element={<PartiesPage />} />
-                  <Route path="/returned" element={<Returned />} />
+                  <Route path="/returned" element={<Navigate to="/cheques?dir=given&view=returned" replace />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />

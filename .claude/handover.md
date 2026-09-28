@@ -29,19 +29,20 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - The design is done and approved: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. I liked the "Passbook" look: warm paper, cheque-ink blue, green only for money in, IBM Plex fonts. Keep it exactly.
   - **Building it (item 14) started on 2026-09-28, web version first.** Step 1 is done: the Passbook colours (light and dark), fonts, the new frame (sidebar and top bar on desktop, bottom tabs on phones, New menu, search, activity bell, appearance), and the installed app (icons, offline start, update prompt, install option). `CLAUDE.md` says where each piece lives.
   - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
+  - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
 - **Next:** continue item 14 from step 2:
   1. ~~Tokens, fonts and the new frame~~ (done).
   2. ~~Today in all three views~~ (done).
-  3. Cheques and cheque detail.
+  3. ~~Cheques and cheque detail~~ (done).
   4. The received-cheque screens, with made-up received cheques (item 11).
   5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Received cheques:** there are still no screens for them in the app; they come with the build.
-- **Not pushed yet:** commits from `a403464` onward: docs, then the redesign's steps 1 and 2. Step 2 adds migration `017_tracks.sql` (one new column, `settings.tracks`, default "both"); pushing applies it to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tools and check it matches the hand-added `tracks` lines.
+- **Not pushed yet:** commits from `a403464` onward: docs, then the redesign's steps 1 to 3. Step 2 adds migration `017_tracks.sql` (one new column, `settings.tracks`, default "both"); pushing applies it to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tools and check it matches the hand-added `tracks` lines.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-28

@@ -34,6 +34,8 @@ Built in 14, step 2 (2026-09-28): the dashboard is gone and every row below has 
 
 ## Given cheques
 
+Built in 14, step 3 (2026-09-28): the Cheques list, its views and filters, the row menu, swipe, export and the cheque detail. Add cheque and Add several keep their current forms until step 4. Re-present and write-off keep their dialogs, now opened from the detail and the row menu.
+
 | Today | In the redesign |
 |---|---|
 | Search by cheque number or party; filter by status (several at once), party and bank; sort by due date, issue date, amount or party, up or down | Cheques: search, filters, sort |

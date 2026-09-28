@@ -149,7 +149,7 @@ export default function Today() {
         })
       case 'returned':
         if (todo.cheques.length === 1) return actions.openCheque(todo.cheques[0].id)
-        return navigate('/returned')
+        return navigate('/cheques?dir=given&view=returned')
       case 'deposit':
         return actions.depositReceived(todo.cheques.map((c) => c.id))
       case 'going_stale':

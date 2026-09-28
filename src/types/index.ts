@@ -184,7 +184,7 @@ export const STATUS_LABELS: Record<ChequeStatus, string> = {
   PASSED: 'Passed',
   RETURNED: 'Returned',
   CANCELLED: 'Cancelled',
-  WRITTEN_OFF: 'Written Off',
+  WRITTEN_OFF: 'Written off',
 }
 
 /** Statuses where the cheque is finished — no due-date countdown. */

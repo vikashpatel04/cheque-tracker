@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { Cheque } from '@/types'
 
 /**
  * Things you can do from anywhere: the New menu, search and the cheque
@@ -7,6 +8,9 @@ import { createContext, useContext } from 'react'
  */
 export interface AppActions {
   newGivenCheque: () => void
+  editCheque: (cheque: Cheque) => void
+  /** A new cheque in place of a written-off one, filled in from it and linked to it. */
+  replaceCheque: (cheque: Cheque) => void
   /** Add funds, optionally starting from the amount that's needed. */
   addFunds: (amount?: number) => void
   importCheques: () => void

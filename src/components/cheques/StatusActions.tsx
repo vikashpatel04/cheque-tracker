@@ -34,7 +34,7 @@ export const STATUS_ACTION_META: Record<ChequeStatus, StatusMeta> = {
     tone: 'text-destructive focus:text-destructive hover:text-destructive',
   },
   CANCELLED: { label: 'Cancelled', Icon: Ban, tone: 'text-muted-foreground' },
-  WRITTEN_OFF: { label: 'Written Off', Icon: FileX, tone: 'text-muted-foreground' },
+  WRITTEN_OFF: { label: 'Written off', Icon: FileX, tone: 'text-muted-foreground' },
 }
 
 /**

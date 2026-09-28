@@ -9,7 +9,7 @@ import { MoreSheet } from '@/components/shared/MoreSheet'
 import { NewMenuButton, NewSheet } from '@/components/shared/NewMenu'
 import { PlanBanner } from '@/components/shared/PlanBanner'
 import { SourceLink } from '@/components/shared/SourceLink'
-import { isActivePath, NAV_ITEMS, RETURNED_ITEM, type NavItem } from '@/components/shared/navigation'
+import { isActivePath, NAV_ITEMS, type NavItem } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
 import { useTodos } from '@/hooks/useTodayData'
@@ -81,9 +81,6 @@ function Sidebar() {
       {NAV_ITEMS.map((item) => (
         <SidebarLink key={item.to} item={item} count={item.to === '/' ? todos.length : undefined} />
       ))}
-      <div className="mt-3 border-t border-line-soft pt-3">
-        <SidebarLink item={RETURNED_ITEM} />
-      </div>
       <div className="flex-1" />
       <SidebarPlan />
       <SourceLink className="px-3 pt-2 text-xs text-ink-quiet" />
@@ -114,7 +111,7 @@ function TopBar() {
   )
 }
 
-const MORE_PATHS = [...NAV_ITEMS.filter((item) => item.underMore), RETURNED_ITEM].map((item) => item.to)
+const MORE_PATHS = NAV_ITEMS.filter((item) => item.underMore).map((item) => item.to)
 
 function BottomTabs() {
   const { pathname } = useLocation()

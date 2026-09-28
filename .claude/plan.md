@@ -77,7 +77,11 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Migration 017 adds `settings.tracks` (given, received or both; both by default). Until it's pushed, the app treats everyone as both and saving the setting fails politely. After it's on the dev project, regenerate `src/types/database.ts` (the `tracks` lines were added by hand to match).
     - Nothing from the dashboard is lost: its running-total chart is now in Reports → Daily Cash Flow and its six-month trend in Reports → Monthly, until Reports is rebuilt (step 5). Recent activity is the bell. The old calendar is the Calendar page.
     - Received to-dos and the Deposit button are wired to placeholders that say the screens are coming; step 4 connects them.
-  - [ ] 3. Cheques and cheque detail.
+  - [x] 3. Cheques and cheque detail.
+    - Done 2026-09-28. Cheques shows both directions: All / Received / Given tabs with counts, saved views with counts (to deposit, needs funds, in clearing, funded, overdue, returned, bounced, security, series), filter pills for due dates, party, bank or account, status and order, search by number, party or amount, and totals. Desktop has a table with selection (add funds, mark passed, or deposit several at once) and a row menu with every status change, edit and undo. Phones get cards grouped by day with swipe for the main action, and a filter sheet. Export to PDF or Excel keeps the filters. Filters live in the address bar, so Today can open a view.
+    - The cheque detail is a panel (full screen on phones): who it's to, the amount, status and tags, one card with the next step (add funds, did it pass, present again or write off, issue a replacement), details, the party with a link to its ledger, and the history with undo. Edit, cancel and delete are in its menu.
+    - Returned is now the "Returned" view; /returned redirects there. The old list, Returned page and badge helpers are gone. The list's logic is tested in `tests/chequeList.test.ts`.
+    - Received rows already show here; opening, depositing and swiping them use the step 4 placeholders.
   - [ ] 4. The received-cheque screens, with made-up received cheques (11).
   - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding.
 
@@ -91,11 +95,14 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
   - Built in 14, step 1, for given cheques. Received cheques and series join the New menu and search in step 4.
 - [x] **17.** Today: three numbers first (in clearing, due, net), then to-dos with one action each, then one in/out chart. People who only give or only receive see only their half.
   - Done in 14, step 2. The received actions open their screens once step 4 builds them.
-- [ ] **18.** Cheques: All / Received / Given tabs, plus saved views: To deposit, In clearing, Bounced, Security, Series.
-- [ ] **19.** Returned stops being a page and becomes a saved view and a to-do. Bulk add moves under New.
+- [x] **18.** Cheques: All / Received / Given tabs, plus saved views: To deposit, In clearing, Bounced, Security, Series.
+  - Done in 14, step 3, with given views too (needs funds, funded, overdue, returned).
+- [x] **19.** Returned stops being a page and becomes a saved view and a to-do. Bulk add moves under New.
+  - Done in 14, steps 1 to 3.
 - [ ] **20.** Parties: a two-way ledger per party, showing given, received, net and bounces.
 - [ ] **21.** Settings: profile, region, bank accounts, notifications, plan and billing, data.
 - [ ] **22.** Mobile: bottom tabs (Today · Cheques · + · Parties · More), cards instead of tables, swipe to deposit or confirm, and full-screen forms.
+  - Bottom tabs (step 1), cheque cards with swipe and a full-screen detail (step 3) are done. Forms go full screen with their redesign (steps 4 and 5).
 - [ ] **23.** Reports:
   - Sticky filters: dates, direction, party, account, status.
   - Tabs: Overview, Cash flow, Collections (ageing in 0–30 / 31–60 / 61–90 / 90+ day buckets, and bounce rate), Payments, Parties, Bounces, and Accounts and funds.

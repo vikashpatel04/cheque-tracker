@@ -1,5 +1,6 @@
-import { Ban, Check, CircleX, Clock, Wallet, X, type LucideIcon } from 'lucide-react'
+import { Ban, Check, CircleCheck, CircleDot, CircleX, Clock, Hourglass, Repeat, Undo2, Wallet, X, type LucideIcon } from 'lucide-react'
 import type { ChequeStatus } from '@/types'
+import type { ReceivedStatus } from '@/types/received'
 
 /**
  * The status chip families from the design (docs/design-brief.md): waiting,
@@ -15,6 +16,18 @@ export const GIVEN_STATUS_CHIPS: Record<ChequeStatus, { tone: ChipTone; icon: Lu
   RETURNED: { tone: 'problem', icon: CircleX },
   CANCELLED: { tone: 'done', icon: X },
   WRITTEN_OFF: { tone: 'done', icon: Ban },
+}
+
+/** Received cheques. */
+export const RECEIVED_STATUS_CHIPS: Record<ReceivedStatus, { tone: ChipTone; icon: LucideIcon }> = {
+  IN_HAND: { tone: 'waiting', icon: CircleDot },
+  DEPOSITED: { tone: 'progress', icon: Hourglass },
+  CLEARED: { tone: 'cleared', icon: CircleCheck },
+  BOUNCED: { tone: 'problem', icon: CircleX },
+  SETTLED: { tone: 'done', icon: Check },
+  HANDED_BACK: { tone: 'done', icon: Undo2 },
+  WRITTEN_OFF: { tone: 'done', icon: Ban },
+  REPLACED: { tone: 'done', icon: Repeat },
 }
 
 /** Soft background and text colour for each family, as Tailwind classes. */

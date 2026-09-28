@@ -12,7 +12,7 @@ import type { Cheque } from '@/types'
 
 /** Holds the dialogs that any page can open (see hooks/useAppActions.ts). */
 export function AppActionsProvider({ children }: { children: React.ReactNode }) {
-  const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null }>({ open: false, cheque: null })
+  const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
   const [detailId, setDetailId] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
@@ -35,6 +35,14 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const actions = useMemo<AppActions>(
     () => ({
       newGivenCheque: () => setForm({ open: true, cheque: null }),
+      editCheque: (cheque) => {
+        setDetailId(null)
+        setForm({ open: true, cheque })
+      },
+      replaceCheque: (cheque) => {
+        setDetailId(null)
+        setForm({ open: true, cheque: null, replacing: cheque })
+      },
       addFunds: (amount) => setFunds({ open: true, amount }),
       importCheques: () => setImportOpen(true),
       openSearch,
@@ -58,13 +66,26 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         open={form.open}
         onOpenChange={(open) => !open && setForm({ open: false, cheque: null })}
         cheque={form.cheque}
+        replacing={form.replacing}
+        prefill={
+          form.replacing
+            ? {
+                party_id: form.replacing.party_id,
+                bank_name: form.replacing.bank_name,
+                amount: Number(form.replacing.amount),
+                cheque_number: '',
+              }
+            : undefined
+        }
         onSubmit={async (data) => {
-          const { error } = form.cheque ? await updateGivenCheque(form.cheque.id, data) : await createGivenCheque(data)
+          const { error } = form.cheque
+            ? await updateGivenCheque(form.cheque.id, data)
+            : await createGivenCheque({ ...data, replaces_cheque_id: form.replacing?.id })
           if (error) {
             toast.error(`Couldn't save the cheque: ${error}`)
             return false
           }
-          toast.success(form.cheque ? 'Cheque updated' : 'Cheque added')
+          toast.success(form.cheque ? 'Cheque updated' : form.replacing ? 'New cheque added in its place' : 'Cheque added')
         }}
         onStatusChange={announceDataChange}
       />

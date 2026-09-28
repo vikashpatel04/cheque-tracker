@@ -2,7 +2,6 @@ import {
   Calendar,
   ChartColumn,
   createLucideIcon,
-  RotateCcw,
   SlidersHorizontal,
   Sun,
   Users,
@@ -33,12 +32,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/reports', label: 'Reports', icon: ChartColumn, underMore: true },
   { to: '/settings', label: 'Settings', icon: SlidersHorizontal, underMore: true },
 ]
-
-/**
- * Returned cheques keep their own page until the Cheques list gets saved
- * views (plan item 14, step 3), where it becomes the "Returned" view.
- */
-export const RETURNED_ITEM: NavItem = { to: '/returned', label: 'Returned', icon: RotateCcw, underMore: true }
 
 export function isActivePath(pathname: string, to: string): boolean {
   return to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`)

@@ -3,11 +3,11 @@ import { ChevronRight, Download, LogOut } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { AppearanceSwitch } from '@/components/shared/AppearanceSwitch'
 import { useInstallApp } from '@/components/shared/InstallApp'
-import { NAV_ITEMS, RETURNED_ITEM } from '@/components/shared/navigation'
+import { NAV_ITEMS } from '@/components/shared/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useSignOut } from '@/hooks/useSignOut'
 
-const MORE_ITEMS = [...NAV_ITEMS.filter((item) => item.underMore), RETURNED_ITEM]
+const MORE_ITEMS = NAV_ITEMS.filter((item) => item.underMore)
 
 /** More, from the phone's bottom tabs: the sections that don't fit there, and the account. */
 export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
