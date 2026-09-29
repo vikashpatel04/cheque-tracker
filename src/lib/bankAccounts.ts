@@ -3,8 +3,9 @@ import { announceDataChange } from './dataEvents'
 import type { BankAccount } from '@/types/received'
 
 /**
- * Your own bank accounts, where received cheques are deposited. Only a name,
- * the bank and the last four digits are kept, never the full number.
+ * Your own bank accounts: the ones you write cheques from and deposit
+ * received cheques into (plan item 74). Only a name, the bank and the last
+ * four digits are kept, never the full number.
  */
 export interface BankAccountInput {
   name: string
@@ -71,4 +72,27 @@ export async function removeBankAccount(account: BankAccount): Promise<Result> {
 export function accountLabel(account: Pick<BankAccount, 'name' | 'last4'> | null | undefined): string {
   if (!account) return ''
   return account.last4 ? `${account.name} ···${account.last4}` : account.name
+}
+
+export interface BankChoice {
+  value: string
+  label: string
+  hint?: string
+}
+
+/**
+ * The banks a given cheque can be drawn on: one per bank among your accounts,
+ * with the accounts there as a second line. A cheque's current bank that
+ * isn't one of them (an older cheque) stays on the list so editing keeps it.
+ */
+export function bankChoices(accounts: Pick<BankAccount, 'name' | 'last4' | 'bank_name'>[], current?: string | null): BankChoice[] {
+  const byBank = new Map<string, string[]>()
+  for (const account of accounts) {
+    const bank = account.bank_name.trim()
+    if (bank) byBank.set(bank, [...(byBank.get(bank) ?? []), accountLabel(account)])
+  }
+  const choices: BankChoice[] = [...byBank].map(([bank, labels]) => ({ value: bank, label: bank, hint: labels.join(', ') }))
+  const kept = current?.trim()
+  if (kept && !byBank.has(kept)) choices.push({ value: kept, label: kept, hint: 'Not one of your accounts' })
+  return choices
 }

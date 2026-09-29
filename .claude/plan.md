@@ -23,6 +23,9 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **70.** Cheques you give show their amount without a minus sign (decided 2026-09-28). People who give cheques think about when money is needed, not about signs; the figures that matter are for today ("Needed in the bank today"). Received amounts keep their "+" until the maintainer reviews the receiving side.
 - **71.** Every cheque shows its next step as a button (decided 2026-09-28): Pending → Mark funded, Funded → Mark passed, Returned → decide what happens. "Add funds" isn't a per-cheque action: it's the daily batch for money put into the bank today, where you tick the cheques it covers and they're all marked funded at once. Its total starts at zero again each day, and the app says so where you add funds.
 - **72.** The maintainer's own logo replaces the drawn mark (2026-09-28): `public/logo.webp` in the app, and icons made from it in `public/icons/`.
+- **73.** The code stays open source under the AGPL-3.0, next to the paid hosted service, as `docs/editions.md` describes (reconfirmed 2026-09-29 after weighing a private repo). The name and logo stay unlicensed (`TRADEMARKS.md`), and outside contributions wait for a CLA.
+- **74.** One list of bank accounts (2026-09-29): given cheques pick their bank from Your bank accounts, the same list received cheques are deposited into. The separate "Banks you write cheques on" list goes from Settings; `settings.banks` stays in the database, unused, since changes stay additive.
+- **75.** A guide in the app (2026-09-29): "Learn how cheques work" in the sidebar, with the life cycle of given and received cheques and answers to other questions. Where something might confuse, a question links to its answer.
 
 ## Order of work
 
@@ -78,7 +81,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
   - [x] 2. Today in all three views.
     - Done 2026-09-28. Today replaces the dashboard: All, Given and Received views (switch in the page, default from Settings → What you track), the three numbers, the week strip, to-dos with one action each, and the chart for each view, at desktop and phone width. The sidebar's Today shows how many things there are to do.
     - The figures and to-dos are pure functions in `src/lib/today.ts`, tested in `tests/today.test.ts`. Today loads only open cheques and a window of dates, page by page, so it isn't capped at 1,000 rows.
-    - Migration 017 adds `settings.tracks` (given, received or both; both by default). Until it's pushed, the app treats everyone as both and saving the setting fails politely. After it's on the dev project, regenerate `src/types/database.ts` (the `tracks` lines were added by hand to match).
+    - Migration 017 adds `settings.tracks` (given, received or both; both by default). Pushed and applied to the dev project on 2026-09-29; the regenerated `src/types/database.ts` matched the lines added by hand.
     - Nothing from the dashboard is lost: its running-total chart is now in Reports → Daily Cash Flow and its six-month trend in Reports → Monthly, until Reports is rebuilt (step 5). Recent activity is the bell. The old calendar is the Calendar page.
     - Received to-dos and the Deposit button are wired to placeholders that say the screens are coming; step 4 connects them.
   - [x] 3. Cheques and cheque detail.

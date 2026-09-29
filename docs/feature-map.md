@@ -101,7 +101,7 @@ Built in 14, step 5 (2026-09-29): every row above has its place. The running tot
 | Delete all data, after typing a confirmation | Settings → Data |
 | New: what you track (given, received or both), bank accounts, notifications, profile | |
 
-Built in 14, step 5 (2026-09-29): every row above has its section. Preferences became "Cheques you give", and each change saves at once instead of with a Save button. Export, import, sample data and delete all are under "Your data". Appearance (light, dark or the device's) is its own section too. Notifications wait for reminders (plan item 41).
+Built in 14, step 5 (2026-09-29): every row above has its section. Preferences became "Cheques you give", and each change saves at once instead of with a Save button. The bank list became your bank accounts (plan item 74): the given-cheque form, Several given cheques and the Excel template pick the bank from them, and an account can be added from the form. Export, import, sample data and delete all are under "Your data". Appearance (light, dark or the device's) is its own section too. Notifications wait for reminders (plan item 41).
 
 ## Received cheques
 

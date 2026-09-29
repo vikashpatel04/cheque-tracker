@@ -23,6 +23,5 @@ export function useSettings() {
   return {
     ...ctx,
     allocationSort: ctx.settings.allocation_sort ?? 'due_date_asc',
-    banks: ctx.settings.banks ?? [],
   }
 }

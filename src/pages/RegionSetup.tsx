@@ -17,7 +17,7 @@ import { supabase } from '@/lib/supabase'
  * which can be changed later in Settings.
  */
 export default function RegionSetup() {
-  const { settings, updateSettings } = useSettings()
+  const { updateSettings } = useSettings()
   const { signOut } = useAuth()
   const detected = useMemo(() => detectPreset(), [])
   const [country, setCountry] = useState(detected?.preset.country ?? '')
@@ -56,11 +56,7 @@ export default function RegionSetup() {
     if (!preset || !region) return
     setSaving(true)
     setError(null)
-    const result = await updateSettings({
-      ...regionToSettings(region),
-      // Suggest the country's banks unless the user already has a list.
-      ...(settings.banks?.length ? {} : { banks: preset.banks }),
-    })
+    const result = await updateSettings(regionToSettings(region))
     setSaving(false)
     if (result.error) setError(result.error)
   }

@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
+import { BankPicker } from '@/components/shared/BankPicker'
 import { DateInput } from '@/components/ui/date-picker'
 import { useExistingChequeNumbers, describeExisting } from '@/hooks/useExistingChequeNumbers'
 import { useParties } from '@/hooks/useParties'
-import { useSettings } from '@/hooks/useSettings'
+import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { todayISO, formatAmountInput, parseAmount, nextChequeNumber } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -32,17 +33,14 @@ export default function BulkAdd() {
   const isPartyWise = Boolean(partyId)
 
   const { parties } = useParties()
-  // `banks` falls back to a built-in list while settings load; only use the
-  // user's saved list for defaults so rows don't get the wrong bank.
-  const { settings } = useSettings()
-  const savedBanks = settings?.banks
-  const banks = savedBanks ?? []
+  // New rows start on your default account's bank.
+  const { defaultAccount } = useBankAccounts()
+  const defaultBank = defaultAccount?.bank_name ?? ''
 
   const [rows, setRows] = useState<BulkRow[]>([])
   const [loading, setLoading] = useState(false)
 
   const partyOptions = parties.map((p) => ({ value: p.id, label: p.name }))
-  const bankOptions = banks.map((b) => ({ value: b, label: b }))
 
   useEffect(() => {
     // Fetch last cheque number from DB to seed the first row
@@ -62,11 +60,11 @@ export default function BulkAdd() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Once the saved bank list arrives, fill in rows that don't have a bank yet.
+  // Once your accounts have loaded, fill in rows that don't have a bank yet.
   useEffect(() => {
-    if (!savedBanks?.length) return
-    setRows((prev) => prev.map((r) => (r.bank_name ? r : { ...r, bank_name: savedBanks[0] })))
-  }, [savedBanks])
+    if (!defaultBank) return
+    setRows((prev) => prev.map((r) => (r.bank_name ? r : { ...r, bank_name: defaultBank })))
+  }, [defaultBank])
 
   const makeRow = (existing: BulkRow[], lastDbChequeNumber?: string): BulkRow => {
     let newChequeNumber = ''
@@ -79,7 +77,7 @@ export default function BulkAdd() {
       id: crypto.randomUUID(),
       party_id: isPartyWise ? partyId! : '',
       cheque_number: newChequeNumber,
-      bank_name: banks.length > 0 ? banks[0] : '',
+      bank_name: defaultBank,
       amount: '',
       issue_date: todayISO(),
       due_date: todayISO(),
@@ -241,14 +239,10 @@ export default function BulkAdd() {
                 </div>
 
                 <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs">Bank *</Label>
-                  <Combobox
-                    options={bankOptions}
-                    value={row.bank_name}
-                    onChange={(v) => updateRow(row.id, 'bank_name', v)}
-                    placeholder="Select bank"
-                    emptyText="No bank found"
-                  />
+                  <Label className="text-xs" htmlFor={`bank-${row.id}`}>
+                    Your bank *
+                  </Label>
+                  <BankPicker id={`bank-${row.id}`} bare value={row.bank_name} onChange={(v) => updateRow(row.id, 'bank_name', v)} />
                 </div>
 
                 <div className="space-y-1.5 lg:col-span-1">

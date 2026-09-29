@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { columnValue, downloadChequeTemplate, parseExcelFile } from '@/lib/exportUtils'
 import { useParties } from '@/hooks/useParties'
-import { useSettings } from '@/hooks/useSettings'
+import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { supabase } from '@/lib/supabase'
 import { useExistingChequeNumbers, describeExisting } from '@/hooks/useExistingChequeNumbers'
 import { parseAmount, parseFlexibleDate, toISODate } from '@/lib/formatters'
@@ -32,7 +32,7 @@ interface PreviewRow {
 
 export function ChequeBulkUpload({ open, onOpenChange, onComplete }: BulkUploadProps) {
   const { parties } = useParties()
-  const { banks } = useSettings()
+  const { defaultAccount } = useBankAccounts()
   const [preview, setPreview] = useState<PreviewRow[]>([])
   const [step, setStep] = useState<'upload' | 'preview'>('upload')
   const [submitting, setSubmitting] = useState(false)
@@ -133,7 +133,7 @@ export function ChequeBulkUpload({ open, onOpenChange, onComplete }: BulkUploadP
 
         {step === 'upload' ? (
           <div className="space-y-4">
-            <Button variant="outline" onClick={() => downloadChequeTemplate(banks[0])}>Download Template</Button>
+            <Button variant="outline" onClick={() => downloadChequeTemplate(defaultAccount?.bank_name)}>Download Template</Button>
             <div className="grid w-full max-w-sm items-center gap-2">
               <Label htmlFor="cheque-bulk-file">Excel file</Label>
               <Input

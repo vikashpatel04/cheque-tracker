@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { SettingRow, SettingsSection } from '@/components/settings/SettingsSection'
@@ -28,14 +26,16 @@ function formatClock(time: string): string {
   }
 }
 
-/** Settings → Cheques you give: auto-pass, the order Add funds covers cheques in, and your banks. Each change saves at once. */
+/**
+ * Settings → Cheques you give: auto-pass, and the order Add funds covers
+ * cheques in. Each change saves at once. The banks you write cheques on are
+ * your bank accounts, in their own section.
+ */
 export function GivenSettingsCard() {
   const { settings, updateSettings } = useSettings()
   const savedTime = settings.auto_pass_time?.slice(0, 5) || '23:59'
   const [time, setTime] = useState(savedTime)
-  const [newBank, setNewBank] = useState('')
   const [saving, setSaving] = useState(false)
-  const banks = settings.banks ?? []
   const order = settings.allocation_sort ?? 'due_date_asc'
   const autoPass = settings.auto_pass_enabled ?? false
 
@@ -53,16 +53,6 @@ export function GivenSettingsCard() {
   const saveTime = () => {
     if (!/^\d{2}:\d{2}$/.test(time) || time === savedTime) return
     void save({ auto_pass_time: `${time}:00` }, `Auto-pass now runs at ${formatClock(time)}`)
-  }
-
-  const addBank = async () => {
-    const bank = newBank.trim()
-    if (!bank) return
-    if (banks.some((b) => b.toLowerCase() === bank.toLowerCase())) {
-      setNewBank('')
-      return
-    }
-    if (await save({ banks: [...banks, bank] })) setNewBank('')
   }
 
   return (
@@ -124,47 +114,6 @@ export function GivenSettingsCard() {
               </button>
             )
           })}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2 border-t border-line-soft pt-4">
-        <span className="text-[15px] font-semibold">Banks you write cheques on</span>
-        <span className="text-sm text-ink-quiet">Suggested when you add a cheque.</span>
-        <div className="flex flex-wrap items-center gap-2">
-          {banks.map((bank) => (
-            <span key={bank} className="inline-flex h-9 items-center gap-1 rounded-full bg-money-out-soft pl-3 pr-1 text-sm font-medium">
-              {bank}
-              <button
-                type="button"
-                aria-label={`Remove ${bank}`}
-                disabled={saving}
-                onClick={() => void save({ banks: banks.filter((b) => b !== bank) })}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-ink-quiet transition-colors hover:bg-problem-soft hover:text-problem"
-              >
-                <X className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            </span>
-          ))}
-          <form
-            className="flex items-center gap-1.5"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void addBank()
-            }}
-          >
-            <Input
-              aria-label="Add a bank"
-              placeholder="Add a bank"
-              value={newBank}
-              onChange={(e) => setNewBank(e.target.value)}
-              className="h-9 w-40 rounded-full border-dashed px-3 text-sm"
-            />
-            {newBank.trim() && (
-              <Button type="submit" variant="outline" size="icon" aria-label="Add this bank" className="h-9 w-9 rounded-full" disabled={saving}>
-                <Plus />
-              </Button>
-            )}
-          </form>
         </div>
       </div>
     </SettingsSection>

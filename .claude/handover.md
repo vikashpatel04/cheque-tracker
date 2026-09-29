@@ -18,7 +18,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 - **Code:** all work is committed on `main`. 119 tests pass; lint (0 errors, 5 known warnings) and build are clean.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
-  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–016 are applied.
+  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–017 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
   - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked.
   - My v0 data is imported there as sample data: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"); Settings → Sample data removes it.
@@ -43,8 +43,14 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   5. ~~Add funds, Calendar, Parties, Reports, Settings~~ (done), then onboarding.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Not pushed yet:** commits from `a403464` onward: docs, then the redesign so far. Step 2 adds migration `017_tracks.sql` (one new column, `settings.tracks`, default "both"); pushing applies it to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tools and check it matches the hand-added `tracks` lines.
+- **Pushed:** everything up to the Settings rebuild, on 2026-09-29. Migrations 001–017 are applied to the dev project, and `src/types/database.ts` matches it.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
+
+## Decided on 2026-09-29
+
+- The code stays open source (AGPL-3.0) next to the paid hosted service; I weighed a private repo and kept it as it is (plan item 73).
+- One list of bank accounts: given cheques pick their bank from it, and "Banks you write cheques on" goes (74).
+- A "Learn how cheques work" guide in the sidebar, with question links where things might confuse (75).
 
 ## Decided on 2026-09-28
 

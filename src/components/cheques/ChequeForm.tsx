@@ -5,7 +5,6 @@ import { X } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { Combobox } from '@/components/ui/combobox'
 import { DateInput } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,7 +12,8 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { Textarea } from '@/components/ui/textarea'
 import { PartyPicker } from '@/components/shared/PartyPicker'
 import { describeExisting, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
-import { useSettings } from '@/hooks/useSettings'
+import { BankPicker } from '@/components/shared/BankPicker'
+import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { currencySymbol, formatAmountInput, nextChequeNumber, parseAmount, todayISO } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
 import { updateChequeStatus } from '@/lib/updateChequeStatus'
@@ -49,7 +49,7 @@ interface ChequeFormProps {
 
 /** Add or edit a cheque you gave (design screen 35). */
 export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onStatusChange, replacing, directionSwitch }: ChequeFormProps) {
-  const { banks } = useSettings()
+  const { defaultAccount } = useBankAccounts()
   const [newStatus, setNewStatus] = useState<ChequeStatus | ''>('')
   const [returnReason, setReturnReason] = useState('')
   const [amountDisplay, setAmountDisplay] = useState('')
@@ -104,6 +104,12 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
       }
     }
   }, [open, cheque, prefill, reset, setValue])
+
+  // A new cheque starts on your default account's bank, once your accounts have loaded.
+  const bankName = watch('bank_name')
+  useEffect(() => {
+    if (open && !cheque && !bankName && defaultAccount) setValue('bank_name', defaultAccount.bank_name)
+  }, [open, cheque, bankName, defaultAccount, setValue])
 
   const partyId = watch('party_id')
   const chequeNumber = watch('cheque_number') ?? ''
@@ -193,19 +199,12 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
               {error(errors.cheque_number?.message)}
               {!errors.cheque_number && duplicateWarning && <p className="mt-1 text-xs text-attention">{duplicateWarning}</p>}
             </div>
-            <div className="flex flex-col">
-              <Label htmlFor="given-bank">Bank</Label>
-              <Combobox
-                id="given-bank"
-                options={banks.map((b) => ({ value: b, label: b }))}
-                value={watch('bank_name')}
-                onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
-                placeholder="Choose"
-                searchPlaceholder="Find a bank"
-                emptyText="Add your banks in Settings."
-              />
-              {error(errors.bank_name?.message)}
-            </div>
+            <BankPicker
+              id="given-bank"
+              value={watch('bank_name') ?? ''}
+              onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
+              error={errors.bank_name?.message}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
