@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { ChevronRight, Download, LogOut } from 'lucide-react'
+import { BookOpen, ChevronRight, Download, LogOut } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { AppearanceSwitch } from '@/components/shared/AppearanceSwitch'
 import { useInstallApp } from '@/components/shared/InstallApp'
@@ -37,6 +37,15 @@ export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                 <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden="true" />
               </NavLink>
             ))}
+            <NavLink
+              to="/learn"
+              onClick={close}
+              className="flex min-h-13 items-center gap-3.5 rounded-xl px-2 text-base font-medium text-ink transition-colors hover:bg-hover aria-[current=page]:text-brand"
+            >
+              <BookOpen className="h-[22px] w-[22px] text-ink-quiet" aria-hidden="true" />
+              <span className="flex-1">Learn how cheques work</span>
+              <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden="true" />
+            </NavLink>
             {canInstall && (
               <button
                 type="button"

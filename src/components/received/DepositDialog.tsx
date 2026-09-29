@@ -16,6 +16,7 @@ import { depositReceivedCheques } from '@/lib/receivedCheques'
 import { lastValidDay } from '@/lib/receivedSchedule'
 import { getActiveRegion } from '@/lib/region'
 import type { ReceivedCheque } from '@/types/received'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const NO_ACCOUNT = '__none__'
 
@@ -172,6 +173,9 @@ export function DepositDialog({ ids, onClose }: DepositDialogProps) {
             <p className="text-sm text-ink-quiet">
               They'll show as in clearing. After {clearingDays} day{clearingDays === 1 ? '' : 's'} Today asks whether they cleared.
             </p>
+            <HelpLink topic="clearing" className="-mt-1 text-[13px]">
+              How clearing works
+            </HelpLink>
             <Button size="lg" disabled={!chosen.length || saving} onClick={() => void deposit()}>
               <Landmark />
               {saving ? 'Depositing…' : `Deposit ${chosen.length || ''} cheque${chosen.length === 1 ? '' : 's'}`.replace('  ', ' ')}

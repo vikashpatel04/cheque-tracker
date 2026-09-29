@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { ReceivedActionMode } from '@/components/received/ReceivedActionDialog'
 import type { ChequeDirection } from '@/components/shared/DirectionSwitch'
+import type { GuideTopicId } from '@/lib/guide'
 import type { Cheque } from '@/types'
 import type { ReceivedCheque } from '@/types/received'
 
@@ -25,6 +26,8 @@ export interface AppActions {
   addFunds: (amount?: number) => void
   importCheques: () => void
   openSearch: () => void
+  /** One answer from the guide, beside the page (plan item 75). */
+  openHelp: (topic: GuideTopicId) => void
   /** A given cheque's detail. */
   openCheque: (id: string) => void
   /** Deposit received cheques: these ones ticked, or the ones due today when the list is empty. */

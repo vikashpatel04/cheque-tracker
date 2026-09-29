@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,41 +12,10 @@ import { TracksCard } from '@/components/settings/TracksCard'
 import { AppearanceSwitch } from '@/components/shared/AppearanceSwitch'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuth } from '@/hooks/useAuth'
+import { goToSection, useCurrentSection } from '@/hooks/useCurrentSection'
 import { usePlan } from '@/hooks/usePlan'
 import { useSignOut } from '@/hooks/useSignOut'
 import { cn } from '@/lib/utils'
-
-/** How far below the top a section counts as the one you're reading (the desktop top bar is 68px). */
-const READING_LINE = 120
-
-/** The section you're reading: the last one whose top has passed the reading line. */
-function useCurrentSection(ids: string[]) {
-  const [current, setCurrent] = useState(ids[0])
-  useEffect(() => {
-    let frame = 0
-    const update = () => {
-      frame = 0
-      let reading = ids[0]
-      for (const id of ids) {
-        const top = document.getElementById(id)?.getBoundingClientRect().top
-        if (top !== undefined && top <= READING_LINE) reading = id
-      }
-      // At the very bottom, the last section is the one you're on, however short it is.
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) reading = ids[ids.length - 1]
-      setCurrent(reading)
-    }
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update)
-    }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(frame)
-    }
-  }, [ids])
-  return current
-}
 
 /**
  * Settings (design board Settings-desktop): a list of sections beside them on
@@ -86,8 +55,7 @@ export default function SettingsPage() {
 
   const go = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    window.history.replaceState(window.history.state, '', `#${id}`)
+    goToSection(id)
   }
 
   return (

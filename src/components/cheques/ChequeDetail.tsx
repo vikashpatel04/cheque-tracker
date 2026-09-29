@@ -37,6 +37,7 @@ import { RePresentDrawer } from './RePresentDrawer'
 import { findUndoableChange, useRollbackAction } from './RollbackDialog'
 import { useChequeStatusActions } from './StatusActions'
 import { WriteOffDialog } from './WriteOffDialog'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const CHANGED_BY_LABELS: Record<string, string> = {
   manual: 'You',
@@ -308,9 +309,14 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
               </section>
 
               <section aria-labelledby="history-title" className="flex flex-col gap-1 rounded-xl border bg-surface p-4">
-                <h2 id="history-title" className="mb-2 text-base font-semibold">
-                  History
-                </h2>
+                <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <h2 id="history-title" className="text-base font-semibold">
+                    History
+                  </h2>
+                  <HelpLink topic="given" className="text-[13px]">
+                    How a cheque you give moves along
+                  </HelpLink>
+                </div>
                 {history.length === 0 ? (
                   <p className="text-sm text-ink-quiet">Added as {STATUS_LABELS[cheque.status]}. Changes will show here.</p>
                 ) : (

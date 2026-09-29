@@ -7,6 +7,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { getActiveRegion } from '@/lib/region'
 import { cn } from '@/lib/utils'
 import type { AllocationSort, SettingsUpdate } from '@/types'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const ORDERS: { value: AllocationSort; label: string }[] = [
   { value: 'due_date_asc', label: 'Due soonest first' },
@@ -89,6 +90,9 @@ export function GivenSettingsCard() {
           onCheckedChange={(on) => void save({ auto_pass_enabled: on }, on ? 'Auto-pass is on' : 'Auto-pass is off')}
         />
       </SettingRow>
+      <HelpLink topic="auto-pass" className="-mt-1 self-start">
+        How auto-pass works
+      </HelpLink>
 
       <div className="flex flex-col gap-2 border-t border-line-soft pt-4">
         <span id="order-label" className="text-[15px] font-semibold">

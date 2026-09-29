@@ -40,6 +40,7 @@ import { getActiveRegion } from '@/lib/region'
 import { cn } from '@/lib/utils'
 import { STATUS_LABELS, type ChequeStatus } from '@/types'
 import { RECEIVED_STATUS_LABELS, type ReceivedStatus } from '@/types/received'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const TABS: DirectionTab[] = ['all', 'received', 'given']
 const TAB_LABELS: Record<DirectionTab, string> = { all: 'All', given: 'Given', received: 'Received' }
@@ -293,6 +294,9 @@ export default function PartyLedger() {
             <span className={summary.bounces ? 'text-problem' : undefined}>{summary.bounces}</span>
           </Tile>
         </div>
+        <HelpLink topic="totals" className="-mt-2 self-start text-[13px]">
+          How these are worked out
+        </HelpLink>
 
         {/* Direction: underlined tabs on desktop, a segmented control on phones (as on Cheques). */}
         <div role="group" aria-label="Direction" className="flex items-end gap-7 border-b max-lg:hidden">

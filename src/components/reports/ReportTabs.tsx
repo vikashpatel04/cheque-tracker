@@ -28,6 +28,7 @@ import {
   type ReportTab,
   type ReportTable,
 } from '@/lib/reportTables'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 interface TabProps {
   input: ReportInput
@@ -108,6 +109,7 @@ export function OverviewTab({ input, onTab }: TabProps) {
           </>
         )}
       </Figures>
+      <HelpLink topic="totals" className="-mt-1 self-start" />
       {f.securityHeld > 0 && (
         <p className="-mt-1 text-sm text-ink-quiet">
           {plural(f.securityHeld, 'security cheque')} you hold {f.securityHeld === 1 ? "isn't" : "aren't"} counted: {f.securityHeld === 1 ? "it's" : "they're"} kept against a default, not money on the way.

@@ -18,6 +18,7 @@ import { createReceivedCheque, createReceivedSeries, updateReceivedCheque } from
 import { buildSeries, SERIES_MAX_CHEQUES, type SeriesInterval } from '@/lib/receivedSchedule'
 import { cn } from '@/lib/utils'
 import type { ReceivedCheque, ReceivedKind } from '@/types/received'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const NO_ACCOUNT = '__later__'
 const EVERY: { value: SeriesInterval; label: string }[] = [
@@ -300,6 +301,7 @@ export function ReceivedChequeForm({ open, onOpenChange, cheque, asSeries = fals
               </div>
             </div>
           </div>
+          <HelpLink topic="security" className="-mt-2 self-end text-[13px]" />
 
           <div className="flex flex-col">
             <Label htmlFor="received-account">Deposit into</Label>

@@ -16,6 +16,7 @@ import { currencySymbol, formatAmountInput, formatMoney, formatShortDate, parseA
 import { recordDeposit } from '@/lib/updateChequeStatus'
 import { cn } from '@/lib/utils'
 import type { AllocationSort, Cheque, Party } from '@/types'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 type Pending = Cheque & { party: Party }
 
@@ -116,6 +117,9 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
             Record money you put into the bank, then tick the cheques it covers: they're all marked funded at once. Today's
             total starts again from zero tomorrow.
           </SheetDescription>
+          <HelpLink topic="add-funds" className="-mt-2">
+            How Add funds works
+          </HelpLink>
 
           <div className="flex flex-col">
             <Label htmlFor="funds-amount" className="font-semibold">

@@ -11,6 +11,7 @@ import Reports from '@/pages/Reports'
 import SettingsPage from '@/pages/Settings'
 import BulkAdd from '@/pages/BulkAdd'
 import CalendarPage from '@/pages/Calendar'
+import Learn from '@/pages/Learn'
 
 function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ function AppRoutes() {
                   <Route path="/returned" element={<Navigate to="/cheques?dir=given&view=returned" replace />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/learn" element={<Learn />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

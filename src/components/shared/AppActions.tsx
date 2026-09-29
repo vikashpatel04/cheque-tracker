@@ -4,6 +4,7 @@ import { ChequeBulkUpload } from '@/components/cheques/BulkUpload'
 import { ChequeDetail } from '@/components/cheques/ChequeDetail'
 import { ChequeForm } from '@/components/cheques/ChequeForm'
 import { AddFundsFlow } from '@/components/deposit/AddFundsFlow'
+import { HelpSheet } from '@/components/guide/HelpSheet'
 import { DepositDialog } from '@/components/received/DepositDialog'
 import { ReceivedActionDialog, type ReceivedActionMode } from '@/components/received/ReceivedActionDialog'
 import { ReceivedChequeDetail } from '@/components/received/ReceivedChequeDetail'
@@ -14,6 +15,7 @@ import { createGivenCheque, updateGivenCheque } from '@/lib/chequeWrites'
 import { announceDataChange } from '@/lib/dataEvents'
 import { AppActionsContext, type AppActions } from '@/hooks/useAppActions'
 import { useSettings } from '@/hooks/useSettings'
+import type { GuideTopicId } from '@/lib/guide'
 import type { Cheque } from '@/types'
 import type { ReceivedCheque } from '@/types/received'
 
@@ -52,6 +54,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const [importOpen, setImportOpen] = useState(false)
   const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
   const [searchOpen, setSearchOpen] = useState(false)
+  const [helpTopic, setHelpTopic] = useState<GuideTopicId | null>(null)
+  const closeHelp = useCallback(() => setHelpTopic(null), [])
 
   const openSearch = useCallback(() => setSearchOpen(true), [])
 
@@ -100,6 +104,10 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
       addFunds: (amount) => setFunds({ open: true, amount }),
       importCheques: () => setImportOpen(true),
       openSearch,
+      openHelp: (topic) => {
+        setSearchOpen(false)
+        setHelpTopic(topic)
+      },
       openCheque: (id) => {
         setSearchOpen(false)
         setDetailId(id)
@@ -122,6 +130,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
       {children}
 
       <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
+      <HelpSheet topic={helpTopic} onClose={closeHelp} />
 
       <ChequeForm
         open={form.open}

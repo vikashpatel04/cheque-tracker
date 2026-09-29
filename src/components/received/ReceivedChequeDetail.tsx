@@ -41,6 +41,7 @@ import {
   type ReceivedCheque,
   type ReceivedChequeHistory,
 } from '@/types/received'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const CHANGED_BY: Record<string, string> = { manual: 'You', auto: 'Automatically', rollback: 'Undone' }
 const DOT: Record<string, string> = {
@@ -407,9 +408,14 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
               </section>
 
               <section aria-labelledby="received-history" className="flex flex-col gap-1 rounded-xl border bg-surface p-4">
-                <h2 id="received-history" className="mb-2 text-base font-semibold">
-                  History
-                </h2>
+                <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <h2 id="received-history" className="text-base font-semibold">
+                    History
+                  </h2>
+                  <HelpLink topic="received" className="text-[13px]">
+                    How a cheque you receive moves along
+                  </HelpLink>
+                </div>
                 {history.length === 0 ? (
                   <p className="text-sm text-ink-quiet">Added {formatShortDate(cheque.created_at)}. Changes will show here.</p>
                 ) : (

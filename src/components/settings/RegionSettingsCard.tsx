@@ -19,6 +19,7 @@ import {
 } from '@/config/regions'
 import { currencySymbol, formatCurrency, formatNumber, todayDate } from '@/lib/formatters'
 import { regionFromPreset, regionToSettings, type Region } from '@/lib/region'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const unique = (values: string[]) => [...new Set(values.filter(Boolean))]
 
@@ -128,6 +129,10 @@ export function RegionSettingsCard() {
             </div>
           ))}
         </dl>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          <HelpLink topic="stale" />
+          <HelpLink topic="clearing" />
+        </div>
       </SettingsSection>
     )
   }

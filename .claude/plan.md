@@ -26,6 +26,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **73.** The code stays open source under the AGPL-3.0, next to the paid hosted service, as `docs/editions.md` describes (reconfirmed 2026-09-29 after weighing a private repo). The name and logo stay unlicensed (`TRADEMARKS.md`), and outside contributions wait for a CLA.
 - **74.** One list of bank accounts (2026-09-29): given cheques pick their bank from Your bank accounts, the same list received cheques are deposited into. The separate "Banks you write cheques on" list goes from Settings; `settings.banks` stays in the database, unused, since changes stay additive.
 - **75.** A guide in the app (2026-09-29): "Learn how cheques work" in the sidebar, with the life cycle of given and received cheques and answers to other questions. Where something might confuse, a question links to its answer.
+  - Built the same day: /learn (under More on phones), eleven topics in `src/lib/guide.ts` with answers in `src/components/guide/GuideTopics.tsx`, and `HelpLink`, which opens an answer beside the page (so a form in progress isn't lost). Question links sit in Add funds, Funds added today, both cheque details, the security-cheque choice, the deposit panel, auto-pass, Region, the Reports overview, the returned and bounced views, and the party ledger. Add a topic there, and a link where the confusion is.
 
 ## Order of work
 

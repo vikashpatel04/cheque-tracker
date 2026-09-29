@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatMoney } from '@/lib/formatters'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 /**
  * "Funds added today", with what it means: Add funds records money put into
@@ -28,6 +29,9 @@ export function FundsAddedToday({ total, label = 'funds added today' }: { total:
             cheques it covers. They're all marked funded at once.
           </p>
           <p className="mt-2 text-ink-quiet">This counts only today's money, so it starts again from zero each day.</p>
+          <HelpLink topic="add-funds" className="mt-3">
+            More about Add funds
+          </HelpLink>
         </PopoverContent>
       </Popover>
     </span>

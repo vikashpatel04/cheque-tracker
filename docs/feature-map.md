@@ -13,6 +13,7 @@ What the app does today, and where each feature goes in the redesign ([design-br
 | Menu: Dashboard, Cheques, Parties, Returned, Reports, Settings | Today, Cheques, Calendar, Parties, Reports, Settings. Returned becomes a saved view |
 | Installs as an app on phones (PWA) | Kept and improved: new icons, starts offline, offers updates and installing (built in 14, step 1) |
 | Auto-pass: funded cheques become Passed at a set time on their due date | Unchanged; its setting lives in Settings → Preferences |
+| New: a guide, "Learn how cheques work" | In the sidebar (under More on phones): both life cycles and common questions, opened from question links where things might confuse (plan item 75) |
 
 ## Dashboard → Today, Calendar and Reports
 

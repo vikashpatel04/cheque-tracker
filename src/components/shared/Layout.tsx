@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Menu, Plus, Search, WifiOff } from 'lucide-react'
+import { BookOpen, Menu, Plus, Search, WifiOff } from 'lucide-react'
 import { AccountMenu } from '@/components/shared/AccountMenu'
 import { ActivityBell } from '@/components/shared/ActivityBell'
 import { AppActionsProvider } from '@/components/shared/AppActions'
@@ -86,6 +86,21 @@ function Sidebar() {
         <SidebarLink key={item.to} item={item} count={item.to === '/' ? todos.length : undefined} />
       ))}
       <div className="flex-1" />
+      <NavLink
+        to="/learn"
+        className={({ isActive }) =>
+          cn(
+            'mb-3 flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors',
+            isActive ? 'border-brand bg-brand-soft text-brand' : 'bg-surface text-ink hover:bg-hover'
+          )
+        }
+      >
+        <BookOpen className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+        <span className="flex flex-col">
+          <span className="text-sm font-semibold">Learn how cheques work</span>
+          <span className="text-[13px] text-ink-quiet">Life cycles and questions</span>
+        </span>
+      </NavLink>
       <SidebarPlan />
       <SourceLink className="px-3 pt-2 text-xs text-ink-quiet" />
     </nav>

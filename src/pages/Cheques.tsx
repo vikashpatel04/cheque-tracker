@@ -41,6 +41,7 @@ import { updateChequeStatus } from '@/lib/updateChequeStatus'
 import { cn } from '@/lib/utils'
 import { STATUS_LABELS, type Cheque, type ChequeStatus } from '@/types'
 import { RECEIVED_STATUS_LABELS, type ReceivedStatus } from '@/types/received'
+import { HelpLink } from '@/components/guide/HelpLink'
 
 const PAGE = 150
 const TAB_LABELS: Record<DirectionTab, string> = { all: 'All', received: 'Received', given: 'Given' }
@@ -392,12 +393,17 @@ export default function Cheques() {
         </div>
 
         {problemsView && !loading && openProblems.length > 0 && (
-          <p className="rounded-xl border border-problem-line bg-problem-soft px-4 py-3 text-sm text-problem">
-            {openProblems.length} need{openProblems.length === 1 ? 's' : ''} a decision
-            {owed.out > 0 && ` · ${formatMoney(owed.out)} you still have to pay`}
-            {owed.in > 0 && ` · ${formatMoney(owed.in)} still owed to you`}. Open one to present it again, write it off,
-            or record how it was settled.
-          </p>
+          <div className="flex flex-col gap-2 rounded-xl border border-problem-line bg-problem-soft px-4 py-3 text-sm text-problem">
+            <p>
+              {openProblems.length} need{openProblems.length === 1 ? 's' : ''} a decision
+              {owed.out > 0 && ` · ${formatMoney(owed.out)} you still have to pay`}
+              {owed.in > 0 && ` · ${formatMoney(owed.in)} still owed to you`}. Open one to present it again, write it off,
+              or record how it was settled.
+            </p>
+            <HelpLink topic="bounce" className="self-start">
+              What happens when a cheque comes back unpaid?
+            </HelpLink>
+          </div>
         )}
 
         {error && (
