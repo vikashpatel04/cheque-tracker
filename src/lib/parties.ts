@@ -1,4 +1,4 @@
-import type { ListRow } from './chequeList'
+import { countsAsGiven, countsAsReceived, isStillDue, type ListRow } from './chequeList'
 import type { Party } from '@/types'
 
 /**
@@ -9,7 +9,7 @@ import type { Party } from '@/types'
 export interface PartySummary {
   /** Given cheques still to pass (waiting, funded, or returned and not settled). */
   pay: { amount: number; count: number }
-  /** Received cheques still to come in (in hand, in clearing, or bounced). */
+  /** Received cheques still to come in (in hand, in clearing, or bounced), leaving out security cheques still held. */
   collect: { amount: number; count: number }
   /** Still to collect minus still to pay. */
   net: number
@@ -17,14 +17,11 @@ export interface PartySummary {
   bounces: number
   /** The soonest date something is due, and whether it has already passed. */
   next: { date: string; overdue: boolean } | null
-  /** All given cheques that were or will be paid (not cancelled or written off). */
+  /** All given cheques that were or will be paid (`countsAsGiven`). */
   gave: { amount: number; count: number; passed: number; returnedOwed: number }
-  /** All received cheques that did or will bring money (not handed back, written off or replaced). */
+  /** All received cheques that did or will bring money (`countsAsReceived`). */
   got: { amount: number; count: number; clearing: number; cleared: number }
 }
-
-const GIVEN_VOID = new Set(['CANCELLED', 'WRITTEN_OFF'])
-const RECEIVED_VOID = new Set(['HANDED_BACK', 'WRITTEN_OFF', 'REPLACED'])
 
 export function emptySummary(): PartySummary {
   return {
@@ -44,12 +41,12 @@ export function summarizeParty(rows: ListRow[], today: string): PartySummary {
   for (const r of rows) {
     if (r.given) {
       const g = r.given
-      if (!GIVEN_VOID.has(g.status)) {
+      if (countsAsGiven(r)) {
         s.gave.amount += amount(r)
         s.gave.count++
         if (g.status === 'PASSED') s.gave.passed += amount(r)
       }
-      if (r.open) {
+      if (isStillDue(r)) {
         s.pay.amount += amount(r)
         s.pay.count++
         if (g.status === 'RETURNED') s.gave.returnedOwed += amount(r)
@@ -57,13 +54,13 @@ export function summarizeParty(rows: ListRow[], today: string): PartySummary {
       if (g.status === 'RETURNED' || g.represent_count > 0) s.bounces++
     } else if (r.received) {
       const c = r.received
-      if (!RECEIVED_VOID.has(c.status)) {
+      if (countsAsReceived(r)) {
         s.got.amount += amount(r)
         s.got.count++
         if (c.status === 'DEPOSITED') s.got.clearing += amount(r)
         if (c.status === 'CLEARED') s.got.cleared += amount(r)
       }
-      if (r.open) {
+      if (isStillDue(r)) {
         s.collect.amount += amount(r)
         s.collect.count++
       }

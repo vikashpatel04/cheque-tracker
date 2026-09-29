@@ -281,6 +281,11 @@ export function todayISO(region: Region = getActiveRegion()): string {
   return toISODate(nowInUserTimeZone(region))
 }
 
+/** The date (yyyy-MM-dd) a timestamp falls on in the user's time zone. */
+export function isoDateOf(timestamp: string, region: Region = getActiveRegion()): string {
+  return toISODate(inTimeZone(new Date(timestamp), region.timeZone))
+}
+
 /** Today in the user's time zone, as a local Date at midnight for date arithmetic. */
 export function todayDate(region: Region = getActiveRegion()): Date {
   return parseISO(todayISO(region))

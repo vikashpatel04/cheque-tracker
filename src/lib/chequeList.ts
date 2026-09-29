@@ -78,6 +78,34 @@ export function receivedRow(c: ReceivedCheque): ListRow {
   }
 }
 
+/* ---------- What counts in totals ---------- */
+
+const GIVEN_VOID = new Set(['CANCELLED', 'WRITTEN_OFF'])
+const RECEIVED_VOID = new Set(['HANDED_BACK', 'WRITTEN_OFF', 'REPLACED'])
+
+/** A security cheque still held: kept against a default, not money on its way. */
+export function isHeldSecurity(row: ListRow): boolean {
+  return row.received?.kind === 'SECURITY' && row.received.status === 'IN_HAND'
+}
+
+/**
+ * A given cheque that was or will be paid: not cancelled or written off, and
+ * not the returned original of an old-style re-presentment (its copy counts).
+ */
+export function countsAsGiven(row: ListRow): boolean {
+  return !!row.given && !GIVEN_VOID.has(row.given.status) && !isLegacyRepresented(row.given)
+}
+
+/** A received cheque that did or will bring money: not handed back, written off, replaced, or a security cheque still held. */
+export function countsAsReceived(row: ListRow): boolean {
+  return !!row.received && !RECEIVED_VOID.has(row.received.status) && !isHeldSecurity(row)
+}
+
+/** Money still to move: a given cheque still to pay, or a received one still to collect. */
+export function isStillDue(row: ListRow): boolean {
+  return row.open && !isHeldSecurity(row)
+}
+
 export function inTab(row: ListRow, tab: DirectionTab): boolean {
   return tab === 'all' || (tab === 'given' ? row.direction === 'out' : row.direction === 'in')
 }

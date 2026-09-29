@@ -41,7 +41,7 @@ import { cn } from '@/lib/utils'
 import { STATUS_LABELS, type ChequeStatus } from '@/types'
 import { RECEIVED_STATUS_LABELS, type ReceivedStatus } from '@/types/received'
 
-const TABS: DirectionTab[] = ['all', 'given', 'received']
+const TABS: DirectionTab[] = ['all', 'received', 'given']
 const TAB_LABELS: Record<DirectionTab, string> = { all: 'All', given: 'Given', received: 'Received' }
 const ANY = '__any__'
 

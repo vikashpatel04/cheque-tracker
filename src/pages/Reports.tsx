@@ -1,796 +1,337 @@
-import { useCallback, useEffect, useState, useMemo } from 'react'
-import { addDays, format, parseISO, subDays } from 'date-fns'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { DateRangePicker } from '@/components/ui/date-picker'
-import { Label } from '@/components/ui/label'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ChevronDown, Download, FileSpreadsheet, FileText, ListFilter } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
-import { formatCurrency, formatDate, formatDayMonth, todayISO } from '@/lib/formatters'
-import { countsAsIssued, isStillToPay } from '@/lib/chequeTags'
-import { useDeposits } from '@/hooks/useDeposits'
-import { CurrencyTooltip } from '@/components/shared/ChartTooltip'
-import { STATUS_COLORS, CHART_COLORS, formatChartCurrency, formatMonthLabel } from '@/lib/chartUtils'
-import { STATUS_LABELS, type Cheque, type ChequeStatus } from '@/types'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { CumulativeOutflowChart, SixMonthTrendChart } from '@/components/reports/OutlookCharts'
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  Line,
-  ComposedChart,
-  Area,
-  RadialBarChart,
-  RadialBar,
-  ReferenceLine,
-} from 'recharts'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AccountField,
+  BankField,
+  DueField,
+  FilterPill,
+  PartyField,
+  StatusField,
+  type FilterChoices,
+} from '@/components/cheques/ListFilters'
+import {
+  AccountsTab,
+  BouncesTab,
+  CashFlowTab,
+  CollectionsTab,
+  OverviewTab,
+  PartiesTab,
+  PaymentsTab,
+} from '@/components/reports/ReportTabs'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { brand, brandSlug } from '@/config/brand'
+import { useReportsData } from '@/hooks/useReportsData'
+import { useSettings } from '@/hooks/useSettings'
+import { inTab, type DirectionTab } from '@/lib/chequeList'
+import { activeFilterCount, dueLabel, filterRows, readFilters } from '@/lib/chequeFilters'
+import { formatDate, todayISO } from '@/lib/formatters'
+import { exportReportExcel, exportReportPdf } from '@/lib/reportExport'
+import { reportMonths } from '@/lib/reports'
+import { REPORT_TABS, reportTables, statusLabel, type ReportInput, type ReportTab } from '@/lib/reportTables'
+import { cn } from '@/lib/utils'
 
-export default function Reports() {
-  const { deposits } = useDeposits()
-  const [cheques, setCheques] = useState<Cheque[]>([])
-  // Cheques that bounced at least once (from history), even if later
-  // re-presented and paid — their current status no longer says RETURNED.
-  // Imported cheques have no such history, so re-presented ones count too.
-  const [everReturned, setEverReturned] = useState<Set<string>>(new Set())
-  // When each cheque passed, for the six-month trend.
-  const [passedAt, setPassedAt] = useState<Map<string, string>>(new Map())
-  const [loading, setLoading] = useState(true)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+const DIR_ORDER: DirectionTab[] = ['all', 'received', 'given']
+const DIR_LABELS: Record<DirectionTab, string> = { all: 'Both', received: 'Received', given: 'Given' }
+const DIR_WORDS: Record<DirectionTab, string> = {
+  all: 'Given and received cheques',
+  received: 'Received cheques',
+  given: 'Given cheques',
+}
 
-  useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      supabase.from('cheques').select('*, party:parties(*)').is('deleted_at', null),
-      supabase.from('cheque_history').select('cheque_id').eq('to_status', 'RETURNED'),
-      // Imports aren't when a cheque passed.
-      supabase.from('cheque_history').select('cheque_id, created_at').eq('to_status', 'PASSED').neq('changed_by', 'import'),
-    ]).then(([chequesRes, returnedRes, passedRes]) => {
-      if (chequesRes.data) setCheques(chequesRes.data as Cheque[])
-      if (returnedRes.data) setEverReturned(new Set(returnedRes.data.map((h) => h.cheque_id as string)))
-      if (passedRes.data) setPassedAt(new Map(passedRes.data.map((h) => [h.cheque_id as string, h.created_at as string])))
-      setLoading(false)
-    })
-  }, [])
-
-  const wasReturned = useCallback(
-    (c: Cheque) => c.status === 'RETURNED' || everReturned.has(c.id) || c.represent_count > 0,
-    [everReturned]
+function DirectionField({ value, onChange }: { value: DirectionTab; onChange: (dir: DirectionTab) => void }) {
+  return (
+    <fieldset className="flex flex-col gap-1">
+      <legend className="mb-1.5 text-sm font-medium">Direction</legend>
+      {DIR_ORDER.map((dir) => (
+        <label key={dir} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-1 text-[15px] hover:bg-hover">
+          <input type="radio" name="report-direction" checked={value === dir} onChange={() => onChange(dir)} className="h-4 w-4 accent-brand" />
+          {DIR_WORDS[dir]}
+        </label>
+      ))}
+    </fieldset>
   )
+}
 
-  const filtered = useMemo(() => {
-    return cheques.filter((c) => {
-      if (dateFrom && c.issue_date < dateFrom) return false
-      if (dateTo && c.issue_date > dateTo) return false
-      return true
-    })
-  }, [cheques, dateFrom, dateTo])
+/**
+ * Reports (design brief, screen 39): filters that stay in view, seven tabs,
+ * and "Export this tab" with the filters applied. Filters and the tab live in
+ * the address bar, using the same names as the Cheques list.
+ */
+export default function Reports() {
+  const { settings } = useSettings()
+  const data = useReportsData()
+  const [params, setParams] = useSearchParams()
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const today = todayISO()
+  const tracks = settings.tracks ?? 'both'
+  const defaultDir: DirectionTab = tracks === 'both' ? 'all' : tracks
+  const paramString = params.toString()
+  const filters = useMemo(() => readFilters(new URLSearchParams(paramString), defaultDir), [paramString, defaultDir])
+  const tabParam = params.get('tab') as ReportTab | null
+  const tab: ReportTab = tabParam && REPORT_TABS.some((t) => t.key === tabParam) ? tabParam : 'overview'
+  const tabLabel = REPORT_TABS.find((t) => t.key === tab)!.label
 
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { issued: number; paid: number; returned: number; stillToPay: number; count: number }> = {}
-    filtered.forEach((c) => {
-      const month = c.issue_date.slice(0, 7)
-      if (!months[month]) months[month] = { issued: 0, paid: 0, returned: 0, stillToPay: 0, count: 0 }
-      if (wasReturned(c)) months[month].returned += Number(c.amount)
-      if (!countsAsIssued(c)) return
-      months[month].issued += Number(c.amount)
-      months[month].count++
-      if (c.status === 'PASSED') months[month].paid += Number(c.amount)
-      if (isStillToPay(c)) months[month].stillToPay += Number(c.amount)
-    })
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({
-        month: formatMonthLabel(month),
-        monthKey: month,
-        ...data,
-      }))
-  }, [filtered, wasReturned])
-
-  const partyData = useMemo(() => {
-    const parties: Record<string, { name: string; issued: number; paid: number; returned: number; stillToPay: number }> = {}
-    filtered.forEach((c) => {
-      const id = c.party_id
-      if (!parties[id]) parties[id] = { name: c.party?.name ?? 'Unknown', issued: 0, paid: 0, returned: 0, stillToPay: 0 }
-      if (wasReturned(c)) parties[id].returned += Number(c.amount)
-      if (!countsAsIssued(c)) return
-      parties[id].issued += Number(c.amount)
-      if (c.status === 'PASSED') parties[id].paid += Number(c.amount)
-      if (isStillToPay(c)) parties[id].stillToPay += Number(c.amount)
-    })
-    return Object.values(parties).sort((a, b) => b.stillToPay - a.stillToPay)
-  }, [filtered, wasReturned])
-
-  const topPartyChart = partyData.slice(0, 8).map((p) => ({
-    name: p.name.length > 18 ? p.name.slice(0, 16) + '…' : p.name,
-    'Still to pay': p.stillToPay,
-    Paid: p.paid,
-  }))
-
-  const bankData = useMemo(() => {
-    const banks: Record<string, number> = {}
-    filtered.forEach((c) => {
-      banks[c.bank_name] = (banks[c.bank_name] ?? 0) + Number(c.amount)
-    })
-    return Object.entries(banks)
-      .map(([bank, total]) => ({ bank, total, name: bank }))
-      .sort((a, b) => b.total - a.total)
-  }, [filtered])
-
-  const statusData = useMemo(() => {
-    const statuses: Record<string, { count: number; amount: number }> = {}
-    cheques.forEach((c) => {
-      if (!statuses[c.status]) statuses[c.status] = { count: 0, amount: 0 }
-      statuses[c.status].count++
-      statuses[c.status].amount += Number(c.amount)
-    })
-    return Object.entries(statuses).map(([status, data]) => ({
-      status,
-      name: STATUS_LABELS[status as ChequeStatus] ?? status,
-      ...data,
-      fill: STATUS_COLORS[status] ?? CHART_COLORS[0],
-    }))
-  }, [cheques])
-
-  const statusCountData = statusData.map((s) => ({ ...s, value: s.count }))
-
-  const depositVsOutflow = useMemo(() => {
-    const byDate: Record<string, { deposits: number; outflow: number }> = {}
-
-    deposits.forEach((d) => {
-      if (!byDate[d.deposit_date]) byDate[d.deposit_date] = { deposits: 0, outflow: 0 }
-      byDate[d.deposit_date].deposits += Number(d.amount)
-    })
-
-    cheques
-      .filter((c) => ['PASSED', 'DEPOSITED'].includes(c.status))
-      .forEach((c) => {
-        const date = c.due_date
-        if (!byDate[date]) byDate[date] = { deposits: 0, outflow: 0 }
-        byDate[date].outflow += Number(c.amount)
-      })
-
-    let cumDeposits = 0
-    let cumOutflow = 0
-    return Object.entries(byDate)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-60)
-      .map(([date, data]) => {
-        cumDeposits += data.deposits
-        cumOutflow += data.outflow
-        return {
-          date: formatDate(date),
-          deposits: data.deposits,
-          outflow: data.outflow,
-          cumDeposits,
-          cumOutflow,
-        }
-      })
-  }, [deposits, cheques])
-
-  const summaryStats = useMemo(() => {
-    const issued = filtered.filter(countsAsIssued)
-    const sum = (list: Cheque[]) => list.reduce((s, c) => s + Number(c.amount), 0)
-    return {
-      totalIssued: sum(issued),
-      totalPaid: sum(issued.filter((c) => c.status === 'PASSED')),
-      totalStillToPay: sum(issued.filter(isStillToPay)),
-      totalReturned: sum(filtered.filter(wasReturned)),
-      count: issued.length,
+  /** Changes the address bar: a null value removes the setting. */
+  const setParam = (changes: Record<string, string | null>) => {
+    const next = new URLSearchParams(params)
+    for (const [key, value] of Object.entries(changes)) {
+      if (value) next.set(key, value)
+      else next.delete(key)
     }
-  }, [filtered, wasReturned])
-
-  /**
-   * 28-day rolling daily cash flow — 14 days back + 14 days forward.
-   * Each row aggregates cheque liabilities and deposits made on that date.
-   */
-  const dailyCashFlow = useMemo(() => {
-    const todayStr = todayISO()
-    const today = parseISO(todayStr)
-
-    // Pre-index deposits by deposit_date for O(1) lookup
-    const depositsByDate: Record<string, number> = {}
-    deposits.forEach((d) => {
-      depositsByDate[d.deposit_date] = (depositsByDate[d.deposit_date] ?? 0) + Number(d.amount)
-    })
-
-    return Array.from({ length: 28 }, (_, i) => {
-      const date = addDays(subDays(today, 14), i)
-      const dateStr = format(date, 'yyyy-MM-dd')
-      const isPast = dateStr < todayStr
-      const isToday = dateStr === todayStr
-      const dayCheques = cheques.filter((c) => c.due_date === dateStr)
-
-      const pending = dayCheques
-        .filter((c) => c.status === 'PENDING')
-        .reduce((s, c) => s + Number(c.amount), 0)
-      const deposited = dayCheques
-        .filter((c) => c.status === 'DEPOSITED')
-        .reduce((s, c) => s + Number(c.amount), 0)
-      const passed = dayCheques
-        .filter((c) => c.status === 'PASSED')
-        .reduce((s, c) => s + Number(c.amount), 0)
-      const returned = dayCheques
-        .filter((c) => c.status === 'RETURNED')
-        .reduce((s, c) => s + Number(c.amount), 0)
-
-      const totalCheques = pending + deposited + passed + returned
-      const depositLog = depositsByDate[dateStr] ?? 0
-      // Gap = cash needed for the day minus cash logged as deposited that day.
-      // For past dates: liability = passed (actually paid that day).
-      // For future dates: liability = pending + deposited (still need funds).
-      const cashRequired = isPast ? passed : pending + deposited
-      const gap = depositLog - cashRequired
-
-      return {
-        date: dateStr,
-        label: formatDayMonth(date),
-        weekday: format(date, 'EEE'),
-        isPast,
-        isToday,
-        count: dayCheques.length,
-        pending,
-        deposited,
-        passed,
-        returned,
-        totalCheques,
-        depositLog,
-        cashRequired,
-        gap,
-      }
-    })
-  }, [cheques, deposits])
-
-  const dailySummary = useMemo(() => {
-    const todayStr = todayISO()
-    const upcoming = dailyCashFlow.filter((d) => d.date >= todayStr)
-    const past = dailyCashFlow.filter((d) => d.date < todayStr)
-    return {
-      next14Required: upcoming.reduce((s, d) => s + d.cashRequired, 0),
-      next14Cheques: upcoming.reduce((s, d) => s + d.count, 0),
-      past14Required: past.reduce((s, d) => s + d.cashRequired, 0),
-      past14Deposited: past.reduce((s, d) => s + d.depositLog, 0),
-      todayRequired: dailyCashFlow.find((d) => d.isToday)?.cashRequired ?? 0,
-      todayDeposited: dailyCashFlow.find((d) => d.isToday)?.depositLog ?? 0,
-    }
-  }, [dailyCashFlow])
-
-  const todayLabel = useMemo(() => dailyCashFlow.find((d) => d.isToday)?.label, [dailyCashFlow])
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Reports" subtitle="Detailed analytics and export-ready summaries" />
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4 space-y-2">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-6 w-24" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <div className="grid lg:grid-cols-2 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4 space-y-3">
-                <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-[240px] w-full rounded" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
+    setParams(next, { replace: true })
+  }
+  const set = (changes: Partial<Record<string, string | null>>) => setParam(changes as Record<string, string | null>)
+  const setDir = (dir: DirectionTab) => setParam({ dir: dir === defaultDir ? null : dir, status: null, account: null, bank: null })
+  const setTab = (next: ReportTab) => {
+    setParam({ tab: next === 'overview' ? null : next })
+    window.scrollTo({ top: 0 })
   }
 
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Reports" subtitle="Detailed analytics and export-ready summaries" />
+  const input = useMemo<ReportInput>(() => {
+    const inRange = (day: string) => (!filters.from || day >= filters.from) && (!filters.to || day <= filters.to)
+    const base = { ...filters, q: '', view: null }
+    return {
+      dir: filters.dir,
+      rows: filterRows(data.rows, base),
+      undated: filterRows(data.rows, { ...base, from: null, to: null }),
+      deposits: data.deposits.filter((d) => inRange(d.deposit_date)),
+      allDeposits: data.deposits,
+      accounts: data.accounts,
+      everReturned: data.everReturned,
+      passedOn: data.passedOn,
+      today,
+      months: reportMonths(filters.from, filters.to, today),
+    }
+  }, [data.rows, data.deposits, data.accounts, data.everReturned, data.passedOn, filters, today])
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        {[
-          { label: 'Total Issued', value: formatCurrency(summaryStats.totalIssued) },
-          { label: 'Paid (cleared)', value: formatCurrency(summaryStats.totalPaid) },
-          { label: 'Still to pay', value: formatCurrency(summaryStats.totalStillToPay) },
-          { label: 'Returned (bounced)', value: formatCurrency(summaryStats.totalReturned) },
-          { label: 'Cheques', value: String(summaryStats.count) },
-        ].map(({ label, value }) => (
-          <Card key={label}>
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="text-lg font-semibold">{value}</p>
-            </CardContent>
-          </Card>
+  const choices: FilterChoices = useMemo(() => {
+    const parties = new Map<string, string>()
+    const banks = new Set<string>()
+    for (const row of data.rows) {
+      if (!inTab(row, filters.dir)) continue
+      parties.set(row.partyId, row.party)
+      if (row.bank) banks.add(row.bank)
+    }
+    return {
+      parties: [...parties].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
+      banks: [...banks].sort((a, b) => a.localeCompare(b)),
+      accounts: data.accounts,
+    }
+  }, [data.rows, data.accounts, filters.dir])
+
+  const fieldProps = { filters, set, choices }
+  const partyName = choices.parties.find((p) => p.id === filters.party)?.name
+  const account = data.accounts.find((a) => a.id === filters.account)
+  const accountName = account ? `${account.name}${account.last4 ? ` ···${account.last4}` : ''}` : undefined
+  const statusText = filters.statuses
+    .map((value) => {
+      const [direction, status] = value.split(':')
+      return statusLabel(direction as 'in' | 'out', status)
+    })
+    .join(', ')
+  const filterCount = activeFilterCount(filters)
+  const clearAll = () => setParam({ dir: null, status: null, party: null, bank: null, account: null, from: null, to: null })
+
+  const describeFilters = () =>
+    [
+      filters.from || filters.to ? `Due ${dueLabel(filters)}` : 'Any due date',
+      DIR_WORDS[filters.dir],
+      partyName && `Party: ${partyName}`,
+      accountName && `Deposited into ${accountName}`,
+      filters.bank && `Bank: ${filters.bank}`,
+      statusText && `Status: ${statusText}`,
+      `Made ${formatDate(today)}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+
+  const exportTab = (as: 'pdf' | 'excel') => {
+    const job = {
+      title: `${brand.name}: ${tabLabel}`,
+      subtitle: describeFilters(),
+      tables: reportTables(tab, input),
+      fileName: `${brandSlug()}_report_${tab}_${today}`,
+    }
+    try {
+      if (as === 'pdf') exportReportPdf(job)
+      else exportReportExcel(job)
+    } catch (e) {
+      toast.error(`Couldn't export: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  const tabProps = { input, onTab: setTab, onDirection: setDir }
+
+  return (
+    <div>
+      <PageHeader
+        title="Reports"
+        actions={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={data.loading}>
+                <Download />
+                Export this tab
+                <ChevronDown className="!size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuLabel className="text-[13px] font-normal text-ink-quiet">{tabLabel}, with these filters</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => exportTab('pdf')}>
+                <FileText className="text-ink-quiet" />
+                PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => exportTab('excel')}>
+                <FileSpreadsheet className="text-ink-quiet" />
+                Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+      />
+
+      {/* The filters stay in view while the tab scrolls. */}
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:top-[68px] lg:mx-0 lg:px-0">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-surface p-2.5 max-lg:hidden">
+          <FilterPill label="Due" value={dueLabel(filters)} active={!!(filters.from || filters.to)} onClear={() => set({ from: null, to: null })} wide>
+            <DueField {...fieldProps} />
+          </FilterPill>
+          <FilterPill label="Direction" value={DIR_LABELS[filters.dir]} active={filters.dir !== defaultDir} onClear={() => setDir(defaultDir)}>
+            <DirectionField value={filters.dir} onChange={setDir} />
+          </FilterPill>
+          <FilterPill label="Party" value={partyName ?? 'Any'} active={!!filters.party} onClear={() => set({ party: null })} wide>
+            <PartyField {...fieldProps} />
+          </FilterPill>
+          {filters.dir === 'received' ? (
+            <FilterPill label="Account" value={accountName ?? 'Any'} active={!!filters.account} onClear={() => set({ account: null })}>
+              <AccountField {...fieldProps} />
+            </FilterPill>
+          ) : (
+            <FilterPill label="Bank" value={filters.bank ?? 'Any'} active={!!filters.bank} onClear={() => set({ bank: null })}>
+              <BankField {...fieldProps} />
+            </FilterPill>
+          )}
+          <FilterPill label="Status" value={statusText || 'Any'} active={filters.statuses.length > 0} onClear={() => set({ status: null })}>
+            <StatusField {...fieldProps} />
+          </FilterPill>
+          <div className="flex-1" />
+          {(filterCount > 0 || filters.dir !== defaultDir) && (
+            <Button variant="link" className="h-10" onClick={clearAll}>
+              Clear filters
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 lg:hidden">
+          <div role="group" aria-label="Direction" className="grid h-11 min-w-0 flex-1 grid-cols-3 gap-1 rounded-xl bg-track p-1">
+            {DIR_ORDER.map((dir) => (
+              <button
+                key={dir}
+                type="button"
+                aria-pressed={filters.dir === dir}
+                onClick={() => setDir(dir)}
+                className={cn('rounded-[9px] text-[15px] font-semibold', filters.dir === dir ? 'bg-thumb text-ink shadow-thumb' : 'text-ink-quiet')}
+              >
+                {DIR_LABELS[dir]}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" className="h-11 shrink-0" onClick={() => setFiltersOpen(true)}>
+            <ListFilter />
+            Filters{filterCount ? ` · ${filterCount}` : ''}
+          </Button>
+        </div>
+      </div>
+
+      <div
+        role="group"
+        aria-label="Report"
+        className="-mx-4 mt-2 flex gap-6 overflow-x-auto border-b px-4 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
+      >
+        {REPORT_TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            aria-pressed={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={cn(
+              '-mb-px h-11 shrink-0 border-b-[3px] px-0.5 text-[15px] font-semibold',
+              tab === t.key ? 'border-brand text-brand' : 'border-transparent text-ink-nav hover:text-ink'
+            )}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-4 items-end">
-        <div>
-          <Label>Date range</Label>
-          <DateRangePicker
-            from={dateFrom}
-            to={dateTo}
-            onChange={({ from, to }) => { setDateFrom(from); setDateTo(to) }}
-            placeholder="All dates"
-            className="w-64"
-          />
-        </div>
-        <Button variant="outline" onClick={() => { setDateFrom(''); setDateTo('') }}>Clear filters</Button>
+      <div className="mt-4 flex flex-col gap-4 lg:mt-5">
+        {data.error && (
+          <p role="alert" className="rounded-xl border border-problem-line bg-problem-soft p-3 text-sm text-problem">
+            Couldn't load everything: {data.error}
+          </p>
+        )}
+        {data.loading ? (
+          <div className="flex flex-col gap-4" aria-busy="true">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3.5">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[104px] rounded-xl" />
+              ))}
+            </div>
+            <Skeleton className="h-72 rounded-xl" />
+          </div>
+        ) : data.rows.length === 0 ? (
+          <div className="flex flex-col items-start gap-2 rounded-xl border bg-surface p-6">
+            <p className="font-semibold">Nothing to report yet</p>
+            <p className="text-ink-quiet">Reports fill in as you add the cheques you give and receive.</p>
+          </div>
+        ) : tab === 'overview' ? (
+          <OverviewTab {...tabProps} />
+        ) : tab === 'cash' ? (
+          <CashFlowTab {...tabProps} />
+        ) : tab === 'collections' ? (
+          <CollectionsTab {...tabProps} />
+        ) : tab === 'payments' ? (
+          <PaymentsTab {...tabProps} />
+        ) : tab === 'parties' ? (
+          <PartiesTab {...tabProps} />
+        ) : tab === 'bounces' ? (
+          <BouncesTab {...tabProps} />
+        ) : (
+          <AccountsTab {...tabProps} />
+        )}
       </div>
 
-      <Tabs defaultValue="daily">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="daily">Daily Cash Flow</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="party">Party-wise</TabsTrigger>
-          <TabsTrigger value="bank">Bank-wise</TabsTrigger>
-          <TabsTrigger value="deposits">Deposits</TabsTrigger>
-          <TabsTrigger value="status">Status</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="daily" className="space-y-4 mt-4">
-          {/* Quick stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {
-                label: 'Today',
-                value: formatCurrency(dailySummary.todayRequired),
-                sub: `${formatCurrency(dailySummary.todayDeposited)} funds added`,
-                tone:
-                  dailySummary.todayRequired > 0 &&
-                  dailySummary.todayDeposited < dailySummary.todayRequired
-                    ? 'danger'
-                    : undefined,
-              },
-              {
-                label: 'Next 14 days',
-                value: formatCurrency(dailySummary.next14Required),
-                sub: `${dailySummary.next14Cheques} cheques`,
-              },
-              {
-                label: 'Past 14 days — required',
-                value: formatCurrency(dailySummary.past14Required),
-                sub: 'cleared cheques',
-              },
-              {
-                label: 'Past 14 days — funds added',
-                value: formatCurrency(dailySummary.past14Deposited),
-                sub: 'logged deposits',
-              },
-            ].map(({ label, value, sub, tone }) => (
-              <Card key={label} className={tone === 'danger' ? 'border-red-300/70' : ''}>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p
-                    className={cn(
-                      'text-lg font-semibold mt-0.5 tabular-nums',
-                      tone === 'danger' && 'text-red-600'
-                    )}
-                  >
-                    {value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{sub}</p>
-                </CardContent>
-              </Card>
-            ))}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto px-4 pt-5">
+          <SheetHeader className="text-left">
+            <SheetTitle className="font-title text-2xl">Filters</SheetTitle>
+            <SheetDescription>Every tab uses them, and so does the export.</SheetDescription>
+          </SheetHeader>
+          <div className="mt-2 flex flex-col gap-5">
+            <DueField {...fieldProps} />
+            <PartyField {...fieldProps} />
+            {filters.dir === 'received' ? <AccountField {...fieldProps} /> : <BankField {...fieldProps} />}
+            <StatusField {...fieldProps} />
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={() => set({ status: null, party: null, bank: null, account: null, from: null, to: null })}>
+                Clear all
+              </Button>
+              <Button onClick={() => setFiltersOpen(false)}>Done</Button>
+            </div>
           </div>
-
-          {/* Combined 28-day chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>28-Day Cash Flow</CardTitle>
-              <CardDescription>
-                Cheque liability vs deposits logged — past 14 days and next 14 days, with today marked
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={320}>
-                <ComposedChart data={dailyCashFlow}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} interval={1} />
-                  <YAxis
-                    tickFormatter={(v) => formatChartCurrency(v)}
-                    tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }}
-                    width={55}
-                  />
-                  <Tooltip content={<CurrencyTooltip />} />
-                  <Legend />
-                  {todayLabel && (
-                    <ReferenceLine
-                      x={todayLabel}
-                      stroke="var(--status-problem)"
-                      strokeDasharray="3 3"
-                      label={{ value: 'Today', fill: 'var(--status-problem)', fontSize: 10, position: 'top' }}
-                    />
-                  )}
-                  <Bar dataKey="pending" stackId="cheques" fill={STATUS_COLORS.PENDING} name="Pending" />
-                  <Bar
-                    dataKey="deposited"
-                    stackId="cheques"
-                    fill={STATUS_COLORS.DEPOSITED}
-                    name="Funded"
-                  />
-                  <Bar
-                    dataKey="passed"
-                    stackId="cheques"
-                    fill={STATUS_COLORS.PASSED}
-                    name="Passed"
-                    radius={[3, 3, 0, 0]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="depositLog"
-                    stroke="var(--money-in)"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    name="Funds Added"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Day-by-day table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Day-by-day Breakdown</CardTitle>
-              <CardDescription>
-                Past 14 days show cleared amounts; next 14 days show cash you'll need
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="p-3 text-foreground">Date</TableHead>
-                    <TableHead className="p-3 text-foreground">Day</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Cheques</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Pending</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Funded</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Required</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Funds Added</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Gap</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dailyCashFlow.map((d) => {
-                    const shortfall = d.cashRequired > 0 && d.depositLog < d.cashRequired
-                    return (
-                      <TableRow
-                        key={d.date}
-                        className={cn(
-                          d.isToday && 'bg-primary/5 font-medium',
-                          d.isPast && 'text-muted-foreground'
-                        )}
-                      >
-                        <TableCell className="p-3">
-                          {formatDate(d.date)}
-                          {d.isToday && (
-                            <span className="ml-2 text-[10px] uppercase tracking-wider text-primary font-semibold">
-                              Today
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="p-3">{d.weekday}</TableCell>
-                        <TableCell className="p-3 text-right tabular-nums">{d.count || '—'}</TableCell>
-                        <TableCell className="p-3 text-right tabular-nums">
-                          {d.pending > 0 ? formatCurrency(d.pending) : '—'}
-                        </TableCell>
-                        <TableCell className="p-3 text-right tabular-nums">
-                          {d.deposited > 0 ? formatCurrency(d.deposited) : '—'}
-                        </TableCell>
-                        <TableCell className="p-3 text-right font-medium tabular-nums">
-                          {d.cashRequired > 0 ? formatCurrency(d.cashRequired) : '—'}
-                        </TableCell>
-                        <TableCell className="p-3 text-right tabular-nums text-emerald-600">
-                          {d.depositLog > 0 ? formatCurrency(d.depositLog) : '—'}
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            'p-3 text-right tabular-nums font-medium',
-                            d.gap < 0 && shortfall && 'text-red-600',
-                            d.gap > 0 && 'text-emerald-600'
-                          )}
-                        >
-                          {d.cashRequired === 0 && d.depositLog === 0
-                            ? '—'
-                            : formatCurrency(d.gap)}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <CumulativeOutflowChart cheques={cheques} />
-        </TabsContent>
-
-        <TabsContent value="monthly" className="space-y-4 mt-4">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Comparison</CardTitle>
-                <CardDescription>Cheques we issued, paid, and that bounced — by issue month</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
-                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
-                    <Tooltip content={<CurrencyTooltip />} />
-                    <Legend />
-                    <Bar dataKey="issued" fill="var(--brand)" name="Issued" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="paid" fill="var(--money-in)" name="Paid" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="returned" fill="var(--status-problem)" name="Returned" radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Still to Pay</CardTitle>
-                <CardDescription>Amount from each month's cheques not yet paid (pending, funded or returned)</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={320}>
-                  <ComposedChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
-                    <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
-                    <Tooltip content={<CurrencyTooltip />} />
-                    <Legend />
-                    <Area type="monotone" dataKey="stillToPay" fill="var(--status-attention-strong)" stroke="var(--status-attention-strong)" fillOpacity={0.15} name="Still to pay" />
-                    <Line type="monotone" dataKey="issued" stroke="var(--brand)" strokeWidth={2} dot={{ r: 3 }} name="Issued" />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader><CardTitle>Monthly Data Table</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="p-3 text-foreground">Month</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Cheques</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Issued</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Paid</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Returned</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Still to pay</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {monthlyData.map((m) => (
-                    <TableRow key={m.monthKey}>
-                      <TableCell className="p-3 font-medium">{m.month}</TableCell>
-                      <TableCell className="p-3 text-right">{m.count}</TableCell>
-                      <TableCell className="p-3 text-right">{formatCurrency(m.issued)}</TableCell>
-                      <TableCell className="p-3 text-right text-green-600">{formatCurrency(m.paid)}</TableCell>
-                      <TableCell className="p-3 text-right text-red-600">{formatCurrency(m.returned)}</TableCell>
-                      <TableCell className="p-3 text-right">{formatCurrency(m.stillToPay)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <SixMonthTrendChart cheques={cheques} passedAt={passedAt} />
-        </TabsContent>
-
-        <TabsContent value="party" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Parties — Stacked Breakdown</CardTitle>
-              <CardDescription>Still to pay and paid, for the 8 parties we owe most</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={topPartyChart} layout="vertical" margin={{ left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
-                  <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} />
-                  <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
-                  <Tooltip content={<CurrencyTooltip />} />
-                  <Legend />
-                  <Bar dataKey="Still to pay" stackId="a" fill={STATUS_COLORS.PENDING} radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="Paid" stackId="a" fill={STATUS_COLORS.PASSED} radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="p-3 text-foreground">Party</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Issued</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Paid</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Returned</TableHead>
-                    <TableHead className="p-3 text-right text-foreground">Still to pay</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {partyData.map((p) => (
-                    <TableRow key={p.name}>
-                      <TableCell className="p-3 font-medium">{p.name}</TableCell>
-                      <TableCell className="p-3 text-right">{formatCurrency(p.issued)}</TableCell>
-                      <TableCell className="p-3 text-right">{formatCurrency(p.paid)}</TableCell>
-                      <TableCell className="p-3 text-right">{formatCurrency(p.returned)}</TableCell>
-                      <TableCell className="p-3 text-right font-medium">{formatCurrency(p.stillToPay)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="bank" className="space-y-4 mt-4">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bank Outflow Distribution</CardTitle>
-                <CardDescription>Share of total cheque amounts by bank</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie data={bankData} dataKey="total" nameKey="bank" cx="50%" cy="50%" outerRadius={100} label={({ bank, percent }) => `${bank} (${(percent * 100).toFixed(0)}%)`}>
-                      {bankData.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CurrencyTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Bank Rankings</CardTitle>
-                <CardDescription>Total outflow per bank account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={bankData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
-                    <XAxis type="number" tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} />
-                    <YAxis type="category" dataKey="bank" width={100} tick={{ fontSize: 11, fill: 'var(--ink-quiet)' }} />
-                    <Tooltip content={<CurrencyTooltip />} />
-                    <Bar dataKey="total" fill="var(--brand)" name="Total Outflow" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="deposits" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Funds Added vs Cheque Payments</CardTitle>
-              <CardDescription>Money we added to the bank compared to our cheques funded or paid</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={320}>
-                <ComposedChart data={depositVsOutflow}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} />
-                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
-                  <Tooltip content={<CurrencyTooltip />} />
-                  <Legend />
-                  <Bar dataKey="deposits" fill="var(--money-in)" name="Funds added" barSize={8} radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="outflow" fill="var(--status-attention-strong)" name="Cheque payments" barSize={8} radius={[2, 2, 0, 0]} />
-                  <Line type="monotone" dataKey="cumDeposits" stroke="var(--money-in)" strokeWidth={2} dot={false} name="Cum. funds added" />
-                  <Line type="monotone" dataKey="cumOutflow" stroke="var(--status-attention)" strokeWidth={2} dot={false} name="Cum. payments" />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Funds Added Trend</CardTitle>
-              <CardDescription>Money added to the bank to cover cheques, over time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <ComposedChart data={depositVsOutflow}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} />
-                  <YAxis tickFormatter={(v) => formatChartCurrency(v)} tick={{ fontSize: 10, fill: 'var(--ink-quiet)' }} width={55} />
-                  <Tooltip content={<CurrencyTooltip />} />
-                  <Area type="monotone" dataKey="deposits" fill="var(--money-in)" stroke="var(--money-in)" fillOpacity={0.2} name="Funds added" />
-                  <Line type="monotone" dataKey="deposits" stroke="var(--money-in)" strokeWidth={2} dot={{ r: 2 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="status" className="space-y-4 mt-4">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Status by Amount</CardTitle>
-                <CardDescription>Donut chart of current cheque values</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie data={statusData} dataKey="amount" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}>
-                      {statusData.map((entry) => (
-                        <Cell key={entry.status} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CurrencyTooltip />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Status by Count</CardTitle>
-                <CardDescription>Number of cheques in each status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={statusCountData} startAngle={180} endAngle={0}>
-                    <RadialBar background dataKey="value" cornerRadius={4}>
-                      {statusCountData.map((entry) => (
-                        <Cell key={entry.status} fill={entry.fill} />
-                      ))}
-                    </RadialBar>
-                    <Legend />
-                    <Tooltip />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {statusData.map((s) => (
-              <Card key={s.status}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: s.fill }} />
-                    <p className="font-medium text-sm">{s.name}</p>
-                  </div>
-                  <p className="text-lg font-semibold">{formatCurrency(s.amount)}</p>
-                  <p className="text-xs text-muted-foreground">{s.count} cheques</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
