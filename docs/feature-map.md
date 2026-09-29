@@ -87,6 +87,8 @@ Built in 14, step 5 (2026-09-29): the Parties list (still to pay, still to colle
 | Status: by amount and by count | Overview |
 | New: Collections and Bounces tabs, and export on every tab | |
 
+Built in 14, step 5 (2026-09-29): every row above has its place. The running total and six-month trend moved from the old dashboard into Cash flow. "Monthly" became Cash flow's month by month (both ways) and Payments' month by month (issued, paid, returned, still to pay). Status by amount and by count is Overview's "Where the cheques stand" and Payments' "By status". The pie and radial charts became ranked bars, which read more easily. Cheques now group by due date throughout.
+
 ## Settings
 
 | Today | In the redesign |
@@ -98,6 +100,8 @@ Built in 14, step 5 (2026-09-29): the Parties list (still to pay, still to colle
 | Import from an export | Settings → Data, and New → Import |
 | Delete all data, after typing a confirmation | Settings → Data |
 | New: what you track (given, received or both), bank accounts, notifications, profile | |
+
+Built in 14, step 5 (2026-09-29): every row above has its section. Preferences became "Cheques you give", and each change saves at once instead of with a Save button. Export, import, sample data and delete all are under "Your data". Appearance (light, dark or the device's) is its own section too. Notifications wait for reminders (plan item 41).
 
 ## Received cheques
 

@@ -99,7 +99,19 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Party ledger done (2026-09-29), replacing the old party detail: name, contact, a phone link and a WhatsApp link (a number written without a country code gets the one from the user's region preset, `callingCode` in `src/config/regions.ts`); Edit (the party form, restyled like the cheque forms, with Active and Delete); New cheque for this party (received cheque, series, given cheque, several given cheques; follows What you track); tiles for what you gave, what they gave, the net still due and bounces; All / Given / Received with counts and a status filter; every cheque with its next step (the Cheques table with the bank in place of the party, or cards led by the cheque number).
     - Ledger choices: open cheques first, soonest due, then finished ones newest first (the brief says newest first; this puts what needs doing on top). No running "net so far" column, because given amounts carry no minus (70). "Send a reminder" from the brief waits for the maintainer's review of the receiving side; the WhatsApp link opens the chat meanwhile.
     - Fixed on the way: the party cards on phones were wider than the screen; the parties list flashed back to loading after every save; the party form reopened with the old values after an edit.
-    - Next: Reports, Settings, onboarding.
+    - Reports done (2026-09-29; checked at desktop and phone width, and every tab's PDF and Excel export): design board Reports-desktop. Filters that stay in view (due dates, direction, party, bank or account, status; the same address-bar names as Cheques, and a sheet on phones), seven tabs in the address bar, and "Export this tab" (PDF or Excel, filters written at the top). Logic in `src/lib/reports.ts`, tab contents and tables in `src/lib/reportTables.ts`, both tested in `tests/reports.test.ts`; export in `src/lib/reportExport.ts`.
+      - Overview: received, given, still to collect, still to pay; money in and out by month; where the cheques stand (amount and count per status); biggest parties.
+      - Cash flow: needed today, the next and last 14 days, the 28-day chart and day-by-day table, running total for 30 days, the given six-month trend (both moved from the old dashboard), month by month.
+      - Collections: still to collect, in clearing, bounced, bounce rate; ageing in 0–30 / 31–60 / 61–90 / 90+ days; who owes most; oldest first.
+      - Payments: given, passed, still to pay, returned at some point; month by month with a chart; every status.
+      - Parties: top eight both ways, and every party with net in words.
+      - Bounces: both ways, by reason and by party, bank charges, and every cheque that came back with where it stands now.
+      - Accounts and funds: funds added, cheque payments, received by account, given by bank, funds against payments by day and month.
+    - Report choices: cheques group by due date everywhere, like the filter (the old monthly report used the issue date). Cancelled, written-off, handed-back and replaced cheques, and security cheques still held, stay out of totals (`countsAsGiven` / `countsAsReceived` in `chequeList.ts`; Parties uses the same rules now). "Around today" figures and charts ignore the dates filter. Changes that were undone don't count as returned or passed. Net and shortfalls are words, not minus signs (70).
+      - Fixed while checking: Biggest parties keeps to Party, Given, Received and Net as on the board; empty days in Day by day show a dash; the funds chart puts running totals on their own right-hand scale (the daily bars were flattened); bounced amounts show without a plus; small tables fit half-width cards; the monthly bars open on the latest months on phones; PDF headings line up with their numbers.
+    - Settings done (2026-09-29; checked at desktop and phone width): design board Settings-desktop. A list of sections beside them (a scrolling row on phones) that follows where you are, and an address for each (/settings#region, #sample-data…). What you track; Region as a summary with Change; Your bank accounts (Edit, with Remove inside); Cheques you give (auto-pass and its time, the order Add funds covers cheques in, your banks), each saved as you change it; Appearance (this device); Plan (hidden when self-hosted); Your data (export everything, import an export, sample data, delete all with a typed phrase); Profile and sign-in. The board's Reminders section waits for reminders themselves (41). Sample data actions are in `useSampleData`, for onboarding to reuse.
+    - Also added: a page that crashes now says so inside the frame and recovers when you move to another page, instead of blanking the whole app (`ErrorBoundary` in `Layout`).
+    - Next: onboarding (region, what you track, sample data; boards Signup-phone, Onboarding-region-phone, Onboarding-track-phone, Today-first-run-phone).
 
 ## Layout and navigation
 
@@ -118,12 +130,14 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
 - [x] **20.** Parties: a two-way ledger per party, showing given, received, net and bounces.
   - Done in 14, step 5 (2026-09-29): the Parties list and the party ledger.
 - [ ] **21.** Settings: profile, region, bank accounts, notifications, plan and billing, data.
+  - Built in 14, step 5 (2026-09-29), all but notifications, which come with reminders (41). Buying a pack comes with billing.
 - [ ] **22.** Mobile: bottom tabs (Today · Cheques · + · Parties · More), cards instead of tables, swipe to deposit or confirm, and full-screen forms.
   - Bottom tabs (step 1), cheque cards with swipe and a full-screen detail (step 3) are done. Forms go full screen with their redesign (steps 4 and 5).
 - [ ] **23.** Reports:
   - Sticky filters: dates, direction, party, account, status.
   - Tabs: Overview, Cash flow, Collections (ageing in 0–30 / 31–60 / 61–90 / 90+ day buckets, and bounce rate), Payments, Parties, Bounces, and Accounts and funds.
   - Each tab exports with its filters applied.
+  - Built in 14, step 5 (2026-09-29); see its notes.
 - [ ] **24.** Move totals into SQL. Today Dashboard and Reports load every cheque into the browser, and the totals silently go wrong past 1,000 rows.
   - Today no longer has the problem (14, step 2: it pages through only the cheques it needs). Reports, the cheque list and parties still load everything in one request.
 

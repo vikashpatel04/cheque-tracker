@@ -16,7 +16,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 ## Where things stand
 
-- **Code:** all work is committed on `main`. 105 tests pass; lint (0 errors, 5 known warnings) and build are clean.
+- **Code:** all work is committed on `main`. 119 tests pass; lint (0 errors, 5 known warnings) and build are clean.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
   - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–016 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
@@ -31,7 +31,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
   - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
   - Step 4 is done: the received-cheque screens (form, deposit, detail and every action, search) and Settings → Sample data. One sample set is on the dev project (I said yes on 2026-09-29); remove it any time in Settings. I'll review the receiving side's wording and signs later.
-  - Step 5 is in progress: Add funds (one panel), the Calendar (own month grid and agenda) and Parties (the list and the two-way party ledger, with phone and WhatsApp links) are done. Reports, Settings and onboarding are next. The plan's step 5 notes say what each part does and what was left for later.
+  - Step 5 is in progress: Add funds (one panel), the Calendar (own month grid and agenda), Parties (the list and the two-way party ledger, with phone and WhatsApp links), Reports (seven tabs, filters that stay in view, PDF and Excel export per tab) and Settings (the board's sections, each saved as it changes) are done. Onboarding is next. The plan's step 5 notes say what each part does and what was left for later.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
@@ -40,7 +40,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   2. ~~Today in all three views~~ (done).
   3. ~~Cheques and cheque detail~~ (done).
   4. ~~The received-cheque screens~~ (done).
-  5. ~~Add funds, Calendar, Parties~~ (done), then Reports, Settings and onboarding.
+  5. ~~Add funds, Calendar, Parties, Reports, Settings~~ (done), then onboarding.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Not pushed yet:** commits from `a403464` onward: docs, then the redesign so far. Step 2 adds migration `017_tracks.sql` (one new column, `settings.tracks`, default "both"); pushing applies it to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tools and check it matches the hand-added `tracks` lines.

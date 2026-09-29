@@ -5,6 +5,7 @@ import { AccountMenu } from '@/components/shared/AccountMenu'
 import { ActivityBell } from '@/components/shared/ActivityBell'
 import { AppActionsProvider } from '@/components/shared/AppActions'
 import { AppLogo } from '@/components/shared/AppLogo'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { MoreSheet } from '@/components/shared/MoreSheet'
 import { NewMenuButton, NewSheet } from '@/components/shared/NewMenu'
 import { PlanBanner } from '@/components/shared/PlanBanner'
@@ -183,6 +184,7 @@ function OfflineBanner() {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation()
   return (
     <AppActionsProvider>
       <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
@@ -191,10 +193,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <TopBar />
           <OfflineBanner />
           <PlanBanner />
-          {/* min-w-0 + overflow-x-hidden so wide tables and charts scroll inside
-              their own wrappers instead of scrolling the page. */}
-          <main className={cn(CONTENT_WIDTH, 'min-w-0 overflow-x-hidden px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8')}>
-            {children}
+          {/* min-w-0 and a horizontal clip, so wide tables and charts scroll inside
+              their own wrappers instead of scrolling the page. Clip rather than
+              hidden where supported, so sticky bars (Reports' filters) still stick. */}
+          <main className={cn(CONTENT_WIDTH, 'min-w-0 overflow-x-hidden supports-[overflow:clip]:overflow-x-clip px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8')}>
+            <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>
           </main>
         </div>
         <BottomTabs />
