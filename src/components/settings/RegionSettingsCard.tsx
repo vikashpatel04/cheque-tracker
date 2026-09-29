@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SettingsSection } from '@/components/settings/SettingsSection'
 import { useSettings } from '@/hooks/useSettings'
 import {
   DATE_FORMATS,
@@ -17,7 +17,7 @@ import {
   type DateFormat,
   type WeekStart,
 } from '@/config/regions'
-import { formatCurrency, todayDate } from '@/lib/formatters'
+import { currencySymbol, formatCurrency, formatNumber, todayDate } from '@/lib/formatters'
 import { regionFromPreset, regionToSettings, type Region } from '@/lib/region'
 
 const unique = (values: string[]) => [...new Set(values.filter(Boolean))]
@@ -63,14 +63,39 @@ function weekdayName(day: WeekStart): string {
   return format(new Date(2026, 0, 4 + day), 'EEEE')
 }
 
+function currencyName(code: string): string {
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'currency' }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+/** The region as a short list, written the way the app will show things. */
+function summary(region: Region): { label: string; value: string }[] {
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  return [
+    { label: 'Country', value: countryName(region.country) },
+    { label: 'Currency', value: `${currencySymbol(region)} ${currencyName(region.currency)}` },
+    { label: 'Numbers', value: formatNumber(123456, 2, region) },
+    { label: 'Dates', value: format(todayDate(region), region.dateFormat) },
+    { label: 'Time zone', value: region.timeZone.replace(/_/g, ' ') },
+    { label: 'Week starts', value: weekdayName(region.weekStartsOn) },
+    { label: 'Cheques stay valid', value: plural(region.chequeValidityMonths, 'month') },
+    { label: 'Deposits usually clear', value: region.clearingDays ? `in ${plural(region.clearingDays, 'day')}` : 'the same day' },
+  ]
+}
+
 /**
- * Country, currency, number and date formats, time zone and cheque rules.
- * Picking a country fills in its defaults; each field can then be changed.
+ * Settings → Region: country, currency, number and date formats, time zone
+ * and cheque rules, as a summary with Change. Picking a country fills in its
+ * defaults; each field can then be changed.
  */
 export function RegionSettingsCard() {
   const { region, updateSettings } = useSettings()
   // Saving remounts the app (see SettingsProvider), so the draft starts fresh.
   const [draft, setDraft] = useState<Region | null>(region)
+  const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const countries = useMemo(() => {
@@ -81,7 +106,31 @@ export function RegionSettingsCard() {
   const timeZones = useMemo(() => timeZoneOptions(draft?.timeZone ?? ''), [draft?.timeZone])
   const locales = useMemo(() => localeOptions(draft?.locale ?? ''), [draft?.locale])
 
-  if (!draft) return null
+  if (!draft || !region) return null
+
+  if (!editing) {
+    return (
+      <SettingsSection
+        id="region"
+        title="Region"
+        description="How amounts, dates and “today” work for you."
+        action={
+          <Button variant="outline" onClick={() => setEditing(true)}>
+            Change
+          </Button>
+        }
+      >
+        <dl className="grid gap-x-6 sm:grid-cols-2">
+          {summary(region).map((row) => (
+            <div key={row.label} className="flex justify-between gap-3 border-b border-line-soft py-2.5 text-sm">
+              <dt className="text-ink-quiet">{row.label}</dt>
+              <dd className="text-right font-medium tabular-nums">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </SettingsSection>
+    )
+  }
 
   const set = <K extends keyof Region>(key: K, value: Region[K]) =>
     setDraft((d) => (d ? { ...d, [key]: value } : d))
@@ -95,23 +144,22 @@ export function RegionSettingsCard() {
     setSaving(true)
     const { error } = await updateSettings(regionToSettings(draft))
     setSaving(false)
-    if (error) toast.error(error)
-    else toast.success('Region saved')
+    if (error) {
+      toast.error(`Couldn't save the region: ${error}`)
+      return
+    }
+    toast.success('Region saved')
+    // A changed region remounts the app; an unchanged one just closes the form.
+    setEditing(false)
   }
 
   const today = todayDate(draft)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Region</CardTitle>
-        <CardDescription>
-          How amounts, dates and "today" work for you. Picking a country fills in its usual settings.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <SettingsSection id="region" title="Region" description="Picking a country fills in its usual settings. You can change each one after.">
+      <div className="flex flex-col gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-country">Country</Label>
             <Select value={draft.country} onValueChange={pickCountry}>
               <SelectTrigger id="region-country">
@@ -126,29 +174,29 @@ export function RegionSettingsCard() {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-currency">Currency</Label>
             <Combobox
               id="region-currency"
               options={currencies}
               value={draft.currency}
               onChange={(v) => set('currency', v)}
-              searchPlaceholder="Search currency..."
-              emptyText="No currency found."
+              searchPlaceholder="Find a currency"
+              emptyText="No currency by that name"
             />
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-locale">Number format</Label>
             <Combobox
               id="region-locale"
               options={locales}
               value={draft.locale}
               onChange={(v) => set('locale', v)}
-              searchPlaceholder="Search..."
-              emptyText="No format found."
+              searchPlaceholder="Find a format"
+              emptyText="No format like that"
             />
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-date-format">Date format</Label>
             <Select value={draft.dateFormat} onValueChange={(v) => set('dateFormat', v as DateFormat)}>
               <SelectTrigger id="region-date-format">
@@ -163,18 +211,18 @@ export function RegionSettingsCard() {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-time-zone">Time zone</Label>
             <Combobox
               id="region-time-zone"
               options={timeZones}
               value={draft.timeZone}
               onChange={(v) => set('timeZone', v)}
-              searchPlaceholder="Search time zone..."
-              emptyText="No time zone found."
+              searchPlaceholder="Find a time zone"
+              emptyText="No time zone by that name"
             />
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-week-start">Week starts on</Label>
             <Select
               value={String(draft.weekStartsOn)}
@@ -192,7 +240,7 @@ export function RegionSettingsCard() {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-validity">Cheques stay valid for (months)</Label>
             <Input
               id="region-validity"
@@ -206,11 +254,9 @@ export function RegionSettingsCard() {
               }}
               className="w-24"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              After this, banks treat a cheque as stale. Used for stale-cheque warnings.
-            </p>
+            <p className="mt-1 text-[13px] text-ink-quiet">After this, banks treat a cheque as stale. Used for stale-cheque warnings.</p>
           </div>
-          <div>
+          <div className="flex flex-col">
             <Label htmlFor="region-clearing">Deposits usually clear within (days)</Label>
             <Input
               id="region-clearing"
@@ -224,20 +270,30 @@ export function RegionSettingsCard() {
               }}
               className="w-24"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              After this, the app asks whether a deposited cheque has cleared.
-            </p>
+            <p className="mt-1 text-[13px] text-ink-quiet">After this, the app asks whether a deposited cheque has cleared.</p>
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-ink-quiet">
           Preview: {formatCurrency(125000, draft)} · today is {format(today, draft.dateFormat)}
         </p>
 
-        <Button onClick={() => void save()} disabled={saving}>
-          {saving ? 'Saving...' : 'Save region'}
-        </Button>
-      </CardContent>
-    </Card>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => void save()} disabled={saving}>
+            {saving ? 'Saving…' : 'Save region'}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={saving}
+            onClick={() => {
+              setDraft(region)
+              setEditing(false)
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </SettingsSection>
   )
 }
