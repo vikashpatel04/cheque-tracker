@@ -121,6 +121,11 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 
 - [ ] **76.** Bring the last screens in the old look into Passbook: Several given cheques (`BulkAdd`), the Excel upload dialogs for cheques and parties, "Present it again" (`RePresentDrawer`) and the return-reason dialog (`StatusActions`). Added 2026-09-29, after 14.
 - After 14, the maintainer reviews the whole redesign, then picks what's next from the backlog.
+- From the maintainer's first review on the phone (2026-09-29), in this order:
+  - [ ] **77.** Given cheques are drawn on one of your accounts, not just a bank. Two accounts at the same bank show as one line today (screenshot 3), so you can't pick the second one. Migration 018 adds `cheques.bank_account_id` (nullable, additive; a trigger checks the account is yours); the given form and Several given cheques pick an account, showing its name and last four digits, and still fill `bank_name` from it for the companions. Older cheques keep their bank name until edited.
+  - [ ] **78.** Add funds says which account the money went into (migration 018 adds `daily_deposits.bank_account_id`, and `record_deposit` takes the account). The default account is chosen first; the cheques it ticks and lists are the ones drawn on that account, and older cheques without an account are listed after them.
+  - [ ] **79.** The Add funds list gets dividers as you scroll: Overdue, Today, Tomorrow, then Later.
+  - [ ] **80.** Pickers on phones (party, bank): when the keyboard opens, the list jumps above the field and its search box goes off-screen (screenshots 4 and 5). On phones, open pickers as a sheet with the search at the top. The bank list is also as narrow as its field, which cuts off names (screenshot 3).
 
 ## Layout and navigation
 
