@@ -46,7 +46,7 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
-    "react-day-picker": "^9.14.0",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
     "react-router-dom": "^7.6.1",
