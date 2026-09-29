@@ -60,7 +60,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
   - **Guide:** "Learn how cheques work" (/learn) answers the topics in `src/lib/guide.ts`. Where something might confuse, put a `HelpLink` to the topic; it opens the answer beside the page.
   - **Frame:** `Layout` has the sidebar and top bar on desktop (`lg` and up) and bottom tabs on phones. Pages start with `PageHeader`. The New menu, search (Ctrl K) and the cheque dialogs live once in `AppActionsProvider`; open them with `useAppActions()`. After saving anything, call `announceDataChange()` (`src/lib/dataEvents.ts`) so every list refreshes.
   - **Installed app (PWA):** `pwa/service-worker.js` is built into `dist/sw.js` by `vite.config.ts`, and registered in production only by `src/lib/pwa.ts`, which also offers new versions and installing. Icons are in `public/icons/`. Test it with `npm run build`, then `npm run preview`.
-  - `SettingsProvider` loads the user's settings and shows `RegionSetup` until a region is chosen. After that it keys the app by region, so the app remounts when the region changes.
+  - `SettingsProvider` loads the user's settings and shows `Onboarding` (region, what you track, bank accounts) until a region is chosen. After that it keys the app by region, so the app remounts when the region changes. Today shows a first-run checklist until the setup is done or hidden.
 - **Given cheques:**
   - Tables: `cheques`, `cheque_history`, `daily_deposits` ("Add funds"), `parties`, `settings`.
   - Status changes go only through SQL functions (`change_cheque_status`, `record_deposit`, `represent_cheque`, `write_off_cheque`, `rollback_cheque_status`), called via `src/lib/updateChequeStatus.ts`.

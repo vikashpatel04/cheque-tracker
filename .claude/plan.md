@@ -73,7 +73,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Dark mode for Today and Cheques on the phone, derived from the light screens with a fixed colour map.
     - The landing and pricing page, with placeholders for prices and trial length.
   - 27 boards in all. Not designed: the pack checkout (with 53), and desktop versions of the phone-only screens, which follow the same patterns.
-- [ ] **14.** Build the new layout, then the received-cheque screens on it. **In progress** (started 2026-09-28), web version first, in this order:
+- [x] **14.** Build the new layout, then the received-cheque screens on it. Done 2026-09-29, web version first, in this order:
   - [x] 1. Colours, fonts and the frame: sidebar, bottom tabs, New menu, search, notifications. The installed app (PWA) keeps working: icons, offline start, updates.
     - Done 2026-09-28. Passbook tokens (light and dark) in `src/index.css`; IBM Plex bundled; restyled buttons, fields, cards, dialogs, menus and tabs; status chips with icons.
     - Frame: sidebar and top bar (search, New, bell, account) on desktop; bottom tabs with a raised + and a More sheet on phones. The New menu, search (Ctrl K, by cheque number, party or amount), Add funds and the cheque detail open from any page. The bell lists recent changes. Appearance (device, light, dark) is in the account menu and More.
@@ -96,7 +96,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Also done (2026-09-28): the deposit panel (date, account, tick cheques, deposit all at once); the received cheque detail with its next step and every action (mark cleared, bounced, deposit again now or later, paid another way, got a new cheque, hand back, write off, undo, edit, delete); "Mark cleared" and "Deposit" work from rows, cards, swipe and Today; received cheques in search; Settings → Sample data ("Try with sample data" adds made-up parties named "(sample)", an account and received cheques in every state, plus given ones for an account without any; "Remove sample data" takes it all away). Plan tested in `tests/sampleData.test.ts`.
     - Checked 2026-09-29 with the sample data (the maintainer said yes to adding it): Today's Received view, the deposit panel, the received detail and its dialogs, and the received list on phones all work. Fixed on the way: the sample could be added twice (now one set at a time), "goes stale" showed for dates months away (now only within a week), short dates read "05 Oct" (now "5 Oct"), and cheques in clearing sat under "Overdue" in the phone list (now their own group). One sample set is on the dev project; Settings → Sample data removes it.
     - The maintainer will review the receiving side's wording and signs later (they said so on 2026-09-28).
-  - [ ] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding. **In progress** (2026-09-29).
+  - [x] 5. Add funds, Calendar, Parties, Reports, Settings and onboarding. Done 2026-09-29.
     - Add funds done: one panel (design board Add-funds-phone): the amount, date and note, the pending cheques it covers ticked for you as you type (soonest due, smallest or largest first), what's added, covered and left over, and "Add funds and mark N funded". It says that today's total starts from zero each day. The old two-step dialog is gone.
     - Calendar done: its own month grid (money in and out per day, dots for what needs you or went wrong, grey when done), Month and Agenda, All / Given / Received, and the chosen day's cheques with Add funds or Deposit; month, day and view live in the address bar. Today's week strip opens the day here. The react-big-calendar library and the old day dialog are gone. Month logic tested in `tests/calendar.test.ts`.
     - Parties done (2026-09-29): the list shows, per party, what you still pay, what you still collect, the net in words ("₹X to collect" / "to pay", no minus), bounces and the next date, with search, All / You pay / Pay you, four orders and "Show inactive", all in the address bar; a table on desktop, cards on phones and tablets, totals underneath. Logic in `src/lib/parties.ts`, tested in `tests/parties.test.ts`.
@@ -115,7 +115,12 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
       - Fixed while checking: Biggest parties keeps to Party, Given, Received and Net as on the board; empty days in Day by day show a dash; the funds chart puts running totals on their own right-hand scale (the daily bars were flattened); bounced amounts show without a plus; small tables fit half-width cards; the monthly bars open on the latest months on phones; PDF headings line up with their numbers.
     - Settings done (2026-09-29; checked at desktop and phone width): design board Settings-desktop. A list of sections beside them (a scrolling row on phones) that follows where you are, and an address for each (/settings#region, #sample-data…). What you track; Region as a summary with Change; Your bank accounts (Edit, with Remove inside); Cheques you give (auto-pass and its time, the order Add funds covers cheques in, your banks), each saved as you change it; Appearance (this device); Plan (hidden when self-hosted); Your data (export everything, import an export, sample data, delete all with a typed phrase); Profile and sign-in. The board's Reminders section waits for reminders themselves (41). Sample data actions are in `useSampleData`, for onboarding to reuse.
     - Also added: a page that crashes now says so inside the frame and recovers when you move to another page, instead of blanking the whole app (`ErrorBoundary` in `Layout`).
-    - Next: onboarding (region, what you track, sample data; boards Signup-phone, Onboarding-region-phone, Onboarding-track-phone, Today-first-run-phone).
+    - Onboarding done (2026-09-29; checked on the phone through a preview, since the maintainer's account is set up): boards Onboarding-region-phone and Onboarding-track-phone. Three steps after the first sign-in: where you use cheques (countries, the one from your time zone first, search, and how amounts and dates will look), what you use them for (give, receive or both), and your bank accounts (the brief's optional step 4, which has no board; skippable). Region and choice are saved together at the end, so leaving halfway starts again. `Onboarding` replaces `RegionSetup`.
+    - Today's first-run checklist (board Today-first-run-phone): region, what you track, a bank account, your cheques, with Add buttons, until it's all done or hidden on that device, and "Try with sample data" while there are no cheques. The board's "Turn on reminders" step waits for reminders (41).
+    - The sign-in screen takes the Signup-phone board's look. Creating an account, password reset and Google stay with 52.
+
+- [ ] **76.** Bring the last screens in the old look into Passbook: Several given cheques (`BulkAdd`), the Excel upload dialogs for cheques and parties, "Present it again" (`RePresentDrawer`) and the return-reason dialog (`StatusActions`). Added 2026-09-29, after 14.
+- After 14, the maintainer reviews the whole redesign, then picks what's next from the backlog.
 
 ## Layout and navigation
 
@@ -123,8 +128,8 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
 
 - [x] **15.** Main sections: Today, Cheques, Calendar, Parties, Reports, Settings.
   - Done in 14, step 1. Returned stays under them until 19.
-- [ ] **16.** Always visible: a New button (received cheque, given cheque, series, add funds, import), search by cheque number, party or amount (Ctrl K), and notifications.
-  - Built in 14, step 1, for given cheques. Received cheques and series join the New menu and search in step 4.
+- [x] **16.** Always visible: a New button (received cheque, given cheque, series, add funds, import), search by cheque number, party or amount (Ctrl K), and notifications.
+  - Built in 14, step 1, for given cheques. Received cheques and series joined the New menu and search in step 4. The bell shows recent changes; reminders themselves are 41.
 - [x] **17.** Today: three numbers first (in clearing, due, net), then to-dos with one action each, then one in/out chart. People who only give or only receive see only their half.
   - Done in 14, step 2. The received actions open their screens once step 4 builds them.
 - [x] **18.** Cheques: All / Received / Given tabs, plus saved views: To deposit, In clearing, Bounced, Security, Series.
@@ -135,8 +140,8 @@ Why: the dashboard stacks about ten blocks, and four of them show the same "what
   - Done in 14, step 5 (2026-09-29): the Parties list and the party ledger.
 - [ ] **21.** Settings: profile, region, bank accounts, notifications, plan and billing, data.
   - Built in 14, step 5 (2026-09-29), all but notifications, which come with reminders (41). Buying a pack comes with billing.
-- [ ] **22.** Mobile: bottom tabs (Today · Cheques · + · Parties · More), cards instead of tables, swipe to deposit or confirm, and full-screen forms.
-  - Bottom tabs (step 1), cheque cards with swipe and a full-screen detail (step 3) are done. Forms go full screen with their redesign (steps 4 and 5).
+- [x] **22.** Mobile: bottom tabs (Today · Cheques · + · Parties · More), cards instead of tables, swipe to deposit or confirm, and full-screen forms.
+  - Bottom tabs (step 1), cheque cards with swipe and a full-screen detail (step 3), and full-screen forms (steps 4 and 5) are done. The screens still in the old look are 76.
 - [ ] **23.** Reports:
   - Sticky filters: dates, direction, party, account, status.
   - Tabs: Overview, Cash flow, Collections (ageing in 0–30 / 31–60 / 61–90 / 90+ day buckets, and bounce rate), Payments, Parties, Bounces, and Accounts and funds.

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ChequeListDialog } from '@/components/today/ChequeListDialog'
 import { FundsAddedToday } from '@/components/today/FundsAddedToday'
+import { SetupChecklist } from '@/components/today/SetupChecklist'
 import { Tile } from '@/components/today/Tile'
 import { TodoList } from '@/components/today/TodoList'
 import { InOutChart, IncomingChart, OutgoingChart } from '@/components/today/TodayCharts'
@@ -203,6 +204,7 @@ export default function Today() {
         <Loading />
       ) : (
         <div className="flex flex-col gap-[18px] lg:gap-6">
+          <SetupChecklist />
           {view === 'given' && (
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-4">
               <Tile
@@ -377,7 +379,7 @@ export default function Today() {
                     <ArrowDownLeft />
                     Add a received cheque
                   </Button>
-                  <Button variant="outline" onClick={() => navigate('/settings')}>
+                  <Button variant="outline" onClick={() => navigate('/settings#sample-data')}>
                     Try with sample data
                   </Button>
                 </div>

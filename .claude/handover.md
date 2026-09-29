@@ -31,16 +31,19 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
   - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
   - Step 4 is done: the received-cheque screens (form, deposit, detail and every action, search) and Settings → Sample data. One sample set is on the dev project (I said yes on 2026-09-29); remove it any time in Settings. I'll review the receiving side's wording and signs later.
-  - Step 5 is in progress: Add funds (one panel), the Calendar (own month grid and agenda), Parties (the list and the two-way party ledger, with phone and WhatsApp links), Reports (seven tabs, filters that stay in view, PDF and Excel export per tab) and Settings (the board's sections, each saved as it changes) are done. Onboarding is next. The plan's step 5 notes say what each part does and what was left for later.
+  - Step 5 is done: Add funds (one panel), the Calendar (own month grid and agenda), Parties (the list and the two-way party ledger, with phone and WhatsApp links), Reports (seven tabs, filters that stay in view, PDF and Excel export per tab), Settings (the board's sections, each saved as it changes), and onboarding (region, what you track, bank accounts, then Today's first-run checklist). Item 14 is complete.
+  - Since then: given cheques pick their bank from Your bank accounts (plan item 74), and a "Learn how cheques work" guide with question links around the app (75). The plan's step 5 notes say what each part does and what was left for later.
   - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
   - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
-- **Next:** continue item 14, step 5:
+- **Item 14, done in five steps:**
   1. ~~Tokens, fonts and the new frame~~ (done).
   2. ~~Today in all three views~~ (done).
   3. ~~Cheques and cheque detail~~ (done).
   4. ~~The received-cheque screens~~ (done).
-  5. ~~Add funds, Calendar, Parties, Reports, Settings~~ (done), then onboarding.
+  5. ~~Add funds, Calendar, Parties, Reports, Settings and onboarding~~ (done).
+
+  Next: I review the whole redesign. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Pushed:** everything up to the Settings rebuild, on 2026-09-29. Migrations 001–017 are applied to the dev project, and `src/types/database.ts` matches it.

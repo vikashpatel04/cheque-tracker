@@ -4,7 +4,7 @@ import { SettingsContext, type SettingsContextValue } from '@/hooks/useSettings'
 import { runAutoTransition } from '@/lib/autoTransition'
 import { regionFromSettings, regionKey, setActiveRegion } from '@/lib/region'
 import { supabase } from '@/lib/supabase'
-import RegionSetup from '@/pages/RegionSetup'
+import Onboarding from '@/pages/Onboarding'
 import type { Settings, SettingsUpdate } from '@/types'
 
 function FullPage({ children }: { children: ReactNode }) {
@@ -134,7 +134,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   return (
     <SettingsContext.Provider value={value}>
-      {region ? <Fragment key={regionKey(region)}>{children}</Fragment> : <RegionSetup />}
+      {region ? <Fragment key={regionKey(region)}>{children}</Fragment> : <Onboarding />}
     </SettingsContext.Provider>
   )
 }
