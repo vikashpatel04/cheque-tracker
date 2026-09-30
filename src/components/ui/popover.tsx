@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
+import { closesOnBack } from '@/hooks/useCloseOnBack'
 import { cn } from '@/lib/utils'
 
-const Popover = PopoverPrimitive.Root
+const Popover = closesOnBack(PopoverPrimitive.Root)
 const PopoverTrigger = PopoverPrimitive.Trigger
 const PopoverAnchor = PopoverPrimitive.Anchor
 

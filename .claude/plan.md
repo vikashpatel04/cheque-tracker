@@ -157,12 +157,22 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
       - The given form suggests again when you switch account, unless you typed the number.
       - In Several given cheques, a new row continues the row above: the same account and its next free number. Choosing another account renumbers a row, unless you typed its number.
       - Checked at phone width with the maintainer's data: 789874 instead of the used 789803; the second account, which has no cheques yet, suggests nothing; a typed number is kept; "Already used" shows only for the same book.
-  - [ ] **82.** On phones, the back button or back gesture closes the open dialog, sheet, menu or picker, one at a time, instead of leaving the page. Asked by the maintainer on 2026-10-01: many phone users never tap the close button. Keep modals; don't turn them into pages.
+  - [x] **82.** On phones, the back button or back gesture closes the open dialog, sheet, menu or picker, one at a time, instead of leaving the page. Asked by the maintainer on 2026-10-01: many phone users never tap the close button. Keep modals; don't turn them into pages.
     - Approach: Chrome on Android, and the installed app, send the back button to `CloseWatcher` as a close request. Each overlay's root (a shared wrapper in `src/components/ui`) holds a watcher while it's open, so Back closes the top one.
     - Unlike pushing a history entry per modal, it doesn't touch the address bar, so it can't undo the phone Filters sheet's changes (those rewrite the URL while the sheet is open).
     - Radix cancels the Esc keydown it handles, so on desktop Esc isn't handled twice.
     - Where there's no CloseWatcher (iPhones have no back button; some other Android browsers), Back works as before.
-  - Order agreed on 2026-10-01: 81, then 76, then 82. 81 and 76 are done.
+    - Built 2026-10-01:
+      - `useCloseOnBack` and `closesOnBack` in `src/hooks/useCloseOnBack.ts`.
+      - The roots of Dialog, Sheet, AlertDialog, Popover, DropdownMenu and Select in `src/components/ui` are wrapped, so every overlay gets it with no change where it's used. The wrapper keeps the open state itself for uncontrolled ones.
+      - Checked in the pane's Chromium, which has CloseWatcher, by calling `requestClose()` as Back does:
+        - the + sheet closes and the page stays;
+        - form, then account picker: one Back closes the picker, the next the form;
+        - the date field's calendar, the Add funds account Select and a row's ⋯ menu each close on their own;
+        - Esc closes only the top layer and doesn't fire the watcher;
+        - with nothing open, no watcher is left, so Back navigates as usual.
+      - Still to check on a real Android phone.
+  - Order agreed on 2026-10-01: 81, then 76, then 82. All three are done.
 
 ## Layout and navigation
 

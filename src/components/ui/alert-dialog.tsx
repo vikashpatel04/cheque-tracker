@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
+import { closesOnBack } from '@/hooks/useCloseOnBack'
 
-const AlertDialog = AlertDialogPrimitive.Root
+const AlertDialog = closesOnBack(AlertDialogPrimitive.Root)
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
