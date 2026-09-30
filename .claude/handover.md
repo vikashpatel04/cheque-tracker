@@ -48,10 +48,10 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - The types were regenerated, and 77–79 were checked in the browser on 2026-10-01.
   - 80 makes pickers open as a sheet on phones. It's committed, not pushed.
 
-  Next: 81 (suggest the next cheque number from the chosen account's cheque book; found while checking 77), then 76 (the last screens in the old look), then whatever I pick from the backlog.
+  81 (the next cheque number from the chosen account's cheque book) is done and committed, not pushed. Next, in the order I asked for on 2026-10-01: 76 (the last screens in the old look), then 82 (the phone's back button closes the open dialog or sheet), then whatever I pick from the backlog.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `29532f0` (items 77–79), on 2026-09-30. Migrations 001–018 are applied to the dev project. Committed but not pushed: the regenerated `src/types/database.ts`, and item 80.
+- **Pushed:** everything up to `29532f0` (items 77–79), on 2026-09-30. Migrations 001–018 are applied to the dev project. Committed but not pushed: the regenerated `src/types/database.ts`, and items 80 and 81.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { NumberedCheque } from '@/lib/chequeNumbers'
 import { supabase } from '@/lib/supabase'
 import type { ChequeStatus } from '@/types'
 
@@ -6,6 +7,7 @@ export interface ExistingCheque {
   id: string
   cheque_number: string
   bank_name: string
+  bank_account_id: string | null
   status: ChequeStatus
   party_name: string
 }
@@ -31,7 +33,7 @@ export function useExistingChequeNumbers(numbers: string[], excludeId?: string) 
     const timer = setTimeout(async () => {
       const { data } = await supabase
         .from('cheques')
-        .select('id, cheque_number, bank_name, status, party:parties(name)')
+        .select('id, cheque_number, bank_name, bank_account_id, status, party:parties(name)')
         .in('cheque_number', wanted)
         .is('deleted_at', null)
       if (cancelled || !data) return
@@ -51,6 +53,22 @@ export function useExistingChequeNumbers(numbers: string[], excludeId?: string) 
   }, [key, excludeId])
 
   return existing
+}
+
+/**
+ * Your latest given cheques' numbers, for suggesting the next one from an
+ * account's cheque book (`suggestChequeNumber`). The latest 500 by issue date
+ * cover the recent leaves of every book.
+ */
+export async function loadRecentChequeNumbers(): Promise<NumberedCheque[]> {
+  const { data } = await supabase
+    .from('cheques')
+    .select('cheque_number, issue_date, created_at, bank_account_id')
+    .is('deleted_at', null)
+    .order('issue_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(500)
+  return data ?? []
 }
 
 export function describeExisting(list: ExistingCheque[] | undefined): string | null {

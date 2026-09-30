@@ -8,10 +8,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
 import { AccountPicker } from '@/components/shared/AccountPicker'
 import { DateInput } from '@/components/ui/date-picker'
-import { useExistingChequeNumbers, describeExisting } from '@/hooks/useExistingChequeNumbers'
+import { describeExisting, loadRecentChequeNumbers, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
 import { useParties } from '@/hooks/useParties'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
-import { todayISO, formatAmountInput, parseAmount, nextChequeNumber } from '@/lib/formatters'
+import { inChequeBook, nextFreeNumber, numbersInBook, suggestChequeNumber, type NumberedCheque } from '@/lib/chequeNumbers'
+import { todayISO, formatAmountInput, parseAmount } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -26,6 +27,26 @@ interface BulkRow {
   issue_date: string
   due_date: string
   notes: string
+  /** The number was suggested, not typed, so it follows the row's account. */
+  numberSuggested: boolean
+}
+
+/**
+ * The number for row `index` on an account (plan item 81): after the nearest
+ * row above it on that account, or else the next in that account's cheque
+ * book, skipping numbers the book or the other rows use.
+ */
+function numberFor(
+  rows: BulkRow[],
+  index: number,
+  accountId: string | null,
+  recent: NumberedCheque[],
+  defaultAccountId: string | null
+): string {
+  const others = rows.filter((r, i) => i !== index && r.bank_account_id === accountId).map((r) => r.cheque_number.trim())
+  const above = rows.slice(0, index).filter((r) => r.bank_account_id === accountId && r.cheque_number.trim()).at(-1)
+  if (!above) return suggestChequeNumber(recent, accountId, defaultAccountId, others)
+  return nextFreeNumber(above.cheque_number, new Set([...numbersInBook(recent, accountId, defaultAccountId), ...others]))
 }
 
 export default function BulkAdd() {
@@ -41,55 +62,79 @@ export default function BulkAdd() {
 
   const [rows, setRows] = useState<BulkRow[]>([])
   const [loading, setLoading] = useState(false)
+  // Your latest cheques' numbers, to suggest each row's number from its account's cheque book.
+  const [recent, setRecent] = useState<NumberedCheque[] | null>(null)
 
   const partyOptions = parties.map((p) => ({ value: p.id, label: p.name }))
 
   useEffect(() => {
-    // Fetch last cheque number from DB to seed the first row
     let cancelled = false
-    supabase
-      .from('cheques')
-      .select('cheque_number')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return
-        setRows((prev) => (prev.length > 0 ? prev : [makeRow([], data?.cheque_number)]))
-      })
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void loadRecentChequeNumbers().then((numbers) => !cancelled && setRecent(numbers))
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  // Once your accounts have loaded, fill in rows that don't have a bank yet.
-  useEffect(() => {
-    if (!defaultBank) return
-    setRows((prev) => prev.map((r) => (r.bank_name ? r : { ...r, bank_name: defaultBank, bank_account_id: defaultAccountId })))
-  }, [defaultBank, defaultAccountId])
-
-  const makeRow = (existing: BulkRow[], lastDbChequeNumber?: string): BulkRow => {
-    let newChequeNumber = ''
-    if (existing.length > 0) {
-      newChequeNumber = nextChequeNumber(existing[existing.length - 1].cheque_number)
-    } else if (lastDbChequeNumber) {
-      newChequeNumber = nextChequeNumber(lastDbChequeNumber)
-    }
-    return {
+  /** A new row continues the one above it: the same account and its next number. */
+  const makeRow = (existing: BulkRow[], numbers: NumberedCheque[]): BulkRow => {
+    const last = existing.at(-1)
+    const row: BulkRow = {
       id: crypto.randomUUID(),
       party_id: isPartyWise ? partyId! : '',
-      cheque_number: newChequeNumber,
-      bank_name: defaultBank,
-      bank_account_id: defaultAccountId,
+      cheque_number: '',
+      bank_name: last ? last.bank_name : defaultBank,
+      bank_account_id: last ? last.bank_account_id : defaultAccountId,
       amount: '',
       issue_date: todayISO(),
       due_date: todayISO(),
       notes: '',
+      numberSuggested: true,
     }
+    const all = [...existing, row]
+    return { ...row, cheque_number: numberFor(all, existing.length, row.bank_account_id, numbers, defaultAccountId) }
   }
 
+  // The first row, once your latest numbers have loaded.
+  useEffect(() => {
+    if (recent) setRows((prev) => (prev.length > 0 ? prev : [makeRow([], recent)]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recent])
+
+  // Once your accounts have loaded, rows without a bank start on your default account.
+  useEffect(() => {
+    if (!defaultBank) return
+    setRows((prev) =>
+      prev.map((r, i) =>
+        r.bank_name
+          ? r
+          : {
+              ...r,
+              bank_name: defaultBank,
+              bank_account_id: defaultAccountId,
+              cheque_number: r.numberSuggested ? numberFor(prev, i, defaultAccountId, recent ?? [], defaultAccountId) : r.cheque_number,
+            }
+      )
+    )
+  }, [defaultBank, defaultAccountId, recent])
+
   const handleAddRow = () => {
-    setRows((prev) => [...prev, makeRow(prev)])
+    setRows((prev) => [...prev, makeRow(prev, recent ?? [])])
+  }
+
+  /** Choosing another account renumbers the row, unless you typed its number. */
+  const changeAccount = (id: string, accountId: string | null, bankName: string) => {
+    setRows((prev) =>
+      prev.map((r, i) =>
+        r.id !== id
+          ? r
+          : {
+              ...r,
+              bank_account_id: accountId,
+              bank_name: bankName,
+              cheque_number: r.numberSuggested ? numberFor(prev, i, accountId, recent ?? [], defaultAccountId) : r.cheque_number,
+            }
+      )
+    )
   }
 
   const updateRow = (id: string, field: keyof BulkRow, value: string) => {
@@ -100,6 +145,9 @@ export default function BulkAdd() {
         // Auto-format amount if that's the field
         if (field === 'amount') {
           return { ...r, amount: formatAmountInput(value) }
+        }
+        if (field === 'cheque_number') {
+          return { ...r, cheque_number: value, numberSuggested: false }
         }
 
         const newRow = { ...r, [field]: value }
@@ -161,9 +209,10 @@ export default function BulkAdd() {
 
   const selectedParty = parties.find((p) => p.id === partyId)
   const existingNumbers = useExistingChequeNumbers(rows.map((r) => r.cheque_number))
+  // Two accounts' cheque books can share a number, so repeats count per account.
+  const bookKey = (r: BulkRow) => `${r.bank_account_id ?? ''}|${r.cheque_number.trim()}`
   const rowNumberCounts = rows.reduce((m, r) => {
-    const n = r.cheque_number.trim()
-    if (n) m.set(n, (m.get(n) ?? 0) + 1)
+    if (r.cheque_number.trim()) m.set(bookKey(r), (m.get(bookKey(r)) ?? 0) + 1)
     return m
   }, new Map<string, number>())
 
@@ -234,9 +283,9 @@ export default function BulkAdd() {
                   />
                   {(() => {
                     const n = row.cheque_number.trim()
-                    const warning = (rowNumberCounts.get(n) ?? 0) > 1
+                    const warning = (rowNumberCounts.get(bookKey(row)) ?? 0) > 1
                       ? 'Repeated in another row'
-                      : describeExisting(existingNumbers.get(n))
+                      : describeExisting(existingNumbers.get(n)?.filter((c) => inChequeBook(c, row.bank_account_id, defaultAccountId)))
                     return warning ? (
                       <p className="text-xs text-amber-600 dark:text-amber-400">{warning}</p>
                     ) : null
@@ -251,7 +300,7 @@ export default function BulkAdd() {
                     id={`bank-${row.id}`}
                     bare
                     value={{ accountId: row.bank_account_id, bankName: row.bank_name }}
-                    onChange={(v) => setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, bank_account_id: v.accountId, bank_name: v.bankName } : r)))}
+                    onChange={(v) => changeAccount(row.id, v.accountId, v.bankName)}
                   />
                 </div>
 

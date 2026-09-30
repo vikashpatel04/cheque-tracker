@@ -133,12 +133,24 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - On phones only the chosen option is highlighted. The chosen option opens in view, e.g. your time zone among 418.
     - On desktop the list is at least 18rem wide, so names aren't cut off in narrow fields (Several given cheques).
     - Checked at phone width (account, party with search, time zone) and at desktop width (Several given cheques).
-  - [ ] **81.** Suggest the next cheque number from the chosen account's own cheque book. Today the given form and Several given cheques suggest the last cheque *added* plus one, across all accounts, so after adding an older cheque, or with two cheque books, they suggest a number that's already used (seen 2026-10-01). Proposed:
+  - [x] **81.** Suggest the next cheque number from the chosen account's own cheque book. Today the given form and Several given cheques suggest the last cheque *added* plus one, across all accounts, so after adding an older cheque, or with two cheque books, they suggest a number that's already used (seen 2026-10-01). Proposed:
     - Suggest one after the latest-issued cheque on that account (ties: the highest number).
     - Older cheques with no account count for the default account.
     - Skip numbers already used on that account.
     - Suggest again when the account changes.
     - An account with no cheques yet gets no suggestion.
+    - Also: "Already used" and "Repeated in another row" count only the same cheque book, since two books can share a number.
+    - Built 2026-10-01:
+      - The rule is `suggestChequeNumber` in `src/lib/chequeNumbers.ts`, tested in `tests/chequeNumbers.test.ts`. It reads your latest 500 given cheques (`loadRecentChequeNumbers`).
+      - The given form suggests again when you switch account, unless you typed the number.
+      - In Several given cheques, a new row continues the row above: the same account and its next free number. Choosing another account renumbers a row, unless you typed its number.
+      - Checked at phone width with the maintainer's data: 789874 instead of the used 789803; the second account, which has no cheques yet, suggests nothing; a typed number is kept; "Already used" shows only for the same book.
+  - [ ] **82.** On phones, the back button or back gesture closes the open dialog, sheet, menu or picker, one at a time, instead of leaving the page. Asked by the maintainer on 2026-10-01: many phone users never tap the close button. Keep modals; don't turn them into pages.
+    - Approach: Chrome on Android, and the installed app, send the back button to `CloseWatcher` as a close request. Each overlay's root (a shared wrapper in `src/components/ui`) holds a watcher while it's open, so Back closes the top one.
+    - Unlike pushing a history entry per modal, it doesn't touch the address bar, so it can't undo the phone Filters sheet's changes (those rewrite the URL while the sheet is open).
+    - Radix cancels the Esc keydown it handles, so on desktop Esc isn't handled twice.
+    - Where there's no CloseWatcher (iPhones have no back button; some other Android browsers), Back works as before.
+  - Order agreed on 2026-10-01: 81, then 76, then 82.
 
 ## Layout and navigation
 

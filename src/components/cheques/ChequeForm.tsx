@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
@@ -11,11 +11,11 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { PartyPicker } from '@/components/shared/PartyPicker'
-import { describeExisting, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
+import { describeExisting, loadRecentChequeNumbers, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
 import { AccountPicker } from '@/components/shared/AccountPicker'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
-import { currencySymbol, formatAmountInput, nextChequeNumber, parseAmount, todayISO } from '@/lib/formatters'
-import { supabase } from '@/lib/supabase'
+import { inChequeBook, suggestChequeNumber, type NumberedCheque } from '@/lib/chequeNumbers'
+import { currencySymbol, formatAmountInput, parseAmount, todayISO } from '@/lib/formatters'
 import { updateChequeStatus } from '@/lib/updateChequeStatus'
 import { cn } from '@/lib/utils'
 import { VALID_STATUS_TRANSITIONS, type Cheque, type ChequeStatus } from '@/types'
@@ -54,12 +54,16 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
   const [newStatus, setNewStatus] = useState<ChequeStatus | ''>('')
   const [returnReason, setReturnReason] = useState('')
   const [amountDisplay, setAmountDisplay] = useState('')
+  // Your latest cheques' numbers, and the number last suggested from them.
+  const [recent, setRecent] = useState<NumberedCheque[] | null>(null)
+  const suggested = useRef('')
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    getValues,
     watch,
     reset,
   } = useForm<ChequeFormData>({
@@ -90,22 +94,18 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
       reset(prefill ? { issue_date: todayISO(), due_date: todayISO(), ...prefill } : { issue_date: todayISO(), due_date: todayISO() })
       setAmountDisplay(prefill?.amount != null ? formatAmountInput(String(prefill.amount)) : '')
 
-      // Predict the next cheque number from the last one used (editable).
+      // The number is suggested from the chosen account's cheque book, below.
+      suggested.current = ''
+      setRecent(null)
       if (!prefill?.cheque_number) {
-        supabase
-          .from('cheques')
-          .select('cheque_number')
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-          .then(({ data }) => {
-            const next = nextChequeNumber(data?.cheque_number)
-            if (next) setValue('cheque_number', next)
-          })
+        let cancelled = false
+        void loadRecentChequeNumbers().then((numbers) => !cancelled && setRecent(numbers))
+        return () => {
+          cancelled = true
+        }
       }
     }
-  }, [open, cheque, prefill, reset, setValue])
+  }, [open, cheque, prefill, reset])
 
   // A new cheque starts on your default account, once your accounts have loaded.
   const bankName = watch('bank_name')
@@ -116,10 +116,26 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
     }
   }, [open, cheque, bankName, defaultAccount, setValue])
 
+  // Suggest the next number in the chosen account's cheque book (plan item 81),
+  // and again when you switch account, unless you've typed your own.
+  const accountId = watch('bank_account_id') ?? null
+  const defaultAccountId = defaultAccount?.id ?? null
+  useEffect(() => {
+    if (!open || cheque || !recent) return
+    const typed = getValues('cheque_number')
+    if (typed && typed !== suggested.current) return
+    const next = suggestChequeNumber(recent, accountId, defaultAccountId)
+    suggested.current = next
+    setValue('cheque_number', next)
+  }, [open, cheque, recent, accountId, defaultAccountId, getValues, setValue])
+
   const partyId = watch('party_id')
   const chequeNumber = watch('cheque_number') ?? ''
   const existingNumbers = useExistingChequeNumbers(open ? [chequeNumber] : [], cheque?.id)
-  const duplicateWarning = describeExisting(existingNumbers.get(chequeNumber.trim()))
+  // Another account's cheque book can have the same number.
+  const duplicateWarning = describeExisting(
+    existingNumbers.get(chequeNumber.trim())?.filter((c) => inChequeBook(c, accountId, defaultAccountId))
+  )
   const validTransitions = cheque ? VALID_STATUS_TRANSITIONS[cheque.status] : []
 
   const handleFormSubmit = async (data: ChequeFormData) => {
