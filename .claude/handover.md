@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-09-30, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-01, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -43,10 +43,15 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   4. ~~The received-cheque screens~~ (done).
   5. ~~Add funds, Calendar, Parties, Reports, Settings and onboarding~~ (done).
 
-  Next, from my first review on the phone (2026-09-29): plan items 77–80, in order. 77–79 are built: I committed them as `29532f0` and pushed on 2026-09-30, and Supabase applied migration 018. They haven't been checked in the browser yet; I'm testing them on another PC. The next session: (1) regenerate `src/types/database.ts` (018's columns were added by hand), (2) go through my test notes, (3) check 77–79 in the browser at desktop and phone width, (4) do 80. 77 and 78 share migration 018 (an account on given cheques and on funds added), 79 adds date dividers to Add funds, and 80 fixes pickers on phones. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
+  From my first review on the phone (2026-09-29), plan items 77–80 are done:
+  - 77–79 are an account on given cheques and on funds added (migration 018), and date dividers in Add funds. I pushed them as `29532f0`.
+  - The types were regenerated, and 77–79 were checked in the browser on 2026-10-01.
+  - 80 makes pickers open as a sheet on phones. It's committed, not pushed.
+
+  Next: 81 (suggest the next cheque number from the chosen account's cheque book; found while checking 77), then 76 (the last screens in the old look), then whatever I pick from the backlog.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `29532f0` (items 77–79), on 2026-09-30. Migrations 001–018 are applied to the dev project; `src/types/database.ts` has 018's columns by hand until it's regenerated.
+- **Pushed:** everything up to `29532f0` (items 77–79), on 2026-09-30. Migrations 001–018 are applied to the dev project. Committed but not pushed: the regenerated `src/types/database.ts`, and item 80.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29

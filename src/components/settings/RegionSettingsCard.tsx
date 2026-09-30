@@ -186,6 +186,7 @@ export function RegionSettingsCard() {
               options={currencies}
               value={draft.currency}
               onChange={(v) => set('currency', v)}
+              title="Currency"
               searchPlaceholder="Find a currency"
               emptyText="No currency by that name"
             />
@@ -197,6 +198,7 @@ export function RegionSettingsCard() {
               options={locales}
               value={draft.locale}
               onChange={(v) => set('locale', v)}
+              title="Number format"
               searchPlaceholder="Find a format"
               emptyText="No format like that"
             />
@@ -223,6 +225,7 @@ export function RegionSettingsCard() {
               options={timeZones}
               value={draft.timeZone}
               onChange={(v) => set('timeZone', v)}
+              title="Time zone"
               searchPlaceholder="Find a time zone"
               emptyText="No time zone by that name"
             />

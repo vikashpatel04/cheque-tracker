@@ -49,6 +49,7 @@ export function AccountPicker({ id, label = 'From your account', value, onChange
         value={value.accountId ?? (value.bankName ? OTHER_BANK : '')}
         onChange={pick}
         placeholder={accounts.length ? 'Choose' : 'Add your account'}
+        title={label}
         searchPlaceholder="Find an account"
         emptyText="No account like that. Add it with the button beside."
       />

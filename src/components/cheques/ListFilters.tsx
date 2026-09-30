@@ -70,6 +70,7 @@ export function PartyField({ filters, set, choices }: FieldProps) {
         value={filters.party ?? ''}
         onChange={(value) => set({ party: value || null })}
         placeholder="Any party"
+        title="Party"
         searchPlaceholder="Find a party"
         emptyText="No party by that name"
       />

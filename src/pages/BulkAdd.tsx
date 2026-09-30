@@ -220,6 +220,7 @@ export default function BulkAdd() {
                       value={row.party_id}
                       onChange={(v) => updateRow(row.id, 'party_id', v)}
                       placeholder="Select party"
+                      title="Party"
                       emptyText="No party found"
                     />
                   </div>

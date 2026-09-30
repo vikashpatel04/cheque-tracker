@@ -59,6 +59,7 @@ export function PartyPicker({ id, label, value, onChange, error }: PartyPickerPr
           value={value}
           onChange={onChange}
           placeholder="Choose a party"
+          title="Choose a party"
           searchPlaceholder="Type a name"
           emptyText="No party by that name. Add it with the button beside."
         />
