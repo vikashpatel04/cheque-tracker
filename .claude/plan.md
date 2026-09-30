@@ -255,6 +255,7 @@ Later:
 See also "Still needed before billing goes live" in `docs/editions.md`.
 
 - [ ] **52.** Sign-up: email and password with verification, Google sign-in, password reset, CAPTCHA, and custom SMTP. Turn on leaked-password protection in Auth settings; it needs the Pro plan.
+  - 2026-10-01: the maintainer wants Google sign-in and sign-up in it. Order: after 69. Google needs an OAuth client that the maintainer creates in Google Cloud and enters in Supabase's Auth settings themselves (its secret never comes through us).
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
 - [ ] **54.** Renewal reminders before a pack ends.
 - [ ] **55.** Read-only UI: expired accounts stay readable and can still export, and actions that write are disabled. On the given side, a refused change currently says "Cheque not found".
@@ -268,6 +269,9 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
 ## Loose ends
 
 - [ ] **62.** Dependabot: check CI on #1 and #2 (GitHub Actions) and #3 (grouped updates); the maintainer merges the ones that pass. Hold the major upgrades and do them together later: #4 and #6 (plugin-react 6 and Vite 8, which fail CI today), #5 (react-day-picker 10) and #7 (Vitest 5).
+  - 2026-10-01: CI on `main` had failed since 2026-09-29 (CI #15). Two test files import modules that create the Supabase client as they load, and CI has no `.env.local`, so it threw "supabaseUrl is required". Fixed with placeholder Supabase settings in `vitest.config.ts`.
+  - Dependabot pull requests opened before the fix failed for the same reason: comment `@dependabot rebase` on each to run CI again.
+  - CI also warns that `actions/checkout@v4` and `actions/setup-node@v4` run on Node 20, which is deprecated; #1 and #2 update them.
 - [ ] **63.** auto-pass: declare it in `supabase/config.toml` so the integration deploys it, and schedule its cron job on the dev project.
 - [ ] **64.** Translations: move UI text into translation files, for other languages and the US spelling "check".
 - [ ] **69.** Load less up front: the app is one 2.5 MB script (750 kB compressed). Load Excel and PDF export, charts and the calendar only when they're needed, so the app opens faster on phones.
