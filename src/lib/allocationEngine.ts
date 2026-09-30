@@ -42,6 +42,44 @@ export function suggestAllocation(
   })
 }
 
+/**
+ * Add funds into one account (plan item 78): that account's cheques are
+ * covered first, then older cheques with no account; cheques drawn on your
+ * other accounts are left out. With no account chosen, every cheque counts.
+ */
+export function suggestForAccount(
+  cheques: (Cheque & { party: Party })[],
+  depositAmount: number,
+  sortOrder: AllocationSort,
+  accountId: string | null
+): AllocationItem[] {
+  if (!accountId) return suggestAllocation(cheques, depositAmount, sortOrder)
+  const first = suggestAllocation(
+    cheques.filter((c) => c.bank_account_id === accountId),
+    depositAmount,
+    sortOrder
+  )
+  const used = first.filter((i) => i.selected).reduce((sum, i) => sum + Number(i.cheque.amount), 0)
+  return [...first, ...suggestAllocation(cheques.filter((c) => !c.bank_account_id), depositAmount - used, sortOrder)]
+}
+
+export type DueGroup = 'overdue' | 'today' | 'tomorrow' | 'later'
+
+export const DUE_GROUPS: { key: DueGroup; label: string }[] = [
+  { key: 'overdue', label: 'Overdue' },
+  { key: 'today', label: 'Today' },
+  { key: 'tomorrow', label: 'Tomorrow' },
+  { key: 'later', label: 'Later' },
+]
+
+/** Where a cheque goes in the Add funds list's dividers (plan item 79). Dates are yyyy-MM-dd. */
+export function dueGroup(dueDate: string, today: string, tomorrow: string): DueGroup {
+  if (dueDate < today) return 'overdue'
+  if (dueDate === today) return 'today'
+  if (dueDate === tomorrow) return 'tomorrow'
+  return 'later'
+}
+
 export function calculateAllocationTotals(items: AllocationItem[]) {
   const allocated = items
     .filter((i) => i.selected)

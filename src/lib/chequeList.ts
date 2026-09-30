@@ -23,7 +23,7 @@ export interface ListRow {
   number: string
   /** Given: your bank. Received: the bank it's drawn on. */
   bank: string
-  /** Received: the account it was deposited into. */
+  /** Your account: received, the one it was deposited into; given, the one it's drawn on (when known). */
   accountId: string | null
   /** Null only for a blank security cheque. */
   amount: number | null
@@ -49,7 +49,7 @@ export function givenRow(c: Cheque): ListRow {
     party: c.party?.name ?? 'Unknown party',
     number: c.cheque_number,
     bank: c.bank_name,
-    accountId: null,
+    accountId: c.bank_account_id ?? null,
     amount: Number(c.amount),
     due: c.due_date,
     issued: c.issue_date,

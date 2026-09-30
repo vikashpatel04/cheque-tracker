@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { Textarea } from '@/components/ui/textarea'
 import { PartyPicker } from '@/components/shared/PartyPicker'
 import { describeExisting, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
-import { BankPicker } from '@/components/shared/BankPicker'
+import { AccountPicker } from '@/components/shared/AccountPicker'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { currencySymbol, formatAmountInput, nextChequeNumber, parseAmount, todayISO } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
@@ -24,7 +24,8 @@ import { STATUS_ACTION_META } from './StatusActions'
 const chequeSchema = z.object({
   party_id: z.string().min(1, 'Choose who the cheque is to'),
   cheque_number: z.string().min(1, 'The cheque number is needed'),
-  bank_name: z.string().min(1, 'The bank is needed'),
+  bank_name: z.string().min(1, 'Choose the account it is drawn on'),
+  bank_account_id: z.string().nullable().optional(),
   amount: z.coerce.number().positive('The amount is needed'),
   issue_date: z.string().min(1),
   due_date: z.string().min(1),
@@ -78,6 +79,7 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
         party_id: cheque.party_id,
         cheque_number: cheque.cheque_number,
         bank_name: cheque.bank_name,
+        bank_account_id: cheque.bank_account_id ?? null,
         amount: Number(cheque.amount),
         issue_date: cheque.issue_date,
         due_date: cheque.due_date,
@@ -105,10 +107,13 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
     }
   }, [open, cheque, prefill, reset, setValue])
 
-  // A new cheque starts on your default account's bank, once your accounts have loaded.
+  // A new cheque starts on your default account, once your accounts have loaded.
   const bankName = watch('bank_name')
   useEffect(() => {
-    if (open && !cheque && !bankName && defaultAccount) setValue('bank_name', defaultAccount.bank_name)
+    if (open && !cheque && !bankName && defaultAccount) {
+      setValue('bank_account_id', defaultAccount.id)
+      setValue('bank_name', defaultAccount.bank_name)
+    }
   }, [open, cheque, bankName, defaultAccount, setValue])
 
   const partyId = watch('party_id')
@@ -192,19 +197,21 @@ export function ChequeForm({ open, onOpenChange, cheque, prefill, onSubmit, onSt
             {error(errors.amount?.message)}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col">
-              <Label htmlFor="given-number">Cheque no.</Label>
-              <Input id="given-number" inputMode="numeric" className="font-cheque" {...register('cheque_number')} />
-              {error(errors.cheque_number?.message)}
-              {!errors.cheque_number && duplicateWarning && <p className="mt-1 text-xs text-attention">{duplicateWarning}</p>}
-            </div>
-            <BankPicker
-              id="given-bank"
-              value={watch('bank_name') ?? ''}
-              onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
-              error={errors.bank_name?.message}
-            />
+          <AccountPicker
+            id="given-bank"
+            value={{ accountId: watch('bank_account_id') ?? null, bankName: watch('bank_name') ?? '' }}
+            onChange={(v) => {
+              setValue('bank_account_id', v.accountId)
+              setValue('bank_name', v.bankName, { shouldValidate: true })
+            }}
+            error={errors.bank_name?.message}
+          />
+
+          <div className="flex flex-col">
+            <Label htmlFor="given-number">Cheque no.</Label>
+            <Input id="given-number" inputMode="numeric" className="font-cheque" {...register('cheque_number')} />
+            {error(errors.cheque_number?.message)}
+            {!errors.cheque_number && duplicateWarning && <p className="mt-1 text-xs text-attention">{duplicateWarning}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

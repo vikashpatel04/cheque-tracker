@@ -33,13 +33,16 @@ export async function recordDeposit(
   amount: number,
   depositDate: string,
   chequeIds: string[],
-  notes?: string
+  notes?: string,
+  /** The account the money went into. */
+  accountId?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase.rpc('record_deposit', {
     p_amount: amount,
     p_deposit_date: depositDate,
     p_cheque_ids: chequeIds,
     p_notes: notes,
+    p_account_id: accountId ?? undefined,
   })
 
   if (error) {

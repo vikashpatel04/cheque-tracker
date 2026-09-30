@@ -36,6 +36,8 @@ export interface Cheque {
   party_id: string
   cheque_number: string
   bank_name: string
+  /** The account it's drawn on (migration 018); older cheques only have a bank name. */
+  bank_account_id?: string | null
   amount: number
   issue_date: string
   due_date: string
@@ -76,6 +78,8 @@ export interface DailyDeposit {
   amount: number
   deposit_date: string
   notes: string | null
+  /** The account the money went into (migration 018), if known. */
+  bank_account_id?: string | null
   created_at: string
 }
 

@@ -7,6 +7,8 @@ export interface NewGivenCheque {
   party_id: string
   cheque_number: string
   bank_name: string
+  /** The account it's drawn on; bank_name is filled in from it. */
+  bank_account_id?: string | null
   amount: number
   issue_date: string
   due_date: string

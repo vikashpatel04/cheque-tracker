@@ -80,19 +80,25 @@ export interface BankChoice {
   hint?: string
 }
 
+/** The choice for an older cheque's bank that isn't one of your accounts. */
+export const OTHER_BANK = '__other_bank__'
+
 /**
- * The banks a given cheque can be drawn on: one per bank among your accounts,
- * with the accounts there as a second line. A cheque's current bank that
- * isn't one of them (an older cheque) stays on the list so editing keeps it.
+ * The accounts a given cheque can be drawn on (plan item 77): each account by
+ * name and last four digits, with its bank under it, so two accounts at the
+ * same bank are two choices. An older cheque with only a bank name, or on an
+ * account since removed, keeps that as a choice so editing doesn't lose it.
  */
-export function bankChoices(accounts: Pick<BankAccount, 'name' | 'last4' | 'bank_name'>[], current?: string | null): BankChoice[] {
-  const byBank = new Map<string, string[]>()
-  for (const account of accounts) {
-    const bank = account.bank_name.trim()
-    if (bank) byBank.set(bank, [...(byBank.get(bank) ?? []), accountLabel(account)])
+export function accountChoices(
+  accounts: Pick<BankAccount, 'id' | 'name' | 'last4' | 'bank_name'>[],
+  current?: { accountId?: string | null; bankName?: string | null }
+): BankChoice[] {
+  const choices: BankChoice[] = accounts.map((a) => ({ value: a.id, label: accountLabel(a), hint: a.bank_name }))
+  const bank = current?.bankName?.trim() ?? ''
+  if (current?.accountId && !accounts.some((a) => a.id === current.accountId)) {
+    choices.push({ value: current.accountId, label: bank || 'Removed account', hint: 'An account you removed' })
+  } else if (!current?.accountId && bank) {
+    choices.push({ value: OTHER_BANK, label: bank, hint: 'Not one of your accounts' })
   }
-  const choices: BankChoice[] = [...byBank].map(([bank, labels]) => ({ value: bank, label: bank, hint: labels.join(', ') }))
-  const kept = current?.trim()
-  if (kept && !byBank.has(kept)) choices.push({ value: kept, label: kept, hint: 'Not one of your accounts' })
   return choices
 }

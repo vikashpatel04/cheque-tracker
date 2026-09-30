@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
-import { BankPicker } from '@/components/shared/BankPicker'
+import { AccountPicker } from '@/components/shared/AccountPicker'
 import { DateInput } from '@/components/ui/date-picker'
 import { useExistingChequeNumbers, describeExisting } from '@/hooks/useExistingChequeNumbers'
 import { useParties } from '@/hooks/useParties'
@@ -21,6 +21,7 @@ interface BulkRow {
   party_id: string
   cheque_number: string
   bank_name: string
+  bank_account_id: string | null
   amount: string
   issue_date: string
   due_date: string
@@ -36,6 +37,7 @@ export default function BulkAdd() {
   // New rows start on your default account's bank.
   const { defaultAccount } = useBankAccounts()
   const defaultBank = defaultAccount?.bank_name ?? ''
+  const defaultAccountId = defaultAccount?.id ?? null
 
   const [rows, setRows] = useState<BulkRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -63,8 +65,8 @@ export default function BulkAdd() {
   // Once your accounts have loaded, fill in rows that don't have a bank yet.
   useEffect(() => {
     if (!defaultBank) return
-    setRows((prev) => prev.map((r) => (r.bank_name ? r : { ...r, bank_name: defaultBank })))
-  }, [defaultBank])
+    setRows((prev) => prev.map((r) => (r.bank_name ? r : { ...r, bank_name: defaultBank, bank_account_id: defaultAccountId })))
+  }, [defaultBank, defaultAccountId])
 
   const makeRow = (existing: BulkRow[], lastDbChequeNumber?: string): BulkRow => {
     let newChequeNumber = ''
@@ -78,6 +80,7 @@ export default function BulkAdd() {
       party_id: isPartyWise ? partyId! : '',
       cheque_number: newChequeNumber,
       bank_name: defaultBank,
+      bank_account_id: defaultAccountId,
       amount: '',
       issue_date: todayISO(),
       due_date: todayISO(),
@@ -139,6 +142,7 @@ export default function BulkAdd() {
         party_id: row.party_id,
         cheque_number: row.cheque_number.trim(),
         bank_name: row.bank_name,
+        bank_account_id: row.bank_account_id,
         amount: parseAmount(row.amount),
         issue_date: row.issue_date,
         due_date: row.due_date,
@@ -240,9 +244,14 @@ export default function BulkAdd() {
 
                 <div className="space-y-1.5 lg:col-span-1">
                   <Label className="text-xs" htmlFor={`bank-${row.id}`}>
-                    Your bank *
+                    From your account *
                   </Label>
-                  <BankPicker id={`bank-${row.id}`} bare value={row.bank_name} onChange={(v) => updateRow(row.id, 'bank_name', v)} />
+                  <AccountPicker
+                    id={`bank-${row.id}`}
+                    bare
+                    value={{ accountId: row.bank_account_id, bankName: row.bank_name }}
+                    onChange={(v) => setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, bank_account_id: v.accountId, bank_name: v.bankName } : r)))}
+                  />
                 </div>
 
                 <div className="space-y-1.5 lg:col-span-1">

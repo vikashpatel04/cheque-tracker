@@ -43,7 +43,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   4. ~~The received-cheque screens~~ (done).
   5. ~~Add funds, Calendar, Parties, Reports, Settings and onboarding~~ (done).
 
-  Next, from my first review on the phone (2026-09-29): plan items 77–80, in order. 77 and 78 share migration 018 (an account on given cheques and on funds added), 79 adds date dividers to Add funds, and 80 fixes pickers on phones. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
+  Next, from my first review on the phone (2026-09-29): plan items 77–80, in order. 77–79 were built and committed on 2026-09-30 without a browser check, for me to test on another PC after pushing (pushing applies migration 018; test after Supabase has applied it). Then: regenerate `src/types/database.ts`, go through my test notes, check 77–79 in the browser, and do 80. 77 and 78 share migration 018 (an account on given cheques and on funds added), 79 adds date dividers to Add funds, and 80 fixes pickers on phones. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Pushed:** everything up to the Settings rebuild, on 2026-09-29. Migrations 001–017 are applied to the dev project, and `src/types/database.ts` matches it.

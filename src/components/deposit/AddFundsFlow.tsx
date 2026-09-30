@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
+import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { useSettings } from '@/hooks/useSettings'
-import { suggestAllocation } from '@/lib/allocationEngine'
+import { DUE_GROUPS, dueGroup, suggestForAccount } from '@/lib/allocationEngine'
+import { accountLabel } from '@/lib/bankAccounts'
 import { announceDataChange } from '@/lib/dataEvents'
 import { fetchAllRows } from '@/lib/fetchAll'
 import { currencySymbol, formatAmountInput, formatMoney, formatShortDate, parseAmount, todayISO } from '@/lib/formatters'
+import { plusDays } from '@/lib/today'
 import { recordDeposit } from '@/lib/updateChequeStatus'
 import { cn } from '@/lib/utils'
 import type { AllocationSort, Cheque, Party } from '@/types'
@@ -36,10 +39,14 @@ interface AddFundsFlowProps {
 /**
  * Add funds (plan item 71): the money put into the bank, and the pending
  * cheques it covers, ticked for you and all marked funded at once. "Funds
- * added today" counts only today's, so it starts from zero each day.
+ * added today" counts only today's, so it starts from zero each day. It says
+ * which account the money went into and covers that account's cheques first
+ * (78), with the list divided into overdue, today, tomorrow and later (79).
  */
 export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFundsFlowProps) {
   const { allocationSort } = useSettings()
+  const { accounts, defaultAccount } = useBankAccounts()
+  const [accountId, setAccountId] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(todayISO())
   const [notes, setNotes] = useState('')
@@ -54,6 +61,7 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
     setDate(todayISO())
     setNotes('')
     setOrder(allocationSort)
+    setAccountId(null)
     setPending(null)
     void fetchAllRows<Pending>('cheques', '*, party:parties(*)', {
       activeOnly: true,
@@ -63,10 +71,18 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // Your default account first, once your accounts have loaded.
+  useEffect(() => {
+    if (open && !accountId && defaultAccount) setAccountId(defaultAccount.id)
+  }, [open, accountId, defaultAccount])
+
   const value = parseAmount(amount)
 
-  // Ticked for you whenever the amount or the order changes; your own ticks count after that.
-  const suggestion = useMemo(() => (pending ? suggestAllocation(pending, value, order) : []), [pending, value, order])
+  // Ticked for you whenever the amount, the account or the order changes; your own ticks count after that.
+  const suggestion = useMemo(
+    () => (pending ? suggestForAccount(pending, value, order, accountId) : []),
+    [pending, value, order, accountId]
+  )
   useEffect(() => {
     setSelected(new Set(suggestion.filter((i) => i.selected).map((i) => i.cheque.id)))
   }, [suggestion])
@@ -75,6 +91,7 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
   const coveredTotal = covered.reduce((sum, i) => sum + Number(i.cheque.amount), 0)
   const leftOver = value - coveredTotal
   const today = todayISO()
+  const tomorrow = plusDays(today, 1)
 
   const toggle = (id: string) =>
     setSelected((current) => {
@@ -87,7 +104,7 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
   const save = async () => {
     if (!(value > 0)) return
     setSaving(true)
-    const result = await recordDeposit(value, date, [...selected], notes.trim() || undefined)
+    const result = await recordDeposit(value, date, [...selected], notes.trim() || undefined, accountId)
     setSaving(false)
     if (!result.success) {
       toast.error(`Couldn't add the funds: ${result.error}`)
@@ -139,6 +156,27 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
             </div>
           </div>
 
+          {accounts.length > 0 && (
+            <div className="flex flex-col">
+              <Label htmlFor="funds-account" className="font-semibold">
+                Into which account?
+              </Label>
+              <Select value={accountId ?? undefined} onValueChange={setAccountId}>
+                <SelectTrigger id="funds-account" className="h-12">
+                  <SelectValue placeholder="Choose an account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {accountLabel(a)} · {a.bank_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="mt-1 text-[13px] text-ink-quiet">Its cheques are covered first, then older cheques not tied to an account.</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col">
               <Label htmlFor="funds-date" className="font-semibold">
@@ -180,37 +218,61 @@ export function AddFundsFlow({ open, onOpenChange, amount: suggested }: AddFunds
               <p className="text-sm text-ink-quiet">Loading…</p>
             ) : suggestion.length === 0 ? (
               <p className="rounded-xl border bg-surface p-4 text-sm text-ink-quiet">
-                No cheques are waiting for funds. You can still record the money you put in.
+                {accountId ? 'No cheques from this account are waiting for funds.' : 'No cheques are waiting for funds.'} You can still record
+                the money you put in.
               </p>
             ) : (
-              suggestion.map(({ cheque }) => {
-                const ticked = selected.has(cheque.id)
-                const chequeAmount = Number(cheque.amount)
-                const short = !ticked && value > 0 && chequeAmount > leftOver ? chequeAmount - Math.max(0, leftOver) : 0
-                const overdue = cheque.due_date < today
-                const dueToday = cheque.due_date === today
+              DUE_GROUPS.map((group) => {
+                const items = suggestion.filter(({ cheque }) => dueGroup(cheque.due_date, today, tomorrow) === group.key)
+                if (!items.length) return null
+                const total = items.reduce((sum, { cheque }) => sum + Number(cheque.amount), 0)
                 return (
-                  <label
-                    key={cheque.id}
-                    className={cn(
-                      'grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_auto] items-start gap-3 rounded-xl bg-surface p-3.5',
-                      ticked ? 'border-2 border-brand p-[13px]' : 'border'
-                    )}
-                  >
-                    <Checkbox checked={ticked} onCheckedChange={() => toggle(cheque.id)} className="mt-0.5" />
-                    <span className="flex min-w-0 flex-col gap-1">
-                      <span className="truncate text-base font-semibold">{cheque.party?.name}</span>
-                      <span className="flex items-center gap-1.5 text-[13px] text-ink-quiet">
-                        <span className="font-cheque">{cheque.cheque_number}</span>
-                        <span aria-hidden="true">·</span>
-                        <span className={cn(overdue && 'font-semibold text-problem', dueToday && 'font-semibold text-attention')}>
-                          {overdue ? `was due ${formatShortDate(cheque.due_date)}` : dueToday ? 'due today' : `due ${formatShortDate(cheque.due_date)}`}
-                        </span>
+                  <div key={group.key} className="flex flex-col gap-2.5">
+                    <div className="sticky top-[60px] z-[5] -mx-4 flex items-baseline justify-between gap-3 bg-background/95 px-4 py-1.5 backdrop-blur">
+                      <span className={cn('text-[13px] font-bold uppercase tracking-[0.06em]', group.key === 'overdue' ? 'text-problem' : 'text-ink-quiet')}>
+                        {group.label}
                       </span>
-                      {short > 0 && <span className="text-[13px] text-attention">Needs {formatMoney(short)} more than is left over</span>}
-                    </span>
-                    <span className="text-[17px] font-semibold tabular-nums">{formatMoney(chequeAmount)}</span>
-                  </label>
+                      <span className="text-[13px] tabular-nums text-ink-quiet">
+                        {items.length} · {formatMoney(total)}
+                      </span>
+                    </div>
+                    {items.map(({ cheque }) => {
+                      const ticked = selected.has(cheque.id)
+                      const chequeAmount = Number(cheque.amount)
+                      const short = !ticked && value > 0 && chequeAmount > leftOver ? chequeAmount - Math.max(0, leftOver) : 0
+                      const overdue = cheque.due_date < today
+                      const dueToday = cheque.due_date === today
+                      return (
+                        <label
+                          key={cheque.id}
+                          className={cn(
+                            'grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_auto] items-start gap-3 rounded-xl bg-surface p-3.5',
+                            ticked ? 'border-2 border-brand p-[13px]' : 'border'
+                          )}
+                        >
+                          <Checkbox checked={ticked} onCheckedChange={() => toggle(cheque.id)} className="mt-0.5" />
+                          <span className="flex min-w-0 flex-col gap-1">
+                            <span className="truncate text-base font-semibold">{cheque.party?.name}</span>
+                            <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-ink-quiet">
+                              <span className="font-cheque">{cheque.cheque_number}</span>
+                              <span aria-hidden="true">·</span>
+                              <span className={cn(overdue && 'font-semibold text-problem', dueToday && 'font-semibold text-attention')}>
+                                {overdue ? `was due ${formatShortDate(cheque.due_date)}` : dueToday ? 'due today' : `due ${formatShortDate(cheque.due_date)}`}
+                              </span>
+                              {accountId && !cheque.bank_account_id && (
+                                <>
+                                  <span aria-hidden="true">·</span>
+                                  <span>no account set</span>
+                                </>
+                              )}
+                            </span>
+                            {short > 0 && <span className="text-[13px] text-attention">Needs {formatMoney(short)} more than is left over</span>}
+                          </span>
+                          <span className="text-[17px] font-semibold tabular-nums">{formatMoney(chequeAmount)}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
                 )
               })
             )}

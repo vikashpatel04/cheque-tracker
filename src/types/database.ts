@@ -102,6 +102,7 @@ export type Database = {
         Row: {
           amount: number
           auto_transition_blocked: boolean | null
+          bank_account_id: string | null
           bank_name: string
           cheque_number: string
           created_at: string | null
@@ -123,6 +124,7 @@ export type Database = {
         Insert: {
           amount: number
           auto_transition_blocked?: boolean | null
+          bank_account_id?: string | null
           bank_name: string
           cheque_number: string
           created_at?: string | null
@@ -144,6 +146,7 @@ export type Database = {
         Update: {
           amount?: number
           auto_transition_blocked?: boolean | null
+          bank_account_id?: string | null
           bank_name?: string
           cheque_number?: string
           created_at?: string | null
@@ -182,6 +185,7 @@ export type Database = {
       daily_deposits: {
         Row: {
           amount: number
+          bank_account_id: string | null
           created_at: string | null
           deposit_date: string
           id: string
@@ -190,6 +194,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           created_at?: string | null
           deposit_date?: string
           id?: string
@@ -198,6 +203,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           created_at?: string | null
           deposit_date?: string
           id?: string
@@ -608,6 +614,7 @@ export type Database = {
       }
       record_deposit: {
         Args: {
+          p_account_id?: string
           p_amount: number
           p_cheque_ids?: string[]
           p_deposit_date: string

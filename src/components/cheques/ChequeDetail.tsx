@@ -38,6 +38,8 @@ import { findUndoableChange, useRollbackAction } from './RollbackDialog'
 import { useChequeStatusActions } from './StatusActions'
 import { WriteOffDialog } from './WriteOffDialog'
 import { HelpLink } from '@/components/guide/HelpLink'
+import { useBankAccounts } from '@/hooks/useBankAccounts'
+import { accountLabel } from '@/lib/bankAccounts'
 
 const CHANGED_BY_LABELS: Record<string, string> = {
   manual: 'You',
@@ -76,6 +78,7 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
   const app = useAppActions()
   const [cheque, setCheque] = useState<Cheque | null>(null)
   const [history, setHistory] = useState<ChequeHistory[]>([])
+  const { accounts } = useBankAccounts()
   const [party, setParty] = useState<PartySummary | null>(null)
   // Replacement links: the cheque this one replaces, or the ones issued in its place.
   const [replaces, setReplaces] = useState<Pick<Cheque, 'id' | 'cheque_number'> | null>(null)
@@ -152,11 +155,14 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
   const tags = row ? rowTags(row, today, { chequeValidityMonths, clearingDays }) : []
   const note = row ? dueNote(row, today) : null
   const amount = cheque ? Number(cheque.amount) : 0
+  const drawnOn = cheque?.bank_account_id ? accounts.find((a) => a.id === cheque.bank_account_id) : undefined
 
   const details: { label: string; value: React.ReactNode; mono?: boolean }[] = cheque
     ? [
         { label: 'Cheque no.', value: cheque.cheque_number, mono: true },
-        { label: 'Bank', value: cheque.bank_name },
+        drawnOn
+          ? { label: 'From your account', value: `${accountLabel(drawnOn)} · ${cheque.bank_name}` }
+          : { label: 'Bank', value: cheque.bank_name },
         { label: 'Issued', value: formatShortDate(cheque.issue_date) },
         ...(cheque.original_due_date && cheque.original_due_date !== cheque.due_date
           ? [

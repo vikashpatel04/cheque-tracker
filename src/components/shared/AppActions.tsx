@@ -143,6 +143,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
             ? {
                 party_id: form.replacing.party_id,
                 bank_name: form.replacing.bank_name,
+                bank_account_id: form.replacing.bank_account_id ?? null,
                 amount: Number(form.replacing.amount),
                 cheque_number: '',
               }
