@@ -119,7 +119,19 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Today's first-run checklist (board Today-first-run-phone): region, what you track, a bank account, your cheques, with Add buttons, until it's all done or hidden on that device, and "Try with sample data" while there are no cheques. The board's "Turn on reminders" step waits for reminders (41).
     - The sign-in screen takes the Signup-phone board's look. Creating an account, password reset and Google stay with 52.
 
-- [ ] **76.** Bring the last screens in the old look into Passbook: Several given cheques (`BulkAdd`), the Excel upload dialogs for cheques and parties, "Present it again" (`RePresentDrawer`) and the return-reason dialog (`StatusActions`). Added 2026-09-29, after 14.
+- [x] **76.** Bring the last screens in the old look into Passbook: Several given cheques (`BulkAdd`), the Excel upload dialogs for cheques and parties, "Present it again" (`RePresentDrawer`) and the return-reason dialog (`StatusActions`). Added 2026-09-29, after 14.
+  - Done 2026-10-01:
+    - **Several given cheques:** a card per cheque with the given form's labels, and a remove button you can always see (it used to show only on mouse hover). A bar under the list shows the count and total, with Add another and Save. After a save with details missing, each cheque says what it still needs.
+    - **Excel imports** (cheques and parties): three steps (template, account, file) with a shared `ExcelFileChooser`, then a list of every row: ready, skipped (and why), or a warning.
+    - **Cheque imports and accounts:** they now save on an account: "From your account" (your default first), or "The bank in each row" with no account, as before accounts.
+    - **"It came back unpaid"** (was "Mark cheque as Returned"): the cheque's number, party and amount, a "Why" field suggesting common reasons (`src/lib/returnReasons.ts`, shared with the received side's bounce), and the guide's question link.
+    - **"Present it again"** is now `PresentAgainDialog`, a dialog instead of a side sheet. A checkbox ("The money for it is already in the bank") replaces the split Save button and its menu. The stale warning uses the attention colour.
+    - **Also:**
+      - The write-off dialog's wording now matches the received side ("Write it off", "Why").
+      - The unused `ChequeStatusActions` panel is gone (lint warnings 5 → 2).
+      - Shared dialogs have one column that can't grow past the screen (a long account name in a Select did), start at the top on full-screen phone dialogs, and have left-aligned titles.
+      - `AlertDialog` has the Passbook scrim, surface and corners, with a margin on phones.
+    - **Checked** at phone width with the maintainer's data (imports fed made-up files; nothing saved) and Several given cheques at desktop width. The dev data has no ordinary returned cheque, so "Present it again" was checked with a made-up cheque rendered on its own.
 - After 14, the maintainer reviews the whole redesign, then picks what's next from the backlog.
 - From the maintainer's first review on the phone (2026-09-29), in this order:
   - [x] **77.** Given cheques are drawn on one of your accounts, not just a bank. Two accounts at the same bank show as one line today (screenshot 3), so you can't pick the second one. Migration 018 adds `cheques.bank_account_id` (nullable, additive; a trigger checks the account is yours); the given form and Several given cheques pick an account, showing its name and last four digits, and still fill `bank_name` from it for the companions. Older cheques keep their bank name until edited.
@@ -150,7 +162,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
     - Unlike pushing a history entry per modal, it doesn't touch the address bar, so it can't undo the phone Filters sheet's changes (those rewrite the URL while the sheet is open).
     - Radix cancels the Esc keydown it handles, so on desktop Esc isn't handled twice.
     - Where there's no CloseWatcher (iPhones have no back button; some other Android browsers), Back works as before.
-  - Order agreed on 2026-10-01: 81, then 76, then 82.
+  - Order agreed on 2026-10-01: 81, then 76, then 82. 81 and 76 are done.
 
 ## Layout and navigation
 

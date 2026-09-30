@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Plus, Trash2, Save } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
-import { AccountPicker } from '@/components/shared/AccountPicker'
 import { DateInput } from '@/components/ui/date-picker'
+import { AccountPicker } from '@/components/shared/AccountPicker'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { describeExisting, loadRecentChequeNumbers, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
 import { useParties } from '@/hooks/useParties'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { inChequeBook, nextFreeNumber, numbersInBook, suggestChequeNumber, type NumberedCheque } from '@/lib/chequeNumbers'
-import { todayISO, formatAmountInput, parseAmount } from '@/lib/formatters'
+import { currencySymbol, formatAmountInput, formatMoney, parseAmount, todayISO } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
-import { PageHeader } from '@/components/shared/PageHeader'
 
 interface BulkRow {
   id: string
@@ -49,6 +48,13 @@ function numberFor(
   return nextFreeNumber(above.cheque_number, new Set([...numbersInBook(recent, accountId, defaultAccountId), ...others]))
 }
 
+const plural = (n: number) => `${n} cheque${n === 1 ? '' : 's'}`
+
+/**
+ * Several given cheques at once (New → Several given cheques, or from a
+ * party's ledger for that party). One card per cheque; all are saved together
+ * or none are.
+ */
 export default function BulkAdd() {
   const navigate = useNavigate()
   const { partyId } = useParams<{ partyId: string }>()
@@ -62,6 +68,8 @@ export default function BulkAdd() {
 
   const [rows, setRows] = useState<BulkRow[]>([])
   const [loading, setLoading] = useState(false)
+  // After a save with details missing, each row says what it still needs.
+  const [attempted, setAttempted] = useState(false)
   // Your latest cheques' numbers, to suggest each row's number from its account's cheque book.
   const [recent, setRecent] = useState<NumberedCheque[] | null>(null)
 
@@ -137,23 +145,13 @@ export default function BulkAdd() {
     )
   }
 
-  const updateRow = (id: string, field: keyof BulkRow, value: string) => {
+  const updateRow = (id: string, field: 'party_id' | 'cheque_number' | 'amount' | 'issue_date' | 'due_date', value: string) => {
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r
-        
-        // Auto-format amount if that's the field
-        if (field === 'amount') {
-          return { ...r, amount: formatAmountInput(value) }
-        }
-        if (field === 'cheque_number') {
-          return { ...r, cheque_number: value, numberSuggested: false }
-        }
-
-        const newRow = { ...r, [field]: value }
-        
-        // If changing issue date, maybe sync due date if they were same? (optional)
-        return newRow
+        if (field === 'amount') return { ...r, amount: formatAmountInput(value) }
+        if (field === 'cheque_number') return { ...r, cheque_number: value, numberSuggested: false }
+        return { ...r, [field]: value }
       })
     )
   }
@@ -163,21 +161,30 @@ export default function BulkAdd() {
     setRows((prev) => prev.filter((r) => r.id !== id))
   }
 
+  /** What a row still needs before it can be saved. */
+  const missing = (r: BulkRow): string[] =>
+    [
+      !r.party_id && 'the party',
+      !r.bank_name && 'the account',
+      !r.cheque_number.trim() && 'the number',
+      !parseAmount(r.amount) && 'the amount',
+      (!r.issue_date || !r.due_date) && 'the dates',
+    ].filter((m): m is string => Boolean(m))
+
   const handleSubmit = async () => {
-    // Validation
-    const invalid = rows.find(
-      (r) => !r.party_id || !r.cheque_number || !r.bank_name || !parseAmount(r.amount) || !r.issue_date || !r.due_date
-    )
-    if (invalid) {
-      toast.error('Please fill all required fields in all rows.')
+    if (rows.some((r) => missing(r).length > 0)) {
+      setAttempted(true)
+      toast.error('Some cheques still need details. Each one says what.')
       return
     }
 
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
       setLoading(false)
-      toast.error('Not authenticated')
+      toast.error("You're signed out. Sign in again, then save.")
       return
     }
 
@@ -200,10 +207,10 @@ export default function BulkAdd() {
     setLoading(false)
 
     if (error) {
-      toast.error(`Nothing was saved: ${error.message}. Your rows are still here — fix and try again.`)
+      toast.error(`Nothing was saved: ${error.message}. Your cheques are still here to fix and save again.`)
       return
     }
-    toast.success(`Successfully added ${rows.length} cheque${rows.length === 1 ? '' : 's'}.`)
+    toast.success(`Added ${plural(rows.length)}`)
     navigate('/cheques')
   }
 
@@ -215,123 +222,133 @@ export default function BulkAdd() {
     if (r.cheque_number.trim()) m.set(bookKey(r), (m.get(bookKey(r)) ?? 0) + 1)
     return m
   }, new Map<string, number>())
+  const total = rows.reduce((sum, r) => sum + parseAmount(r.amount), 0)
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="flex flex-col">
       <PageHeader
         back={() => navigate(-1)}
-        title={isPartyWise ? 'Add cheques for a party' : 'Add several cheques'}
+        title="Several given cheques"
         subtitle={
-          isPartyWise && selectedParty ? (
-            <>
-              Given cheques for <strong className="font-semibold text-ink">{selectedParty.name}</strong>
-            </>
-          ) : (
-            'Given cheques, many at once'
-          )
-        }
-        actions={
           <>
-            <Button variant="outline" onClick={() => handleAddRow()}>
-              <Plus />
-              Add row
-            </Button>
-            <Button onClick={handleSubmit} disabled={loading || rows.length === 0}>
-              <Save />
-              {loading ? 'Saving…' : 'Save all'}
-            </Button>
+            {isPartyWise && selectedParty && (
+              <>
+                To <strong className="font-semibold text-ink">{selectedParty.name}</strong>.{' '}
+              </>
+            )}
+            A new cheque continues the account and number of the one above.
           </>
         }
       />
 
-      <div className="space-y-4 mt-6">
-        {rows.map((row) => (
-          <Card key={row.id} className="relative group">
-            <CardContent className="p-4">
-              <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex flex-col gap-3">
+        {rows.map((row, index) => {
+          const n = row.cheque_number.trim()
+          const warning =
+            (rowNumberCounts.get(bookKey(row)) ?? 0) > 1
+              ? 'Repeated in another cheque here'
+              : describeExisting(existingNumbers.get(n)?.filter((c) => inChequeBook(c, row.bank_account_id, defaultAccountId)))
+          const needs = attempted ? missing(row) : []
+          return (
+            <section key={row.id} aria-label={`Cheque ${index + 1}`} className="rounded-xl border bg-surface p-4">
+              <div className="-mt-1 mb-2 flex items-center justify-between">
+                <h2 className="text-[13px] font-bold uppercase tracking-[0.06em] text-ink-quiet">Cheque {index + 1}</h2>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-destructive"
+                  className="-mr-2 h-10 w-10 text-ink-quiet hover:text-problem"
+                  aria-label={`Remove cheque ${index + 1}`}
                   onClick={() => removeRow(row.id)}
                   disabled={rows.length === 1}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 />
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-start">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-4 lg:grid-cols-3">
                 {!isPartyWise && (
-                  <div className="space-y-1.5 lg:col-span-1">
-                    <Label className="text-xs">Party *</Label>
+                  <div className="col-span-2 flex flex-col lg:col-span-1">
+                    <Label htmlFor={`party-${row.id}`}>To</Label>
                     <Combobox
+                      id={`party-${row.id}`}
                       options={partyOptions}
                       value={row.party_id}
                       onChange={(v) => updateRow(row.id, 'party_id', v)}
-                      placeholder="Select party"
-                      title="Party"
-                      emptyText="No party found"
+                      placeholder="Choose a party"
+                      title="Choose a party"
+                      searchPlaceholder="Type a name"
+                      emptyText="No party by that name. Add parties from Parties."
                     />
                   </div>
                 )}
-                
-                <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs">Cheque No. *</Label>
-                  <Input
-                    value={row.cheque_number}
-                    onChange={(e) => updateRow(row.id, 'cheque_number', e.target.value)}
-                  />
-                  {(() => {
-                    const n = row.cheque_number.trim()
-                    const warning = (rowNumberCounts.get(bookKey(row)) ?? 0) > 1
-                      ? 'Repeated in another row'
-                      : describeExisting(existingNumbers.get(n)?.filter((c) => inChequeBook(c, row.bank_account_id, defaultAccountId)))
-                    return warning ? (
-                      <p className="text-xs text-amber-600 dark:text-amber-400">{warning}</p>
-                    ) : null
-                  })()}
-                </div>
 
-                <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs" htmlFor={`bank-${row.id}`}>
-                    From your account *
-                  </Label>
+                <div className="col-span-2 lg:col-span-1">
                   <AccountPicker
                     id={`bank-${row.id}`}
-                    bare
                     value={{ accountId: row.bank_account_id, bankName: row.bank_name }}
                     onChange={(v) => changeAccount(row.id, v.accountId, v.bankName)}
                   />
                 </div>
 
-                <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs">Amount *</Label>
+                <div className="flex flex-col">
+                  <Label htmlFor={`number-${row.id}`}>Cheque no.</Label>
                   <Input
-                    value={row.amount}
-                    onChange={(e) => updateRow(row.id, 'amount', e.target.value)}
-                    placeholder="0.00"
+                    id={`number-${row.id}`}
+                    inputMode="numeric"
+                    className="font-cheque"
+                    value={row.cheque_number}
+                    onChange={(e) => updateRow(row.id, 'cheque_number', e.target.value)}
                   />
+                  {warning && <p className="mt-1 text-[13px] text-attention">{warning}</p>}
                 </div>
 
-                <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs">Issue Date *</Label>
-                  <DateInput
-                    value={row.issue_date}
-                    onChange={(v) => updateRow(row.id, 'issue_date', v)}
-                  />
+                <div className="flex flex-col">
+                  <Label htmlFor={`amount-${row.id}`}>Amount</Label>
+                  <div className="flex h-12 items-center gap-2 rounded-lg border border-input bg-surface px-3.5 focus-within:ring-2 focus-within:ring-ring/40">
+                    <span className="text-ink-quiet">{currencySymbol()}</span>
+                    <input
+                      id={`amount-${row.id}`}
+                      inputMode="decimal"
+                      placeholder="0"
+                      className="min-w-0 flex-1 bg-transparent text-base font-semibold tabular-nums outline-none"
+                      value={row.amount}
+                      onChange={(e) => updateRow(row.id, 'amount', e.target.value)}
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 lg:col-span-1">
-                  <Label className="text-xs">Due Date *</Label>
-                  <DateInput
-                    value={row.due_date}
-                    onChange={(v) => updateRow(row.id, 'due_date', v)}
-                  />
+                <div className="flex flex-col">
+                  <Label htmlFor={`issued-${row.id}`}>Issued on</Label>
+                  <DateInput id={`issued-${row.id}`} value={row.issue_date} onChange={(v) => updateRow(row.id, 'issue_date', v)} />
+                </div>
+
+                <div className="flex flex-col">
+                  <Label htmlFor={`due-${row.id}`}>Due on</Label>
+                  <DateInput id={`due-${row.id}`} value={row.due_date} onChange={(v) => updateRow(row.id, 'due_date', v)} />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+
+              {needs.length > 0 && <p className="mt-3 text-sm text-problem">Still needed: {needs.join(', ')}.</p>}
+            </section>
+          )
+        })}
+      </div>
+
+      <div className="sticky bottom-[calc(84px+env(safe-area-inset-bottom))] z-20 mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-xl border bg-surface px-4 py-3 shadow-pop lg:bottom-6">
+        <p className="text-[15px] text-ink-quiet">
+          <span className="font-semibold text-ink">{plural(rows.length)}</span> ·{' '}
+          <span className="font-semibold tabular-nums text-ink">{formatMoney(total)}</span>
+        </p>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <Button variant="outline" className="flex-1 sm:flex-none" onClick={handleAddRow} disabled={!recent}>
+            <Plus />
+            Add another
+          </Button>
+          <Button className="flex-1 sm:flex-none" onClick={() => void handleSubmit()} disabled={loading || rows.length === 0}>
+            {loading ? 'Saving…' : `Save ${plural(rows.length)}`}
+          </Button>
+        </div>
       </div>
     </div>
   )

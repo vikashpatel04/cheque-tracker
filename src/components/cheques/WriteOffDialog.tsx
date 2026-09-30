@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatMoney } from '@/lib/formatters'
 import { writeOffCheque } from '@/lib/updateChequeStatus'
 import { replacementChequePath } from '@/lib/chequeTags'
 import type { Cheque } from '@/types'
@@ -42,12 +43,12 @@ export function WriteOffDialog({ cheque, open, onOpenChange, onSuccess }: WriteO
     const result = await writeOffCheque(cheque.id, reason.trim())
     setSubmitting(false)
     if (!result.success) {
-      toast.error(`Failed to write off: ${result.error}`)
+      toast.error(`Couldn't write it off: ${result.error}`)
       return
     }
-    toast.success(`Cheque #${cheque.cheque_number} written off`, {
+    toast.success(`Cheque ${cheque.cheque_number} written off`, {
       action: {
-        label: 'Issue new cheque',
+        label: 'Issue a new one',
         onClick: () => navigate(replacementChequePath(cheque.id)),
       },
       duration: 10000,
@@ -60,31 +61,39 @@ export function WriteOffDialog({ cheque, open, onOpenChange, onSuccess }: WriteO
     <Dialog open={open} onOpenChange={(o) => { if (!submitting) onOpenChange(o) }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Write off cheque {cheque ? `#${cheque.cheque_number}` : ''}</DialogTitle>
+          <DialogTitle>Write it off</DialogTitle>
           <DialogDescription>
-            Use this when the returned cheque can't be used again. It will be closed as{' '}
-            <span className="font-medium">Written off</span>. You can then issue a new cheque in its place.
+            {cheque && (
+              <>
+                Cheque <span className="font-cheque">{cheque.cheque_number}</span>
+                {cheque.party?.name ? ` to ${cheque.party.name}` : ''}, {formatMoney(Number(cheque.amount))}.{' '}
+              </>
+            )}
+            For a returned cheque that can&apos;t be used again. It&apos;s closed as Written off, and you can issue a new
+            cheque in its place.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-2">
-          <Label htmlFor="writeoff-reason">Reason *</Label>
-          <Textarea
-            id="writeoff-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Amount in words doesn't match, overwriting on date, signature mismatch..."
-            rows={3}
-            autoFocus
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={!reason.trim() || submitting}>
-            {submitting ? 'Saving...' : 'Write Off'}
-          </Button>
-        </DialogFooter>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void handleConfirm()
+          }}
+        >
+          <div className="flex flex-col">
+            <Label htmlFor="writeoff-reason">Why</Label>
+            <Textarea id="writeoff-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} autoFocus />
+            <span className="mt-1 text-[13px] text-ink-quiet">For example, the amount in words doesn&apos;t match.</span>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={!reason.trim() || submitting}>
+              {submitting ? 'Saving…' : 'Write it off'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -20,6 +20,7 @@ import {
   settleReceivedCheque,
   writeOffReceivedCheque,
 } from '@/lib/receivedCheques'
+import { RETURN_REASONS } from '@/lib/returnReasons'
 import { cn } from '@/lib/utils'
 import { SETTLEMENT_METHOD_LABELS, type ReceivedCheque, type SettlementMethod } from '@/types/received'
 
@@ -35,7 +36,6 @@ const COPY: Record<ReceivedActionMode, { title: string; text: string; submit: st
   write_off: { title: 'Write it off', text: "The money won't come. The cheque stays in your records.", submit: 'Write it off' },
 }
 
-const BOUNCE_REASONS = ['Funds insufficient', 'Signature differs', 'Payment stopped by the drawer', 'Account closed', 'Cheque out of date']
 const NO_ACCOUNT = '__none__'
 
 interface ReceivedActionDialogProps {
@@ -204,7 +204,7 @@ export function ReceivedActionDialog({ mode, cheque, onClose, onDone }: Received
                 <Label htmlFor="action-reason">Why</Label>
                 <Input id="action-reason" list="bounce-reasons" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
                 <datalist id="bounce-reasons">
-                  {BOUNCE_REASONS.map((r) => (
+                  {RETURN_REASONS.map((r) => (
                     <option key={r} value={r} />
                   ))}
                 </datalist>

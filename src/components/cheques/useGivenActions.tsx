@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RePresentDrawer } from '@/components/cheques/RePresentDrawer'
+import { PresentAgainDialog } from '@/components/cheques/PresentAgainDialog'
 import { useRollbackAction } from '@/components/cheques/RollbackDialog'
 import { useChequeStatusActions } from '@/components/cheques/StatusActions'
 import { WriteOffDialog } from '@/components/cheques/WriteOffDialog'
@@ -44,7 +44,7 @@ export function useGivenActions() {
     <>
       {status.returnDialog}
       {rollback.rollbackDialog}
-      <RePresentDrawer
+      <PresentAgainDialog
         cheque={representing}
         open={!!representing}
         onOpenChange={(open) => !open && setRepresenting(null)}

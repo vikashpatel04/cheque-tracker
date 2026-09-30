@@ -1,8 +1,9 @@
 import { useState, type ComponentType } from 'react'
-import { Ban, CheckCheck, CheckCircle2, Clock, FileX, RotateCcw, Wallet } from 'lucide-react'
+import { Ban, CheckCircle2, Clock, FileX, RotateCcw, Wallet } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -11,30 +12,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
+import { HelpLink } from '@/components/guide/HelpLink'
+import { formatMoney } from '@/lib/formatters'
+import { RETURN_REASONS } from '@/lib/returnReasons'
 import { updateChequeStatus } from '@/lib/updateChequeStatus'
-import { STATUS_LABELS, VALID_STATUS_TRANSITIONS } from '@/types'
+import { VALID_STATUS_TRANSITIONS } from '@/types'
 import type { Cheque, ChequeStatus } from '@/types'
-import { toast } from 'sonner'
 
 interface StatusMeta {
   label: string
   Icon: ComponentType<{ className?: string }>
-  /** Extra classes for the button/menu-item variant of this action. */
-  tone?: string
 }
 
 export const STATUS_ACTION_META: Record<ChequeStatus, StatusMeta> = {
   PENDING: { label: 'Pending', Icon: Clock },
   DEPOSITED: { label: 'Funded', Icon: Wallet },
   PASSED: { label: 'Passed', Icon: CheckCircle2 },
-  RETURNED: {
-    label: 'Returned',
-    Icon: RotateCcw,
-    tone: 'text-destructive focus:text-destructive hover:text-destructive',
-  },
-  CANCELLED: { label: 'Cancelled', Icon: Ban, tone: 'text-muted-foreground' },
-  WRITTEN_OFF: { label: 'Written off', Icon: FileX, tone: 'text-muted-foreground' },
+  RETURNED: { label: 'Returned', Icon: RotateCcw },
+  CANCELLED: { label: 'Cancelled', Icon: Ban },
+  WRITTEN_OFF: { label: 'Written off', Icon: FileX },
 }
 
 /**
@@ -51,9 +47,9 @@ export function canChainDepositedAndPassed(status: ChequeStatus): boolean {
 
 /**
  * Shared cheque status-change behaviour: runs one or more transitions through
- * the existing updateChequeStatus(), captures a return reason when needed, and
- * surfaces a dialog the caller renders. Used by both the list row menu and the
- * detail sheet so every surface behaves identically.
+ * updateChequeStatus(), asks why when a cheque came back unpaid, and gives the
+ * caller that dialog to render. Used by the list rows and the detail, so both
+ * behave the same.
  */
 export function useChequeStatusActions(onChanged: () => void) {
   const [pending, setPending] = useState<Cheque | null>(null)
@@ -76,11 +72,7 @@ export function useChequeStatusActions(onChanged: () => void) {
     setSubmitting(false)
     setPending(null)
     setReason('')
-    toast.success(
-      chain.length > 1
-        ? `Marked ${chain.map((s) => STATUS_ACTION_META[s].label).join(' & ')}`
-        : `Status updated to ${STATUS_LABELS[chain[0]]}`
-    )
+    toast.success(`Marked ${chain.map((s) => STATUS_ACTION_META[s].label.toLowerCase()).join(' and ')}`)
     onChanged()
   }
 
@@ -99,119 +91,68 @@ export function useChequeStatusActions(onChanged: () => void) {
     void run(cheque, ['DEPOSITED', 'PASSED'])
   }
 
+  const close = () => {
+    setPending(null)
+    setReason('')
+  }
+
+  const confirmReturned = () => {
+    const trimmed = reason.trim()
+    if (trimmed && pending) void run(pending, ['RETURNED'], trimmed)
+  }
+
   const returnDialog = (
-    <Dialog
-      open={!!pending}
-      onOpenChange={(o) => {
-        if (submitting) return
-        if (!o) { setPending(null); setReason('') }
-      }}
-    >
+    <Dialog open={!!pending} onOpenChange={(open) => !open && !submitting && close()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Mark cheque as Returned</DialogTitle>
+          <DialogTitle>It came back unpaid</DialogTitle>
           <DialogDescription>
-            Add a reason — this is stored with the cheque and shown in its history.
+            {pending && (
+              <>
+                Cheque <span className="font-cheque">{pending.cheque_number}</span>
+                {pending.party?.name ? ` to ${pending.party.name}` : ''}, {formatMoney(Number(pending.amount))}.{' '}
+              </>
+            )}
+            It&apos;s marked Returned, with the reason in its history. Then present it again or write it off.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-2">
-          <Label htmlFor="status-return-reason">Return reason</Label>
-          <Textarea
-            id="status-return-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Insufficient funds, signature mismatch..."
-            rows={3}
-            autoFocus
-          />
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => { setPending(null); setReason('') }}
-            disabled={submitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              const trimmed = reason.trim()
-              if (!trimmed || !pending) return
-              void run(pending, ['RETURNED'], trimmed)
-            }}
-            disabled={!reason.trim() || submitting}
-          >
-            {submitting ? 'Saving...' : 'Mark Returned'}
-          </Button>
-        </DialogFooter>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            confirmReturned()
+          }}
+        >
+          <div className="flex flex-col">
+            <Label htmlFor="status-return-reason">Why</Label>
+            <Input
+              id="status-return-reason"
+              list="status-return-reasons"
+              autoComplete="off"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              autoFocus
+            />
+            <datalist id="status-return-reasons">
+              {RETURN_REASONS.map((r) => (
+                <option key={r} value={r} />
+              ))}
+            </datalist>
+            <span className="mt-1 text-[13px] text-ink-quiet">The reason the bank gave.</span>
+          </div>
+          <HelpLink topic="bounce" className="self-start" />
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={close} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!reason.trim() || submitting}>
+              {submitting ? 'Saving…' : 'Mark returned'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
 
   return { requestStatus, requestChained, submitting, returnDialog }
-}
-
-interface ChequeStatusActionsProps {
-  cheque: Cheque
-  onChanged: () => void
-  className?: string
-}
-
-/**
- * Button-group presentation of the available status transitions, plus the
- * "Funded & Passed" shortcut. Self-contained — renders its own return dialog.
- */
-export function ChequeStatusActions({ cheque, onChanged, className }: ChequeStatusActionsProps) {
-  const { requestStatus, requestChained, submitting, returnDialog } = useChequeStatusActions(onChanged)
-  const transitions = VALID_STATUS_TRANSITIONS[cheque.status]
-
-  if (transitions.length === 0) return null
-
-  return (
-    <div className={cn('rounded-lg border bg-muted/30 p-3', className)}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-        Update status
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {transitions.map((s) => {
-          const { label, Icon, tone } = STATUS_ACTION_META[s]
-          return (
-            <Button
-              key={s}
-              size="sm"
-              variant="outline"
-              disabled={submitting}
-              onClick={() => requestStatus(cheque, s)}
-              className={tone}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Button>
-          )
-        })}
-      </div>
-      {canChainDepositedAndPassed(cheque.status) && (
-        <>
-          <div className="flex items-center gap-2 my-2.5">
-            <span className="h-px flex-1 bg-border" />
-            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">or in one step</span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <Button
-            size="sm"
-            className="w-full"
-            disabled={submitting}
-            onClick={() => requestChained(cheque)}
-          >
-            <CheckCheck className="h-4 w-4" />
-            Mark {STATUS_ACTION_META.DEPOSITED.label} &amp; {STATUS_ACTION_META.PASSED.label}
-          </Button>
-          <p className="text-[11px] text-muted-foreground mt-1.5">
-            Records both steps ({STATUS_ACTION_META.DEPOSITED.label} → {STATUS_ACTION_META.PASSED.label}) in history.
-          </p>
-        </>
-      )}
-      {returnDialog}
-    </div>
-  )
 }

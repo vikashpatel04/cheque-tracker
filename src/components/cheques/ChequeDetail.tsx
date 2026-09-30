@@ -33,7 +33,7 @@ import { GIVEN_STATUS_CHIPS } from '@/lib/statusChips'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { STATUS_LABELS, type Cheque, type ChequeHistory } from '@/types'
-import { RePresentDrawer } from './RePresentDrawer'
+import { PresentAgainDialog } from './PresentAgainDialog'
 import { findUndoableChange, useRollbackAction } from './RollbackDialog'
 import { useChequeStatusActions } from './StatusActions'
 import { WriteOffDialog } from './WriteOffDialog'
@@ -370,7 +370,7 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
 
       {status.returnDialog}
       {rollback.rollbackDialog}
-      <RePresentDrawer cheque={cheque} open={rePresentOpen} onOpenChange={setRePresentOpen} onSuccess={afterChange} />
+      <PresentAgainDialog cheque={cheque} open={rePresentOpen} onOpenChange={setRePresentOpen} onSuccess={afterChange} />
       <WriteOffDialog cheque={cheque} open={writeOffOpen} onOpenChange={setWriteOffOpen} onSuccess={afterChange} />
 
       <AlertDialog open={deleteOpen} onOpenChange={(o) => !deleting && setDeleteOpen(o)}>

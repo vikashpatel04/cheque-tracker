@@ -13,7 +13,7 @@ It replaces v0, which lives in the GitHub repo `vikashpatel04/cheque-tracker-v0`
 ```bash
 npm run dev     # Vite on http://localhost:5173, reads .env.local
 npm test        # Vitest: unit tests, plus every migration applied to PGlite and checked as signed-in users
-npm run lint    # must report 0 errors (5 warnings are known)
+npm run lint    # must report 0 errors (2 warnings are known)
 npm run build   # tsc -b (app and tests), then vite build
 ```
 
