@@ -167,6 +167,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "cheques_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cheques_party_id_fkey"
             columns: ["party_id"]
             isOneToOne: false
@@ -210,7 +217,15 @@ export type Database = {
           notes?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_deposits_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entitlements: {
         Row: {
