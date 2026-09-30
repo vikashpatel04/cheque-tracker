@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-09-29, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-09-30, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -18,7 +18,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 - **Code:** all work is committed on `main`. 119 tests pass; lint (0 errors, 5 known warnings) and build are clean.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
-  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–017 are applied.
+  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–018 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
   - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked.
   - My v0 data is imported there as sample data: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"); Settings → Sample data removes it.
@@ -43,10 +43,10 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   4. ~~The received-cheque screens~~ (done).
   5. ~~Add funds, Calendar, Parties, Reports, Settings and onboarding~~ (done).
 
-  Next, from my first review on the phone (2026-09-29): plan items 77–80, in order. 77–79 were built and committed on 2026-09-30 without a browser check, for me to test on another PC after pushing (pushing applies migration 018; test after Supabase has applied it). Then: regenerate `src/types/database.ts`, go through my test notes, check 77–79 in the browser, and do 80. 77 and 78 share migration 018 (an account on given cheques and on funds added), 79 adds date dividers to Add funds, and 80 fixes pickers on phones. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
+  Next, from my first review on the phone (2026-09-29): plan items 77–80, in order. 77–79 are built: I committed them as `29532f0` and pushed on 2026-09-30, and Supabase applied migration 018. They haven't been checked in the browser yet; I'm testing them on another PC. The next session: (1) regenerate `src/types/database.ts` (018's columns were added by hand), (2) go through my test notes, (3) check 77–79 in the browser at desktop and phone width, (4) do 80. 77 and 78 share migration 018 (an account on given cheques and on funds added), 79 adds date dividers to Add funds, and 80 fixes pickers on phones. Then 76 (the last screens in the old look), and whatever I pick from the backlog.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to the Settings rebuild, on 2026-09-29. Migrations 001–017 are applied to the dev project, and `src/types/database.ts` matches it.
+- **Pushed:** everything up to `29532f0` (items 77–79), on 2026-09-30. Migrations 001–018 are applied to the dev project; `src/types/database.ts` has 018's columns by hand until it's regenerated.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29
