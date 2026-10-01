@@ -256,6 +256,15 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
 
 - [ ] **52.** Sign-up: email and password with verification, Google sign-in, password reset, CAPTCHA, and custom SMTP. Turn on leaked-password protection in Auth settings; it needs the Pro plan.
   - 2026-10-01: the maintainer wants Google sign-in and sign-up in it. Order: after 69. Google needs an OAuth client that the maintainer creates in Google Cloud and enters in Supabase's Auth settings themselves (its secret never comes through us).
+  - 2026-10-01: the maintainer set up the dev project. Google's OAuth client is in Testing with their account as a test user. Email sign-up needs a confirmation email, the minimum password length is 8, and anonymous sign-ins are off on purpose.
+  - Built 2026-10-01:
+    - Sign in, Create account, Forgot password and Set a new password (`/login`, `/signup`, `/forgot-password`, `/reset-password`).
+    - On large screens they share `AuthLayout`: a product panel (tagline, a preview of Today with made-up cheques, three things the app does) beside the form. Phones get the form alone, as on the Signup-phone board.
+    - `useAuthOptions` reads Supabase's public auth settings, so the Google button and "Create account" show only when the project allows them.
+    - Supabase's messages go through `authMessage`. Links from emails that failed come back to sign-in with the reason.
+  - Still to do:
+    - The maintainer tries email sign-up (the confirmation email, then onboarding), Google, and a password reset.
+    - Before launch: CAPTCHA, custom SMTP (Supabase's own email only reaches the organization's members), leaked-password protection (Pro plan), Google brand verification (until then Google names the Supabase project, not the app), "Try it free for N days" when billing is on, and the terms and privacy line once item 57 has the pages.
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
 - [ ] **54.** Renewal reminders before a pack ends.
 - [ ] **55.** Read-only UI: expired accounts stay readable and can still export, and actions that write are disabled. On the given side, a refused change currently says "Cheque not found".
@@ -286,7 +295,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - Excel and PDF load on first use (`src/lib/lazyLibs.ts`: exports, templates and imports), and the date picker's calendar when it first opens. Charts come with Reports.
     - The first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
     - The service worker still saves every file when it installs, so the installed app works offline as before.
-    - Checked: every page module and library loads, and a PDF and an Excel file build in memory. Still to check, once the browser pane is signed in again: each page shows and the calendar opens.
+    - Checked: every page module and library loads, a PDF and an Excel file build in memory, and, signed in, every page shows, Reports draws its charts and the date picker's calendar opens.
 
 ## The maintainer's decisions
 

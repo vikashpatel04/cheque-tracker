@@ -54,7 +54,9 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   Next: 69 (load less up front), then 52 (sign-up, with Google sign-in and sign-up).
 
-  69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB). Still to check, once the browser pane is signed in again: each page shows and the date picker's calendar opens.
+  69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
+
+  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. Next: I try email sign-up, Google and a password reset myself, then we pick what's next.
 
   83 (installing on phones) is noted for later.
 

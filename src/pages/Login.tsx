@@ -1,101 +1,137 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { AuthLayout } from '@/components/auth/AuthLayout'
+import { GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
-import { AppLogo } from '@/components/shared/AppLogo'
-import { SourceLink } from '@/components/shared/SourceLink'
-import { brand } from '@/config/brand'
+import { useAuthOptions } from '@/hooks/useAuthOptions'
+import { authMessage } from '@/lib/authMessage'
 
 const loginSchema = z.object({
   email: z.string().email('Enter your email address'),
-  password: z.string().min(6, 'At least 6 characters'),
+  password: z.string().min(1, 'Enter your password'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
 
-/**
- * Sign in, in the look of the Signup-phone board. Creating an account,
- * resetting a password and Google come with plan item 52.
- */
+/** A link from an email that didn't work comes back here with the reason in the address. */
+function linkProblem(): string {
+  const params = new URLSearchParams(window.location.hash.slice(1))
+  if (!params.get('error')) return ''
+  return params.get('error_code') === 'otp_expired'
+    ? 'That link has expired or was already used. Sign in, or ask for a new one.'
+    : params.get('error_description') ?? "That link didn't work. Try signing in."
+}
+
+/** Sign in (plan item 52), with Google when the project allows it. */
 export default function Login() {
-  const { signIn, user } = useAuth()
+  const { signIn, signInWithGoogle, resendConfirmation, user } = useAuth()
+  const options = useAuthOptions()
   const navigate = useNavigate()
-  const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState(linkProblem)
+  const [unconfirmed, setUnconfirmed] = useState('')
+  const [notice, setNotice] = useState('')
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
 
-  if (user) {
-    navigate('/')
-    return null
-  }
+  if (user) return <Navigate to="/" replace />
 
   const onSubmit = async (data: LoginForm) => {
     setError('')
+    setNotice('')
+    setUnconfirmed('')
     const { error } = await signIn(data.email, data.password)
     if (error) {
-      setError(error.message)
+      setError(authMessage(error.message))
+      if (error.message.toLowerCase().includes('email not confirmed')) setUnconfirmed(data.email)
     } else {
       navigate('/')
     }
   }
 
+  const google = async () => {
+    setError('')
+    const { error } = await signInWithGoogle()
+    if (error) setError(authMessage(error.message))
+  }
+
+  const resend = async () => {
+    const { error } = await resendConfirmation(unconfirmed)
+    if (error) setError(authMessage(error.message))
+    else {
+      setError('')
+      setNotice(`We sent a new link to ${unconfirmed}.`)
+    }
+  }
+
   return (
-    <div className="min-h-dvh bg-background">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col gap-[22px] px-5 pb-6 pt-9 sm:justify-center">
-        <AppLogo size="sm" />
+    <AuthLayout
+      title="Sign in"
+      subtitle="Welcome back. Your cheques are where you left them."
+      footer={
+        options?.signUp !== false && (
+          <>
+            New here?{' '}
+            <Link to="/signup" className="font-semibold text-brand hover:underline">
+              Create an account
+            </Link>
+          </>
+        )
+      }
+    >
+      {options?.google && (
+        <>
+          <GoogleButton onClick={() => void google()} />
+          <OrDivider />
+        </>
+      )}
 
-        <div className="flex flex-col gap-2.5">
-          <h1 className="font-title text-[30px] leading-[38px]">{brand.tagline}</h1>
-          <p className="text-base leading-6 text-ink-quiet">For the cheques you give and the cheques you receive.</p>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email" className="mb-0 font-semibold">
+            Email
+          </Label>
+          <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" className="h-[52px] text-base" {...register('email')} />
+          {errors.email && <p className="text-sm text-problem">{errors.email.message}</p>}
         </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email" className="mb-0 font-semibold">
-              Email
-            </Label>
-            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" className="h-[52px] text-base" {...register('email')} />
-            {errors.email && <p className="text-sm text-problem">{errors.email.message}</p>}
-          </div>
-          <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between">
             <Label htmlFor="password" className="mb-0 font-semibold">
               Password
             </Label>
-            <div className="flex h-[52px] items-center rounded-md border border-input bg-surface pl-3.5 pr-1.5 focus-within:ring-2 focus-within:ring-ring/40">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                className="min-w-0 flex-1 bg-transparent text-base outline-none"
-                {...register('password')}
-              />
-              <Button type="button" variant="ghost" className="h-11 px-2.5 text-brand" onClick={() => setShowPassword((v) => !v)}>
-                {showPassword ? 'Hide' : 'Show'}
-              </Button>
-            </div>
-            {errors.password && <p className="text-sm text-problem">{errors.password.message}</p>}
+            <Link to="/forgot-password" className="text-sm font-semibold text-brand hover:underline">
+              Forgot password?
+            </Link>
           </div>
-          {error && (
-            <p role="alert" className="text-sm text-problem">
-              {error}
-            </p>
-          )}
-          <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
-
-        <div className="flex-1 sm:flex-none" />
-        <SourceLink className="text-center text-[13px] text-ink-quiet" />
-      </div>
-    </div>
+          <PasswordInput id="password" autoComplete="current-password" {...register('password')} />
+          {errors.password && <p className="text-sm text-problem">{errors.password.message}</p>}
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-problem">
+            {error}{' '}
+            {unconfirmed && (
+              <button type="button" className="font-semibold text-brand hover:underline" onClick={() => void resend()}>
+                Send the link again
+              </button>
+            )}
+          </p>
+        )}
+        {notice && (
+          <p role="status" className="text-sm text-ink-quiet">
+            {notice}
+          </p>
+        )}
+        <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+    </AuthLayout>
   )
 }
