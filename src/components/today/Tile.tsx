@@ -21,12 +21,23 @@ interface TileProps {
 
 const toneClass = { in: 'text-money-in', out: 'text-money-out', attention: 'text-attention' } as const
 
+/**
+ * The font size at which a figure fills the tile's width, in container units
+ * (a character is about 0.6em wide), so "+₹1.71L" stays on one line on narrow
+ * or zoomed-in phones. Figures up to seven characters share one size, so a row
+ * of tiles matches; only a longer one shrinks further.
+ */
+function fitWidth(figure: string): string {
+  const characters = Math.max(7, [...figure.replace(/⁠/g, '')].length)
+  return `${(100 / (0.6 * characters)).toFixed(1)}cqi`
+}
+
 /** One of Today's numbers. */
 export function Tile({ label, shortLabel, value, shortValue, tone = 'out', highlight, icon, children, hero, className }: TileProps) {
   return (
     <section
       className={cn(
-        'flex min-w-0 flex-col rounded-xl bg-surface',
+        '@container flex min-w-0 flex-col rounded-xl bg-surface',
         highlight ? 'border-2 border-attention-line' : 'border',
         hero ? 'gap-2 p-4 lg:gap-2.5 lg:px-[22px] lg:py-5' : 'gap-1.5 p-3 lg:gap-2.5 lg:px-[22px] lg:py-5',
         className
@@ -51,9 +62,12 @@ export function Tile({ label, shortLabel, value, shortValue, tone = 'out', highl
       <div
         className={cn(
           'font-semibold tabular-nums break-words',
-          hero ? 'text-[32px] leading-[38px] lg:text-[36px] lg:leading-[42px]' : 'text-[21px] leading-7 lg:text-[36px] lg:leading-[42px]',
+          hero
+            ? 'text-[32px] leading-[38px] lg:text-[36px] lg:leading-[42px]'
+            : 'text-[length:clamp(14px,var(--fit),21px)] leading-7 lg:text-[36px] lg:leading-[42px]',
           toneClass[tone]
         )}
+        style={hero ? undefined : ({ '--fit': fitWidth(shortValue ?? value) } as React.CSSProperties)}
       >
         {hero || !shortValue ? (
           value
