@@ -296,7 +296,10 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
   - **For 53:** Settings → Plan says the trial or plan ended but has no packs yet; the dialog's button leads there.
 - [x] **84.** One free trial per person, so nobody keeps using the app free by signing up again with new addresses and importing their export (the maintainer's question, 2026-10-01). Decided A to E; the maintainer's idea of tying each export to its account goes with item 10, when exports get IDs anyway.
   - Built 2026-10-01, not yet pushed. Migration 021, tested in `tests/trials.test.ts`.
-  - **A. One trial per email address.** `internal.trial_claims` keeps a hash of each address that got a trial, with no user id, so it outlives deleted accounts. Addresses compare as mail is delivered: case and "+anything" don't count, nor do dots for Gmail. Addresses that already had a trial were added.
+  - **A. One trial per email address.** `internal.trial_claims` keeps a hash of each address that got a trial, with no user id, so it outlives deleted accounts. Addresses that already had a trial were added.
+    - Names play no part.
+    - Two addresses count as one only when the provider delivers them to one inbox: case never; Gmail dots and "+anything"; "+anything" at Outlook, iCloud, Proton, Fastmail and Yandex.
+    - On other domains, such as a company's own, every address is its own person. The maintainer asked on 2026-10-01 that different people with the same name never be turned away.
   - **B. No trial for throwaway mail.** `internal.throwaway_email_domains` starts with about 70 well-known services (subdomains count). The full public list can be added (`docs/editions.md`).
   - Neither blocks the sign-up: the account opens without a trial, `trial_refusals` says why, and the app explains in the banner, the dialogs and Settings → Plan. A pack can be bought straight away. `PlanProvider` moved above onboarding, so its bank-account step explains too.
   - **C. Importing an export comes with a pack.** During a trial, Settings → Import from an export says so instead of opening the file; a pack bought for later already unlocks it. The Excel template stays open, as that's how new users bring their records. It's a speed bump in the app only: anyone can add rows through the API during their trial, so A and B do the real work.

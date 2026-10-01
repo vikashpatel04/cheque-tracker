@@ -57,7 +57,13 @@ With billing off, none of this shows or holds anything back.
 
 With billing on and `trial_days` above 0, a new account gets a free trial at sign-up (migration 021). To stop people signing up again and again for more trials:
 
-- **One trial per email address, ever.** A hash of each address that got a trial is kept in `internal.trial_claims`, even after the account is deleted. Addresses compare the way mail is delivered: case and "+anything" before the @ don't count, and for Gmail neither do dots.
+- **One trial per email address, ever.** A hash of each address that got a trial is kept in `internal.trial_claims`, even after the account is deleted. Names play no part; sign-up doesn't ask for one.
+  - Two addresses count as one only when the provider delivers both to the same inbox, so no one else can own the other.
+  - Case never matters.
+  - Gmail ignores dots and "+anything".
+  - Outlook, iCloud, Proton, Fastmail and Yandex ignore "+anything".
+  - On any other domain, such as a company's own, every address counts as a different person.
+  - A shared inbox, such as `accounts@` handed to a new colleague, gets one trial in all. You can give the newcomer one by hand (below).
 - **No trial for throwaway mail.** Addresses at a domain in `internal.throwaway_email_domains`, or one of its subdomains, get no trial.
 - **No sign-up is refused.** Such an account opens without a trial and can buy a pack straight away. `trial_refusals` records why, and the app explains it.
 - **Importing an export comes with a pack.** During a trial, the app won't import an export from another account. The Excel template stays open, because that's how new users bring in their records. This rule lives only in the app; the two above do the real work.

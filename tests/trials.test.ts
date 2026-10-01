@@ -33,13 +33,22 @@ describe('one free trial per person', () => {
     expect(await outcome(await signUp('asha.rao@example.com'))).toBe('trial')
   })
 
-  it('treats the same mailbox written another way as the same person', async () => {
-    expect(await outcome(await signUp('Asha.Rao+cheques@Example.com'))).toBe('used')
+  it('treats an inbox written another way as the same person', async () => {
+    expect(await outcome(await signUp('ASHA.RAO@Example.com'))).toBe('used')
     expect(await outcome(await signUp('ravi.kumar@gmail.com'))).toBe('trial')
     expect(await outcome(await signUp('r.a.v.i.kumar+2@googlemail.com'))).toBe('used')
+    expect(await outcome(await signUp('ravi@outlook.com'))).toBe('trial')
+    expect(await outcome(await signUp('Ravi+cheques@outlook.com'))).toBe('used')
   })
 
-  it('keeps dots that matter outside Gmail', async () => {
+  it('never takes different people for one, whatever their names', async () => {
+    // Other people called Ravi Kumar, with their own addresses.
+    expect(await outcome(await signUp('ravikumar@yahoo.com'))).toBe('trial')
+    expect(await outcome(await signUp('ravi.kumar@outlook.com'))).toBe('trial')
+    expect(await outcome(await signUp('ravi.kumar@company.example'))).toBe('trial')
+    // A company's own addresses: dots and + can name different people there.
+    expect(await outcome(await signUp('ravikumar@company.example'))).toBe('trial')
+    expect(await outcome(await signUp('ravi+kumar@company.example'))).toBe('trial')
     expect(await outcome(await signUp('ashara.o@example.com'))).toBe('trial')
   })
 

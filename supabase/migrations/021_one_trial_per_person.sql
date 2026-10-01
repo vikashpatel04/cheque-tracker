@@ -4,10 +4,12 @@
 -- and again with a new address. Now:
 --
 -- - Each email address gets one trial, ever. A hash of the address is kept in
---   internal.trial_claims, even after the account is deleted. Addresses are
---   compared the way mail is delivered: case doesn't matter, "+anything"
---   before the @ is dropped, and for Gmail so are dots (a.b+x@gmail.com is
---   ab@gmail.com).
+--   internal.trial_claims, even after the account is deleted. Names play no
+--   part. Two addresses count as one only when the provider delivers both to
+--   the same inbox and no one else can own the other: case never matters;
+--   Gmail ignores dots and "+anything" (a.b+x@gmail.com is ab@gmail.com);
+--   Outlook, iCloud, Proton, Fastmail and Yandex ignore "+anything". On any
+--   other domain, such as a company's own, each address is its own person.
 -- - Addresses at throwaway-mail services (internal.throwaway_email_domains)
 --   get no trial.
 --
@@ -33,8 +35,16 @@ AS $$
     FROM (SELECT lower(btrim(p_email)) AS e) given
     WHERE p_email LIKE '%_@_%'
   ), mailbox AS (
-    SELECT CASE WHEN domain = 'gmail.com' THEN replace(split_part(local_part, '+', 1), '.', '')
-                ELSE split_part(local_part, '+', 1) END AS local_part,
+    SELECT CASE
+             -- Gmail ignores dots, and delivers +anything to the same inbox.
+             WHEN domain = 'gmail.com' THEN replace(split_part(local_part, '+', 1), '.', '')
+             -- These deliver +anything to the same inbox, and don't allow + in an address of its own.
+             WHEN domain IN ('outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'icloud.com', 'me.com', 'mac.com',
+                             'protonmail.com', 'protonmail.ch', 'proton.me', 'pm.me', 'fastmail.com', 'yandex.com', 'yandex.ru')
+               THEN split_part(local_part, '+', 1)
+             -- Anywhere else, such as a company's own domain, every address may be a different person.
+             ELSE local_part
+           END AS local_part,
            domain
     FROM address
   )
@@ -42,7 +52,7 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION internal.normalized_email(text) IS
-  'The mailbox an address reaches: lower case, no +tag, and no dots for Gmail. Null if it isn''t an address.';
+  'The inbox an address reaches: lower case; no dots or +tag for Gmail; no +tag for big providers that ignore it. Null if it isn''t an address.';
 
 CREATE FUNCTION internal.email_hash(p_email text)
 RETURNS text
