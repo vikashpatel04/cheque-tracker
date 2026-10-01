@@ -27,6 +27,7 @@ const NO_PROVIDER: Plan = {
   hasAccess: true,
   current: null,
   ended: null,
+  until: null,
   readOnly: false,
   guard:
     (action) =>

@@ -69,9 +69,13 @@ With billing off, none of this shows or holds anything back.
 
 Never develop against production, and never point development tools at it.
 
+### Selling packs
+
+Packs are bought in Settings → Plan, through Razorpay and the `payments` Edge Function. Setting it up (packs and their prices, keys, the webhook) is in [payments.md](./payments.md). Prices live only in the hosted project's database.
+
 ### Switching billing on
 
-Run this in the production SQL editor. Do it once the payment flow below exists.
+Run this in the production SQL editor, once payments are set up.
 
 ```sql
 update instance_config
@@ -96,7 +100,6 @@ values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>
 
 ### Still needed before billing goes live
 
-- **Payment flow:** checkout, and a webhook Edge Function that verifies the payment and inserts a `purchase` entitlement. A new pack should start when the current one ends, so buying early loses nothing.
 - **Sign-up and onboarding:** email verification and password reset. Also CAPTCHA on sign-up, and a custom SMTP provider for auth emails.
 - **Renewal reminders** before a pack ends.
 - **Legal pages:** terms, privacy policy, and refund and cancellation policy.

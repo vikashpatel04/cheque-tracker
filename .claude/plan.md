@@ -266,6 +266,24 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - ~~The maintainer tries email sign-up, Google and a password reset.~~ Verified by the maintainer on 2026-10-01.
     - Before launch: CAPTCHA, custom SMTP (Supabase's own email only reaches the organization's members), leaked-password protection (Pro plan), Google brand verification (until then Google names the Supabase project, not the app), "Try it free for N days" when billing is on, and the terms and privacy line once item 57 has the pages.
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
+  - Built 2026-10-01, not yet pushed; waiting for the maintainer's Razorpay test keys to try a real (test-mode) payment. Setup and how it works: `docs/payments.md`.
+  - **Database:** migration 020 adds:
+    - `packs`, with prices in paise and an optional tax per pack; the total is computed. The operator adds the rows in the project's SQL editor, so prices never enter the repo.
+    - `payment_orders`.
+    - a unique `entitlements.payment_ref`.
+    - `record_payment()`, service role only: idempotent, and it chains a new pack after current access (a trial or packs bought earlier).
+
+    Tested in `tests/payments.test.ts`.
+  - **Edge Function `payments`:** `/checkout` creates the Razorpay order; `/confirm` checks Checkout's signature, fetches the payment (capturing it if only authorised) and records it; `/webhook` handles `order.paid` with the webhook secret, for when the browser never confirms. `verify_jwt` is off in `supabase/config.toml`; the user routes check the token themselves. Signature checks are in `razorpay.ts`, tested in `tests/paymentsFunction.test.ts`.
+  - **App:** Settings → Plan shows how long you're covered (following packs queued after a trial), the packs with price, tax, price a month and the saving against the shortest pack, a Pay button per pack, and your payments. Razorpay's script loads only when you pay. Read-only accounts can still buy, because writes through server functions aren't held back. Checked in the browser with made-up data in the page: the card at phone and desktop width, a failed checkout's message, and a whole purchase with a stand-in Checkout (the pack starts when the trial ends, and the payment is listed).
+  - `src/types/database.ts` got the new tables by hand; regenerate it once 020 is on the dev project.
+  - **To finish:** the maintainer pushes. Then:
+    1. Get Razorpay test-mode keys and set the three secrets.
+    2. Deploy `payments`.
+    3. Add the webhook.
+    4. Add packs to the dev project.
+    5. Turn billing on there for the test.
+    6. Make one test payment.
 - [ ] **54.** Renewal reminders before a pack ends.
 - [x] **55.** Read-only UI: expired accounts stay readable and can still export, and actions that write are disabled. On the given side, a refused change currently says "Cheque not found".
   - Built 2026-10-01, not yet pushed.

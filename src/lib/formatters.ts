@@ -93,6 +93,28 @@ export function formatNet(
   return `${value > 0 ? '+' : '−'}${WORD_JOINER}${format(Math.abs(value))}`
 }
 
+/**
+ * An amount in a currency's smallest unit (paise, cents), such as a pack's
+ * price, in that currency: "₹500", "₹1,180.50", "$4.99". `whole` rounds it to
+ * whole rupees or dollars, for figures such as a price per month.
+ */
+export function formatMinorUnits(
+  minor: number,
+  currency: string,
+  { whole = false }: { whole?: boolean } = {},
+  region: Region = getActiveRegion()
+): string {
+  const digits = numberFormat(region.locale, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2
+  const value = whole ? Math.round(minor / 10 ** digits) : minor / 10 ** digits
+  const shown = Number.isInteger(value) ? 0 : digits
+  return numberFormat(region.locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: shown,
+    maximumFractionDigits: shown,
+  }).format(value)
+}
+
 /** The currency's symbol as the region writes it, for amount fields: "₹", "$", "€". */
 export function currencySymbol(region: Region = getActiveRegion()): string {
   const parts = numberFormat(region.locale, { style: 'currency', currency: region.currency }).formatToParts(0)

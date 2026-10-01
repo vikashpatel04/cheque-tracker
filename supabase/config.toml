@@ -25,3 +25,8 @@ enable_signup = false
 [auth.email]
 enable_signup = false
 enable_confirmations = false
+
+# Razorpay calls the payments webhook without a Supabase token, so the function
+# checks tokens itself (supabase/functions/payments/index.ts).
+[functions.payments]
+verify_jwt = false

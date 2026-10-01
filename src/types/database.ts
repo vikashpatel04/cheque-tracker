@@ -287,6 +287,51 @@ export type Database = {
         }
         Relationships: []
       }
+      packs: {
+        Row: {
+          active: boolean
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          months: number
+          name: string
+          sort: number
+          tax_amount: number | null
+          tax_name: string | null
+          tax_percent: number
+          total: number | null
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          created_at?: string
+          currency: string
+          id: string
+          months: number
+          name: string
+          sort?: number
+          tax_amount?: never
+          tax_name?: string | null
+          tax_percent?: number
+          total?: never
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          months?: number
+          name?: string
+          sort?: number
+          tax_amount?: never
+          tax_name?: string | null
+          tax_percent?: number
+          total?: never
+        }
+        Relationships: []
+      }
       parties: {
         Row: {
           bank_name: string | null
@@ -325,6 +370,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payment_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          entitlement_id: string | null
+          id: string
+          months: number
+          pack_id: string
+          pack_name: string
+          paid_at: string | null
+          payment_id: string | null
+          status: string
+          tax_amount: number
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          entitlement_id?: string | null
+          id: string
+          months: number
+          pack_id: string
+          pack_name: string
+          paid_at?: string | null
+          payment_id?: string | null
+          status?: string
+          tax_amount?: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          entitlement_id?: string | null
+          id?: string
+          months?: number
+          pack_id?: string
+          pack_name?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          status?: string
+          tax_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "entitlements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       received_cheque_history: {
         Row: {
@@ -636,6 +744,10 @@ export type Database = {
           p_notes?: string
         }
         Returns: string
+      }
+      record_payment: {
+        Args: { p_order_id: string; p_payment_id: string }
+        Returns: Database["public"]["Tables"]["entitlements"]["Row"]
       }
       redeposit_received_cheque: {
         Args: {

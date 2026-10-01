@@ -100,6 +100,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       hasAccess: state?.hasAccess ?? true,
       current: state?.current ?? null,
       ended: state?.ended ?? null,
+      until: state?.until ?? null,
       readOnly,
       guard,
       requireWrite,

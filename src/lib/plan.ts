@@ -14,6 +14,11 @@ export interface PlanState {
   current: Entitlement | null
   /** With no active plan, the one that ended last, if any. */
   ended: Entitlement | null
+  /**
+   * When access ends, counting packs that start as the earlier ones end. Null
+   * without access, or with a plan that never ends.
+   */
+  until: string | null
 }
 
 function isActive(e: Entitlement, now: number): boolean {
@@ -27,6 +32,18 @@ function lastsLonger(a: Entitlement, b: Entitlement): number {
   return Date.parse(b.expires_at) - Date.parse(a.expires_at)
 }
 
+/** When access that's active now ends, following plans that start by then. */
+function accessEnds(current: Entitlement, entitlements: Entitlement[]): string | null {
+  if (!current.expires_at) return null
+  let end = Date.parse(current.expires_at)
+  for (;;) {
+    const next = entitlements.filter((e) => Date.parse(e.starts_at) <= end && (!e.expires_at || Date.parse(e.expires_at) > end))
+    if (next.some((e) => !e.expires_at)) return null
+    if (!next.length) return new Date(end).toISOString()
+    end = Math.max(...next.map((e) => Date.parse(e.expires_at!)))
+  }
+}
+
 /** The plan at a moment, from the user's entitlements. */
 export function planAt(billingEnabled: boolean, entitlements: Entitlement[], now: number): PlanState {
   const current = entitlements.filter((e) => isActive(e, now)).sort(lastsLonger)[0] ?? null
@@ -35,7 +52,8 @@ export function planAt(billingEnabled: boolean, entitlements: Entitlement[], now
     : (entitlements
         .filter((e) => e.expires_at && Date.parse(e.expires_at) <= now)
         .sort((a, b) => Date.parse(b.expires_at!) - Date.parse(a.expires_at!))[0] ?? null)
-  return { billingEnabled, hasAccess: !billingEnabled || !!current, current, ended }
+  const until = current ? accessEnds(current, entitlements) : null
+  return { billingEnabled, hasAccess: !billingEnabled || !!current, current, ended, until }
 }
 
 /**

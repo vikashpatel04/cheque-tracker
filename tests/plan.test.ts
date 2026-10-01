@@ -21,7 +21,7 @@ function grant(source: Entitlement['source'], startsIn: number, endsIn: number |
 
 describe('the plan at a moment', () => {
   it('gives everyone access when billing is off', () => {
-    expect(planAt(false, [], NOW)).toEqual({ billingEnabled: false, hasAccess: true, current: null, ended: null })
+    expect(planAt(false, [], NOW)).toEqual({ billingEnabled: false, hasAccess: true, current: null, ended: null, until: null })
   })
 
   it('is read-only with billing on and no active plan, and remembers what ended last', () => {
@@ -38,6 +38,17 @@ describe('the plan at a moment', () => {
     expect(planAt(true, [trial, pack], NOW).current).toBe(pack)
     const comp = grant('comp', -1, null)
     expect(planAt(true, [trial, pack, comp], NOW).current).toBe(comp)
+  })
+
+  it('runs until the last pack bought ends, when each starts as the one before ends', () => {
+    const trial = grant('trial', -2, 12)
+    const first = grant('purchase', 12, 42)
+    const second = grant('purchase', 42, 222)
+    expect(planAt(true, [second, trial, first], NOW).until).toBe(second.expires_at)
+    expect(planAt(true, [trial], NOW).until).toBe(trial.expires_at)
+    // A pack that starts after a gap isn't counted as continuous access.
+    expect(planAt(true, [trial, grant('purchase', 20, 50)], NOW).until).toBe(trial.expires_at)
+    expect(planAt(true, [trial, grant('comp', 5, null)], NOW).until).toBeNull()
   })
 
   it("doesn't count a bought pack before it starts", () => {
