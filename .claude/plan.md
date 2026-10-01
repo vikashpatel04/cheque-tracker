@@ -274,7 +274,19 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
   - CI also warns that `actions/checkout@v4` and `actions/setup-node@v4` run on Node 20, which is deprecated; #1 and #2 update them.
 - [ ] **63.** auto-pass: declare it in `supabase/config.toml` so the integration deploys it, and schedule its cron job on the dev project.
 - [ ] **64.** Translations: move UI text into translation files, for other languages and the US spelling "check".
-- [ ] **69.** Load less up front: the app is one 2.5 MB script (750 kB compressed). Load Excel and PDF export, charts and the calendar only when they're needed, so the app opens faster on phones.
+- [ ] **83.** Installing on phones. Raised by the maintainer on 2026-10-01 (later, not now): Windows Chrome offers to install, but their phone shows no Install button.
+  - What's there: More (phones) and the account menu (desktop) show Install only when the device can install (`useInstallOption` in `src/lib/pwa.ts`).
+  - **Android:** Chrome has to offer the install first (`beforeinstallprompt`). It does that only over HTTPS, with the production build's service worker (the dev server has none, so a phone on the local network never gets it), a valid manifest, and once Chrome's own engagement checks pass.
+    - Check on the HTTPS deployment first.
+    - If it still doesn't show, show steps instead: Chrome's menu, then "Install app" or "Add to Home screen".
+  - **iPhone and iPad:** Apple gives websites no install button. The only way is Safari's Share, then "Add to Home Screen", and More already shows those steps there. A button can open the steps, but it can't install.
+- [x] **69.** Load less up front: the app is one 2.5 MB script (750 kB compressed). Load Excel and PDF export, charts and the calendar only when they're needed, so the app opens faster on phones.
+  - Done 2026-10-01:
+    - Pages load the first time they're opened (`React.lazy` in `src/App.tsx`), with "Loading…" in the frame meanwhile. Today and Login come with the app. Cheques and Parties download in the background 2.5 s after the app shows, so the bottom tabs don't wait.
+    - Excel and PDF load on first use (`src/lib/lazyLibs.ts`: exports, templates and imports), and the date picker's calendar when it first opens. Charts come with Reports.
+    - The first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
+    - The service worker still saves every file when it installs, so the installed app works offline as before.
+    - Checked: every page module and library loads, and a PDF and an Excel file build in memory. Still to check, once the browser pane is signed in again: each page shows and the calendar opens.
 
 ## The maintainer's decisions
 

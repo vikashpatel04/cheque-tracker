@@ -193,14 +193,18 @@ export default function Cheques() {
 
   /* ---------- Export ---------- */
 
-  const exportGiven = (as: 'pdf' | 'excel') => {
+  const exportGiven = async (as: 'pdf' | 'excel') => {
     const cheques = visible.map((r) => r.given).filter((c): c is Cheque => !!c)
     if (!cheques.length) {
       toast.info('No given cheques in this list to export.')
       return
     }
-    if (as === 'pdf') exportChequesToPDF(cheques, filters.view ? `Cheques: ${VIEW_LABELS[filters.view]}` : 'Cheques')
-    else exportChequesToExcel(cheques, 'cheques_export')
+    try {
+      if (as === 'pdf') await exportChequesToPDF(cheques, filters.view ? `Cheques: ${VIEW_LABELS[filters.view]}` : 'Cheques')
+      else await exportChequesToExcel(cheques, 'cheques_export')
+    } catch (e) {
+      toast.error(`Couldn't export: ${e instanceof Error ? e.message : String(e)}`)
+    }
   }
 
   /* ---------- Filters ---------- */
@@ -234,11 +238,11 @@ export default function Cheques() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel className="text-[13px] font-normal text-ink-quiet">Given cheques in this list</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => exportGiven('pdf')}>
+              <DropdownMenuItem onSelect={() => void exportGiven('pdf')}>
                 <FileText className="text-ink-quiet" />
                 PDF
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => exportGiven('excel')}>
+              <DropdownMenuItem onSelect={() => void exportGiven('excel')}>
                 <FileSpreadsheet className="text-ink-quiet" />
                 Excel
               </DropdownMenuItem>
@@ -527,7 +531,7 @@ export default function Cheques() {
               </Button>
               <Button onClick={() => setFiltersOpen(false)}>Show {visible.length}</Button>
             </div>
-            <Button variant="outline" onClick={() => exportGiven('excel')}>
+            <Button variant="outline" onClick={() => void exportGiven('excel')}>
               <Download />
               Export given cheques to Excel
             </Button>

@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { CalendarIcon } from 'lucide-react'
 import { isValid, parse, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatDate, toISODate } from '@/lib/formatters'
 import { getActiveRegion } from '@/lib/region'
+
+// The calendar grid loads the first time one opens, not with the app (plan item 69).
+const Calendar = lazy(() => import('@/components/ui/calendar').then((m) => ({ default: m.Calendar })))
+
+/** Holds the calendar's place while it loads. */
+const calendarLoading = <div className="h-[308px] w-[276px]" aria-busy="true" />
 
 function toDate(iso?: string | null): Date | undefined {
   if (!iso) return undefined
@@ -56,17 +61,19 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={selected}
-          defaultMonth={selected}
-          weekStartsOn={getActiveRegion().weekStartsOn}
-          onSelect={(d) => {
-            if (d) onChange(toISODate(d))
-            setOpen(false)
-          }}
-          autoFocus
-        />
+        <Suspense fallback={calendarLoading}>
+          <Calendar
+            mode="single"
+            selected={selected}
+            defaultMonth={selected}
+            weekStartsOn={getActiveRegion().weekStartsOn}
+            onSelect={(d) => {
+              if (d) onChange(toISODate(d))
+              setOpen(false)
+            }}
+            autoFocus
+          />
+        </Suspense>
       </PopoverContent>
     </Popover>
   )
@@ -128,21 +135,23 @@ export function DateRangePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
-          selected={range}
-          defaultMonth={range?.from}
-          numberOfMonths={numberOfMonths}
-          weekStartsOn={getActiveRegion().weekStartsOn}
-          onSelect={(r) => {
-            onChange({
-              from: r?.from ? toISODate(r.from) : '',
-              to: r?.to ? toISODate(r.to) : '',
-            })
-            if (r?.from && r?.to) setOpen(false)
-          }}
-          autoFocus
-        />
+        <Suspense fallback={calendarLoading}>
+          <Calendar
+            mode="range"
+            selected={range}
+            defaultMonth={range?.from}
+            numberOfMonths={numberOfMonths}
+            weekStartsOn={getActiveRegion().weekStartsOn}
+            onSelect={(r) => {
+              onChange({
+                from: r?.from ? toISODate(r.from) : '',
+                to: r?.to ? toISODate(r.to) : '',
+              })
+              if (r?.from && r?.to) setOpen(false)
+            }}
+            autoFocus
+          />
+        </Suspense>
       </PopoverContent>
     </Popover>
   )
@@ -249,17 +258,19 @@ export function DateInput({ value, onChange, id, className, disabled, ...rest }:
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            mode="single"
-            selected={selected}
-            defaultMonth={selected}
-            weekStartsOn={weekStartsOn}
-            onSelect={(d) => {
-              if (d) onChange(toISODate(d))
-              setOpen(false)
-            }}
-            autoFocus
-          />
+          <Suspense fallback={calendarLoading}>
+            <Calendar
+              mode="single"
+              selected={selected}
+              defaultMonth={selected}
+              weekStartsOn={weekStartsOn}
+              onSelect={(d) => {
+                if (d) onChange(toISODate(d))
+                setOpen(false)
+              }}
+              autoFocus
+            />
+          </Suspense>
         </PopoverContent>
       </Popover>
     </div>

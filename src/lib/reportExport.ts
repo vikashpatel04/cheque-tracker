@@ -1,6 +1,4 @@
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import { loadPdf, loadXlsx } from './lazyLibs'
 import { formatCurrencyCode, formatDate, formatMonthLabel, formatNumber } from './formatters'
 import type { ReportCell, ReportColumn, ReportTable } from './reportTables'
 
@@ -75,7 +73,8 @@ function sheetName(title: string, used: Set<string>): string {
   return name
 }
 
-export function exportReportExcel({ title, subtitle, tables, fileName }: ReportExport) {
+export async function exportReportExcel({ title, subtitle, tables, fileName }: ReportExport) {
+  const XLSX = await loadXlsx()
   const workbook = XLSX.utils.book_new()
   const used = new Set<string>()
   for (const table of tables) {
@@ -98,7 +97,8 @@ export function exportReportExcel({ title, subtitle, tables, fileName }: ReportE
 // The brand blue of the Passbook look, for table headings. PDFs can't read the app's colour tokens.
 const HEAD_FILL: [number, number, number] = [31, 58, 95]
 
-export function exportReportPdf({ title, subtitle, tables, fileName }: ReportExport) {
+export async function exportReportPdf({ title, subtitle, tables, fileName }: ReportExport) {
+  const { jsPDF, autoTable } = await loadPdf()
   const doc = new jsPDF({ orientation: 'landscape' })
   const pageHeight = doc.internal.pageSize.getHeight()
   doc.setFontSize(16)
@@ -141,7 +141,7 @@ export function exportReportPdf({ title, subtitle, tables, fileName }: ReportExp
       headStyles: { fillColor: HEAD_FILL, textColor: 255 },
       footStyles: { fillColor: [240, 237, 230], textColor: 20, fontStyle: 'bold' },
     })
-    y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12
+    y = (doc as typeof doc & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12
   }
   doc.save(`${fileName}.pdf`)
 }

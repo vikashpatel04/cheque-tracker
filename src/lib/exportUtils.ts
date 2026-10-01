@@ -1,8 +1,6 @@
 import { addDays } from 'date-fns'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
 import { brandSlug } from '@/config/brand'
+import { loadPdf, loadXlsx } from './lazyLibs'
 import { formatCurrencyCode, formatDate, todayDate } from './formatters'
 import { getActiveRegion } from './region'
 import { STATUS_LABELS, type Cheque, type Party, type ChequeHistory, type DailyDeposit } from '@/types'
@@ -21,7 +19,8 @@ interface ExportCheque extends Cheque {
 /** A date column that may be empty. */
 const optionalDate = (d: string | null) => (d ? formatDate(d) : '')
 
-export function exportChequesToPDF(cheques: ExportCheque[], title: string) {
+export async function exportChequesToPDF(cheques: ExportCheque[], title: string) {
+  const { jsPDF, autoTable } = await loadPdf()
   const doc = new jsPDF({ orientation: 'landscape' })
   doc.setFontSize(16)
   doc.text(title, 14, 15)
@@ -45,14 +44,15 @@ export function exportChequesToPDF(cheques: ExportCheque[], title: string) {
   })
 
   const total = cheques.reduce((sum, c) => sum + Number(c.amount), 0)
-  const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
+  const finalY = (doc as typeof doc & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
   doc.setFontSize(12)
   doc.text(`Total: ${formatCurrencyCode(total)} (${cheques.length} cheques)`, 14, finalY)
 
   doc.save(`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`)
 }
 
-export function exportChequesToExcel(cheques: ExportCheque[], filename: string) {
+export async function exportChequesToExcel(cheques: ExportCheque[], filename: string) {
+  const XLSX = await loadXlsx()
   const data = cheques.map((c) => ({
     'Cheque No.': c.cheque_number,
     Party: c.party?.name ?? '',
@@ -81,7 +81,8 @@ export interface AllData {
 }
 
 /** Everything the user has, one sheet per kind of record. */
-export function exportAllData({ parties, cheques, history, deposits, received, receivedHistory, accounts }: AllData) {
+export async function exportAllData({ parties, cheques, history, deposits, received, receivedHistory, accounts }: AllData) {
+  const XLSX = await loadXlsx()
   const wb = XLSX.utils.book_new()
   const accountName = new Map(accounts.map((a) => [a.id, a.last4 ? `${a.name} (${a.last4})` : a.name]))
 
@@ -214,7 +215,8 @@ function dateHeader(label: string): string {
 }
 
 /** `sampleBank` fills the example row, usually the first bank in the user's list. */
-export function downloadPartyTemplate(sampleBank?: string) {
+export async function downloadPartyTemplate(sampleBank?: string) {
+  const XLSX = await loadXlsx()
   const ws = XLSX.utils.aoa_to_sheet([
     ['Party Name', 'Contact Name', 'Phone', 'Bank Name', 'Notes'],
     ['Example Party', 'Contact person', '', sampleBank || 'Your bank', ''],
@@ -225,7 +227,8 @@ export function downloadPartyTemplate(sampleBank?: string) {
 }
 
 /** `sampleBank` fills the example row, usually the first bank in the user's list. */
-export function downloadChequeTemplate(sampleBank?: string) {
+export async function downloadChequeTemplate(sampleBank?: string) {
+  const XLSX = await loadXlsx()
   const issued = todayDate()
   const ws = XLSX.utils.aoa_to_sheet([
     ['Party Name', 'Cheque Number', 'Bank Name', 'Amount', dateHeader('Issue Date'), dateHeader('Due Date'), 'Notes'],
@@ -236,23 +239,11 @@ export function downloadChequeTemplate(sampleBank?: string) {
   XLSX.writeFile(wb, 'cheque_upload_template.xlsx')
 }
 
-export function parseExcelFile(file: File): Promise<Record<string, unknown>[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer)
-        const workbook = XLSX.read(data, { type: 'array', cellDates: true })
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
-        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
-        resolve(json)
-      } catch (err) {
-        reject(err)
-      }
-    }
-    reader.onerror = reject
-    reader.readAsArrayBuffer(file)
-  })
+/** The first sheet of an Excel file, as rows keyed by column header. */
+export async function parseExcelFile(file: File): Promise<Record<string, unknown>[]> {
+  const [XLSX, data] = await Promise.all([loadXlsx(), file.arrayBuffer()])
+  const workbook = XLSX.read(new Uint8Array(data), { type: 'array', cellDates: true })
+  return XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[workbook.SheetNames[0]])
 }
 
 /**

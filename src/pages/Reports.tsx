@@ -157,7 +157,7 @@ export default function Reports() {
       .filter(Boolean)
       .join(' · ')
 
-  const exportTab = (as: 'pdf' | 'excel') => {
+  const exportTab = async (as: 'pdf' | 'excel') => {
     const job = {
       title: `${brand.name}: ${tabLabel}`,
       subtitle: describeFilters(),
@@ -165,8 +165,8 @@ export default function Reports() {
       fileName: `${brandSlug()}_report_${tab}_${today}`,
     }
     try {
-      if (as === 'pdf') exportReportPdf(job)
-      else exportReportExcel(job)
+      if (as === 'pdf') await exportReportPdf(job)
+      else await exportReportExcel(job)
     } catch (e) {
       toast.error(`Couldn't export: ${e instanceof Error ? e.message : String(e)}`)
     }
@@ -189,11 +189,11 @@ export default function Reports() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel className="text-[13px] font-normal text-ink-quiet">{tabLabel}, with these filters</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => exportTab('pdf')}>
+              <DropdownMenuItem onSelect={() => void exportTab('pdf')}>
                 <FileText className="text-ink-quiet" />
                 PDF
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => exportTab('excel')}>
+              <DropdownMenuItem onSelect={() => void exportTab('excel')}>
                 <FileSpreadsheet className="text-ink-quiet" />
                 Excel
               </DropdownMenuItem>

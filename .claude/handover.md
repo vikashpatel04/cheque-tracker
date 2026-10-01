@@ -54,6 +54,10 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   Next: 69 (load less up front), then 52 (sign-up, with Google sign-in and sign-up).
 
+  69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB). Still to check, once the browser pane is signed in again: each page shows and the date picker's calendar opens.
+
+  83 (installing on phones) is noted for later.
+
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
 - **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.

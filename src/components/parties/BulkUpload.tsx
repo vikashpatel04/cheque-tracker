@@ -119,7 +119,7 @@ export function PartyBulkUpload({ open, onOpenChange, onComplete }: BulkUploadPr
           <div className="flex flex-col gap-5">
             <div className="flex flex-col items-start gap-1.5">
               <span className="text-[15px] font-semibold">1. Get the template</span>
-              <Button variant="outline" onClick={() => downloadPartyTemplate(findPreset(getActiveRegion().country)?.banks[0])}>
+              <Button variant="outline" onClick={() => void downloadPartyTemplate(findPreset(getActiveRegion().country)?.banks[0])}>
                 <Download />
                 Download the template
               </Button>

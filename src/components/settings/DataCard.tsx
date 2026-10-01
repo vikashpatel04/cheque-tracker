@@ -60,7 +60,7 @@ async function exportEverything() {
     return
   }
   const [parties, cheques, history, deposits, received, receivedHistory, accounts] = results
-  exportAllData({
+  await exportAllData({
     parties: parties.rows as Party[],
     cheques: cheques.rows as Cheque[],
     history: history.rows as ChequeHistory[],

@@ -1,26 +1,26 @@
-import * as XLSX from 'xlsx'
+import { loadXlsx } from './lazyLibs'
 import { supabase } from './supabase'
 import type { ImportCounts, ImportPlan, Workbook } from './importPlan'
 
 /** Every sheet of an Excel file, as rows keyed by column header. */
-export function readWorkbook(file: File): Promise<Workbook> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const workbook = XLSX.read(new Uint8Array(e.target?.result as ArrayBuffer), { type: 'array', cellDates: true })
-        const sheets: Workbook = {}
-        for (const name of workbook.SheetNames) {
-          sheets[name] = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[name])
-        }
-        resolve(sheets)
-      } catch {
-        reject(new Error("Couldn't read this file. Choose the .xlsx file from Settings → Export."))
-      }
+export async function readWorkbook(file: File): Promise<Workbook> {
+  const XLSX = await loadXlsx()
+  let data: ArrayBuffer
+  try {
+    data = await file.arrayBuffer()
+  } catch {
+    throw new Error("Couldn't read this file.")
+  }
+  try {
+    const workbook = XLSX.read(new Uint8Array(data), { type: 'array', cellDates: true })
+    const sheets: Workbook = {}
+    for (const name of workbook.SheetNames) {
+      sheets[name] = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[name])
     }
-    reader.onerror = () => reject(new Error("Couldn't read this file."))
-    reader.readAsArrayBuffer(file)
-  })
+    return sheets
+  } catch {
+    throw new Error("Couldn't read this file. Choose the .xlsx file from Settings → Export.")
+  }
 }
 
 /**

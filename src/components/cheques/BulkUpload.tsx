@@ -195,7 +195,7 @@ export function ChequeBulkUpload({ open, onOpenChange, onComplete }: BulkUploadP
           <div className="flex flex-col gap-5">
             <div className="flex flex-col items-start gap-1.5">
               <span className="text-[15px] font-semibold">1. Get the template</span>
-              <Button variant="outline" onClick={() => downloadChequeTemplate(chosen?.bank_name ?? defaultAccount?.bank_name)}>
+              <Button variant="outline" onClick={() => void downloadChequeTemplate(chosen?.bank_name ?? defaultAccount?.bank_name)}>
                 <Download />
                 Download the template
               </Button>
