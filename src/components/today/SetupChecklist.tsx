@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { BankAccountDialog } from '@/components/shared/BankAccountDialog'
 import { countryName } from '@/config/regions'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { useSampleData } from '@/hooks/useSampleData'
 import { useSettings } from '@/hooks/useSettings'
 import { useSetupStatus } from '@/hooks/useSetupStatus'
@@ -41,6 +42,7 @@ export function SetupChecklist() {
   const status = useSetupStatus()
   const sample = useSampleData()
   const app = useAppActions()
+  const { guard } = usePlan()
   const [hidden, setHidden] = useState(readHidden)
   const [addingAccount, setAddingAccount] = useState(false)
 
@@ -58,7 +60,7 @@ export function SetupChecklist() {
       title: 'Add your bank account',
       sub: 'The one you write cheques from or deposit into. Only the last four digits are kept.',
       done: status.hasAccounts,
-      action: { label: 'Add', run: () => setAddingAccount(true) },
+      action: { label: 'Add', run: guard(() => setAddingAccount(true)) },
     },
     {
       title: 'Add your cheques',

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { HelpLink } from '@/components/guide/HelpLink'
+import { usePlan } from '@/hooks/usePlan'
 import { formatMoney } from '@/lib/formatters'
 import { RETURN_REASONS } from '@/lib/returnReasons'
 import { updateChequeStatus } from '@/lib/updateChequeStatus'
@@ -52,6 +53,7 @@ export function canChainDepositedAndPassed(status: ChequeStatus): boolean {
  * behave the same.
  */
 export function useChequeStatusActions(onChanged: () => void) {
+  const { guard } = usePlan()
   const [pending, setPending] = useState<Cheque | null>(null)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -77,19 +79,19 @@ export function useChequeStatusActions(onChanged: () => void) {
   }
 
   /** Single transition. RETURNED first prompts for a reason. */
-  const requestStatus = (cheque: Cheque, status: ChequeStatus) => {
+  const requestStatus = guard((cheque: Cheque, status: ChequeStatus) => {
     if (status === 'RETURNED') {
       setReason('')
       setPending(cheque)
       return
     }
     void run(cheque, [status])
-  }
+  })
 
   /** Shortcut: DEPOSITED then PASSED, both recorded in history. */
-  const requestChained = (cheque: Cheque) => {
+  const requestChained = guard((cheque: Cheque) => {
     void run(cheque, ['DEPOSITED', 'PASSED'])
-  }
+  })
 
   const close = () => {
     setPending(null)

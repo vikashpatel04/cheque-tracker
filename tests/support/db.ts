@@ -85,7 +85,8 @@ export async function createTestDatabase(
     try {
       return await db.query<T>(sql, params)
     } finally {
-      await db.exec('RESET ROLE;')
+      // Back to no signed-in user, like the service role.
+      await db.exec(`RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false);`)
     }
   }
 

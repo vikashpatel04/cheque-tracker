@@ -42,12 +42,16 @@ Users can read their own rows. Only the service role can create or change them: 
 - **Settings stay writable.**
 - **Self-hosted instances are unaffected,** because `has_write_access()` is always true there.
 
+When a read-only account changes a given cheque, the database functions say "Your plan has ended. Renew it to make changes." (migration 019), as the received-cheque functions already did. Jobs with no signed-in user, such as auto-pass and the companions using the service role, aren't limited by plans.
+
 The database is the source of truth. The app only reflects it:
-- `usePlan()` reads the plan.
+- `PlanProvider` loads the plan once and keeps it current: it changes by itself when a plan ends or a bought pack starts. `usePlan()` reads it.
+- On a read-only account, every button that would change data opens a "Your plan has ended" dialog (or "Your free trial has ended") that leads to Settings → Plan. Components wrap such actions in `usePlan().guard`, or call `requireWrite()` where they can't wrap.
+- The Supabase client also refuses changes once it knows the account is read-only (`src/lib/plan.ts`), so no save quietly does nothing. Reads, your settings, sign-in and server functions (such as paying) are never held back.
 - `PlanBanner` shows a notice when an account is read-only or a trial is ending.
 - `PlanCard` in Settings shows the current plan.
 
-With billing off, all three render nothing.
+With billing off, none of this shows or holds anything back.
 
 ### Tests
 
@@ -94,7 +98,6 @@ values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>
 
 - **Payment flow:** checkout, and a webhook Edge Function that verifies the payment and inserts a `purchase` entitlement. A new pack should start when the current one ends, so buying early loses nothing.
 - **Sign-up and onboarding:** email verification and password reset. Also CAPTCHA on sign-up, and a custom SMTP provider for auth emails.
-- **Read-only UI:** hide or disable actions that write when the account is read-only. The database already refuses them, but some errors currently read "Cheque not found".
 - **Renewal reminders** before a pack ends.
 - **Legal pages:** terms, privacy policy, and refund and cancellation policy.
 

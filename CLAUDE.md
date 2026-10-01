@@ -77,14 +77,14 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 - **Editions:**
   - `instance_config.billing_enabled`: false means self-hosted, with full access for everyone.
   - `entitlements`: trial, purchase or comp. Only the service role writes them.
-  - `has_write_access()` with RESTRICTIVE policies makes lapsed accounts read-only. The UI only reflects this.
+  - `has_write_access()` with RESTRICTIVE policies makes lapsed accounts read-only. The UI only reflects this: `PlanProvider` keeps the plan current, and on a read-only account anything that changes data opens a "plan has ended" dialog. Wrap any new action that writes in `usePlan().guard` (or check `requireWrite()`).
 - **Companions:** cheque-mcp and Cheque Watch read the given-side tables with the service-role key. Keep changes to `cheques`, `parties`, `cheque_history` and `daily_deposits` additive.
 - **Edge Function `supabase/functions/auto-pass`:** marks funded cheques as passed at each user's `auto_pass_time`, in their time zone. It's scheduled by hand; see [docs/self-hosting.md](docs/self-hosting.md).
 
 ## Database changes
 
 - **Migrations:**
-  - Add a numbered migration; the next one is `supabase/migrations/019_…`.
+  - Add a numbered migration; the next one is `supabase/migrations/020_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
 - **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy.

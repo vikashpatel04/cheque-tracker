@@ -12,8 +12,10 @@ import { PlanBanner } from '@/components/shared/PlanBanner'
 import { SourceLink } from '@/components/shared/SourceLink'
 import { isActivePath, NAV_ITEMS, type NavItem } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
+import { PlanProvider } from '@/components/shared/PlanProvider'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
 import { useTodos } from '@/hooks/useTodayData'
+import { readOnlyWording } from '@/lib/plan'
 import { useOnline } from '@/lib/pwa'
 import { cn } from '@/lib/utils'
 
@@ -54,20 +56,21 @@ function SidebarPlan() {
   const plan = usePlan()
   if (plan.loading || !plan.billingEnabled) return null
   const trial = plan.current?.source === 'trial' && plan.current.expires_at ? daysLeft(plan.current.expires_at) : null
-  if (plan.hasAccess && trial === null) return null
+  if (!plan.readOnly && trial === null) return null
+  const wording = readOnlyWording(plan.ended)
   return (
     <Link
-      to="/settings"
+      to="/settings#plan"
       className="flex flex-col gap-1 rounded-xl border bg-surface p-3.5 text-ink transition-colors hover:bg-hover"
     >
       <span className="text-sm font-semibold">
-        {!plan.hasAccess
-          ? 'Your plan has ended'
+        {plan.readOnly
+          ? wording.title
           : trial === 0
             ? 'Free trial · ends today'
             : `Free trial · ${trial} day${trial === 1 ? '' : 's'} left`}
       </span>
-      <span className="text-[13px] font-medium text-brand">{plan.hasAccess ? 'Choose a pack' : 'Renew'}</span>
+      <span className="text-[13px] font-medium text-brand">{plan.readOnly ? wording.action : 'Choose a pack'}</span>
     </Link>
   )
 }
@@ -201,22 +204,24 @@ function OfflineBanner() {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
   return (
-    <AppActionsProvider>
-      <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
-        <Sidebar />
-        <div className="flex min-w-0 flex-col">
-          <TopBar />
-          <OfflineBanner />
-          <PlanBanner />
-          {/* min-w-0 and a horizontal clip, so wide tables and charts scroll inside
-              their own wrappers instead of scrolling the page. Clip rather than
-              hidden where supported, so sticky bars (Reports' filters) still stick. */}
-          <main className={cn(CONTENT_WIDTH, 'min-w-0 overflow-x-hidden supports-[overflow:clip]:overflow-x-clip px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8')}>
-            <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>
-          </main>
+    <PlanProvider>
+      <AppActionsProvider>
+        <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+          <Sidebar />
+          <div className="flex min-w-0 flex-col">
+            <TopBar />
+            <OfflineBanner />
+            <PlanBanner />
+            {/* min-w-0 and a horizontal clip, so wide tables and charts scroll inside
+                their own wrappers instead of scrolling the page. Clip rather than
+                hidden where supported, so sticky bars (Reports' filters) still stick. */}
+            <main className={cn(CONTENT_WIDTH, 'min-w-0 overflow-x-hidden supports-[overflow:clip]:overflow-x-clip px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8')}>
+              <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>
+            </main>
+          </div>
+          <BottomTabs />
         </div>
-        <BottomTabs />
-      </div>
-    </AppActionsProvider>
+      </AppActionsProvider>
+    </PlanProvider>
   )
 }

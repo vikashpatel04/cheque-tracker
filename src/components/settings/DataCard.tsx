@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { SettingRow, SettingsSection } from '@/components/settings/SettingsSection'
 import { brand } from '@/config/brand'
+import { usePlan } from '@/hooks/usePlan'
 import { useSampleData } from '@/hooks/useSampleData'
 import { announceDataChange } from '@/lib/dataEvents'
 import { exportAllData } from '@/lib/exportUtils'
@@ -74,6 +75,7 @@ async function exportEverything() {
 
 /** Reads an export and previews what it would add; nothing is saved until Import. */
 function ImportFromExport() {
+  const { guard } = usePlan()
   const navigate = useNavigate()
   const input = useRef<HTMLInputElement>(null)
   const [plan, setPlan] = useState<ImportPlan | null>(null)
@@ -118,7 +120,7 @@ function ImportFromExport() {
   return (
     <>
       <input ref={input} type="file" accept=".xlsx,.xls" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={handleFile} />
-      <Button variant="outline" onClick={() => input.current?.click()}>
+      <Button variant="outline" onClick={guard(() => input.current?.click())}>
         <Upload />
         Import from an export
       </Button>
@@ -205,6 +207,7 @@ function ImportFromExport() {
 
 /** Settings → Your data: export, import, sample data, and deleting everything. */
 export function DataCard() {
+  const { requireWrite } = usePlan()
   const sample = useSampleData()
   const [exporting, setExporting] = useState(false)
   const [phrase, setPhrase] = useState('')
@@ -282,6 +285,7 @@ export function DataCard() {
         <AlertDialog
           open={confirming}
           onOpenChange={(open) => {
+            if (open && !requireWrite()) return
             setConfirming(open)
             if (!open) setPhrase('')
           }}

@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { usePlan } from '@/hooks/usePlan'
 import { supabase } from '@/lib/supabase'
 import { rollbackChequeStatus } from '@/lib/updateChequeStatus'
 import { formatDateTime } from '@/lib/formatters'
@@ -40,10 +41,11 @@ interface Target {
  * Returns a request function and the dialog element for the caller to render.
  */
 export function useRollbackAction(onChanged: () => void) {
+  const { guard } = usePlan()
   const [target, setTarget] = useState<Target | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const requestRollback = async (cheque: Cheque) => {
+  const requestRollback = guard(async (cheque: Cheque) => {
     if (isLegacyRepresented(cheque)) {
       toast.error('This cheque was re-presented with the old flow and cannot be rolled back.')
       return
@@ -57,7 +59,7 @@ export function useRollbackAction(onChanged: () => void) {
       return
     }
     setTarget({ cheque, change: findUndoableChange((data ?? []) as ChequeHistory[]) })
-  }
+  })
 
   const confirm = async () => {
     if (!target?.change) return

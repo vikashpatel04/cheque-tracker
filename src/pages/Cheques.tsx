@@ -28,6 +28,7 @@ import { nextAction } from '@/components/cheques/nextAction'
 import { useGivenActions } from '@/components/cheques/useGivenActions'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { useChequeListData } from '@/hooks/useChequeListData'
 import { useSettings } from '@/hooks/useSettings'
 import { inTab, inView, sortRows, VIEW_LABELS, VIEWS_BY_TAB, type DirectionTab, type ListRow, type ListView } from '@/lib/chequeList'
@@ -72,6 +73,7 @@ export default function Cheques() {
   const app = useAppActions()
   const { rows, accounts, loading, error } = useChequeListData()
   const { actions: givenActions, dialogs } = useGivenActions()
+  const { guard } = usePlan()
   const [params, setParams] = useSearchParams()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [shown, setShown] = useState(PAGE)
@@ -496,7 +498,7 @@ export default function Cheques() {
             </Button>
           )}
           {allFunded && (
-            <Button className="bg-surface text-brand hover:bg-hover" disabled={busy} onClick={() => void markPassed(selectedGiven)}>
+            <Button className="bg-surface text-brand hover:bg-hover" disabled={busy} onClick={guard(() => markPassed(selectedGiven))}>
               <Check />
               Mark {selectedRows.length} passed
             </Button>

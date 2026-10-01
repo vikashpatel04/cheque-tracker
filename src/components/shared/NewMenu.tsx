@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { useSettings } from '@/hooks/useSettings'
 
 interface NewItem {
@@ -28,6 +29,7 @@ interface NewItem {
 function useNewItems(): NewItem[] {
   const actions = useAppActions()
   const navigate = useNavigate()
+  const { guard } = usePlan()
   const tracks = useSettings().settings.tracks ?? 'both'
   const received: NewItem[] = [
     { label: 'Received cheque', hint: 'A cheque someone gave you', icon: ArrowDownLeft, run: () => actions.newReceivedCheque() },
@@ -39,7 +41,7 @@ function useNewItems(): NewItem[] {
       label: 'Several given cheques',
       hint: 'Many at once, with numbers counting up',
       icon: ListPlus,
-      run: () => navigate('/bulk-add'),
+      run: guard(() => navigate('/bulk-add')),
     },
     {
       label: 'Add funds',

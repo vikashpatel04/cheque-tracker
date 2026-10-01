@@ -1,6 +1,7 @@
 import { SettingsSection } from '@/components/settings/SettingsSection'
 import { usePlan } from '@/hooks/usePlan'
 import { formatDate } from '@/lib/formatters'
+import { readOnlyWording } from '@/lib/plan'
 import type { Entitlement } from '@/types'
 
 function describe(current: Entitlement): string {
@@ -23,7 +24,7 @@ export function PlanCard() {
       description={
         plan.current
           ? describe(plan.current)
-          : 'No active plan. Your account is read-only: everything stays visible and can be exported.'
+          : `${readOnlyWording(plan.ended).title}. Your account is read-only: everything stays visible and can be exported.`
       }
     >
       {plan.current?.note && <p className="text-sm text-ink-quiet">{plan.current.note}</p>}

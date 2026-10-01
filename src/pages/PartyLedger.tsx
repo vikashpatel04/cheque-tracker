@@ -30,6 +30,7 @@ import { PartyForm } from '@/components/parties/PartyForm'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { findPreset } from '@/config/regions'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { useChequeListData } from '@/hooks/useChequeListData'
 import { useParties } from '@/hooks/useParties'
 import { useSettings } from '@/hooks/useSettings'
@@ -79,6 +80,8 @@ export default function PartyLedger() {
   const { rows: allRows, loading: rowsLoading, error } = useChequeListData()
   const { actions: givenActions, dialogs } = useGivenActions()
   const [editing, setEditing] = useState(false)
+  const { guard } = usePlan()
+  const edit = guard(() => setEditing(true))
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const today = todayISO()
@@ -154,7 +157,7 @@ export default function PartyLedger() {
       label: 'Several given cheques',
       hint: 'Many at once, with numbers counting up',
       icon: ListPlus,
-      run: () => navigate(`/parties/${party.id}/bulk-add`),
+      run: guard(() => navigate(`/parties/${party.id}/bulk-add`)),
     },
   ]
   const newGroups = tracks === 'given' ? [givenItems] : tracks === 'received' ? [receivedItems] : [receivedItems, givenItems]
@@ -214,7 +217,7 @@ export default function PartyLedger() {
         actions={
           <>
             {whatsappButton}
-            <Button variant="outline" className="max-lg:hidden" onClick={() => setEditing(true)}>
+            <Button variant="outline" className="max-lg:hidden" onClick={edit}>
               <Pencil />
               Edit
             </Button>
@@ -243,7 +246,7 @@ export default function PartyLedger() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="icon" aria-label="Edit party" className="lg:hidden" onClick={() => setEditing(true)}>
+            <Button variant="outline" size="icon" aria-label="Edit party" className="lg:hidden" onClick={edit}>
               <Pencil />
             </Button>
           </>

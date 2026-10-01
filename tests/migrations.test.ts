@@ -201,11 +201,32 @@ describe('hosted edition (billing on)', () => {
     const visible = await t.asUser<{ n: number }>(U1, 'SELECT count(*)::int AS n FROM cheques')
     expect(visible.rows[0].n).toBe(1)
     await expect(t.asUser(U1, `INSERT INTO parties (user_id, name) VALUES ($1, 'Party C')`, [U1])).rejects.toThrow(/row-level security/)
-    await expect(t.asUser(U1, `SELECT record_deposit(1000, '2026-09-26')`)).rejects.toThrow(/row-level security/)
     const updated = await t.asUser(U1, `UPDATE cheques SET notes = 'x' WHERE user_id = $1`, [U1])
     expect(updated.affectedRows).toBe(0)
     // Settings stay editable so the user can still fix their region.
     await t.asUser(U1, `UPDATE settings SET timezone = 'Asia/Kolkata' WHERE user_id = $1`, [U1])
+  })
+
+  it('says the plan has ended, not "Cheque not found", when a read-only account changes a given cheque', async () => {
+    const { rows } = await t.asAdmin<{ id: string }>('SELECT id FROM cheques WHERE user_id = $1', [U1])
+    const id = rows[0].id
+    const refused = [
+      [`SELECT change_cheque_status($1, 'PASSED')`, [id]],
+      [`SELECT represent_cheque($1, '2026-10-20')`, [id]],
+      [`SELECT write_off_cheque($1, 'Party closed')`, [id]],
+      [`SELECT rollback_cheque_status($1)`, [id]],
+      [`SELECT record_deposit(1000, '2026-09-26')`, []],
+    ] as const
+    for (const [sql, params] of refused) {
+      await expect(t.asUser(U1, sql, [...params])).rejects.toThrow(/Your plan has ended/)
+    }
+  })
+
+  it('keeps the auto-pass job and companions, which have no signed-in user, unaffected by plans', async () => {
+    const { rows } = await t.asAdmin<{ id: string; status: string }>('SELECT id, status FROM cheques WHERE user_id = $1', [U1])
+    expect(rows[0].status).toBe('DEPOSITED')
+    await t.asAdmin(`SELECT change_cheque_status($1, 'PASSED', 'auto')`, [rows[0].id])
+    await t.asAdmin(`SELECT rollback_cheque_status($1)`, [rows[0].id])
   })
 
   it('restores access with a complimentary grant', async () => {

@@ -16,7 +16,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 ## Where things stand
 
-- **Code:** all work is committed on `main`. 119 tests pass; lint (0 errors, 5 known warnings) and build are clean.
+- **Code:** all work is committed on `main`. 149 tests pass; lint (0 errors, 2 known warnings) and build are clean.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
   - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–018 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
@@ -56,12 +56,14 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
 
-  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. I verified email sign-up, Google and a password reset on 2026-10-01. Next: whatever I pick from the list of what's left.
+  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. I verified email sign-up, Google and a password reset on 2026-10-01.
+
+  On 2026-10-01 I picked 55, then 53. Fixed first: on narrow phones the "+" of Today's figures wrapped onto its own line (`43dec27`). 55 (read-only when a plan ends) is done, with migration 019; see its notes in the plan. Next: 53 (Razorpay payments).
 
   83 (installing on phones) is noted for later.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix.
+- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix and 55. Pushing applies migration 019 to the dev project; it changes no tables, so the types don't need regenerating.
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29

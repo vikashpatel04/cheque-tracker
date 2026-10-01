@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
+import { readOnlyWording } from '@/lib/plan'
 
 /** How many days before a trial ends to start reminding the user. */
 const TRIAL_REMINDER_DAYS = 3
@@ -12,15 +14,18 @@ export function PlanBanner() {
   const plan = usePlan()
   if (plan.loading || !plan.billingEnabled) return null
 
-  if (!plan.hasAccess) {
+  if (plan.readOnly) {
+    const wording = readOnlyWording(plan.ended)
     return (
       <div
         role="status"
-        className="flex items-center gap-2 border-b bg-attention-soft px-4 py-2 text-sm text-attention lg:px-10"
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b bg-attention-soft px-4 py-2 text-sm text-attention lg:px-10"
       >
-        <AlertTriangle className="h-4 w-4 shrink-0" />
-        Your plan has ended. Your cheques are safe and you can still view and export them. Renew to add or
-        change anything.
+        <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>{wording.title}. Your cheques are safe, and you can still view and export them.</span>
+        <Link to="/settings#plan" className="font-semibold underline underline-offset-2">
+          {wording.action}
+        </Link>
       </div>
     )
   }

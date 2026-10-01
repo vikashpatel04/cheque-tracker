@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { RowTags } from '@/components/cheques/RowChips'
 import { StatusPill } from '@/components/shared/StatusPill'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { dueNote, givenRow, rowTags } from '@/lib/chequeList'
 import { isLegacyRepresented, stripTagLines } from '@/lib/chequeTags'
 import { formatDateTime, formatMoney, formatShortDate, formatSigned, localizeIsoDates, todayISO } from '@/lib/formatters'
@@ -76,6 +77,7 @@ interface PartySummary {
 /** A given cheque: what to do next, its details, its party and its history (design screen 34). */
 export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }: ChequeDetailProps) {
   const app = useAppActions()
+  const { guard } = usePlan()
   const [cheque, setCheque] = useState<Cheque | null>(null)
   const [history, setHistory] = useState<ChequeHistory[]>([])
   const { accounts } = useBankAccounts()
@@ -239,7 +241,7 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setDeleteOpen(true)} className="text-problem focus:text-problem">
+                  <DropdownMenuItem onSelect={guard(() => setDeleteOpen(true))} className="text-problem focus:text-problem">
                     <Trash2 />
                     Delete
                   </DropdownMenuItem>
@@ -286,8 +288,8 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
                 onFundAndPass={() => status.requestChained(cheque)}
                 onPassed={() => status.requestStatus(cheque, 'PASSED')}
                 onReturned={() => status.requestStatus(cheque, 'RETURNED')}
-                onPresent={() => setRePresentOpen(true)}
-                onWriteOff={() => setWriteOffOpen(true)}
+                onPresent={guard(() => setRePresentOpen(true))}
+                onWriteOff={guard(() => setWriteOffOpen(true))}
                 onReplace={() => app.replaceCheque(cheque)}
               />
 

@@ -11,6 +11,7 @@ import { PartyForm } from '@/components/parties/PartyForm'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useChequeListData } from '@/hooks/useChequeListData'
 import { useParties } from '@/hooks/useParties'
+import { usePlan } from '@/hooks/usePlan'
 import { formatMoney, formatShortDate, formatSigned, todayISO } from '@/lib/formatters'
 import { emptySummary, partyAbout, summarizeParties, type PartySummary } from '@/lib/parties'
 import { announceDataChange } from '@/lib/dataEvents'
@@ -54,6 +55,7 @@ export default function Parties() {
   const { rows, loading: rowsLoading } = useChequeListData()
   const [formOpen, setFormOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const { guard } = usePlan()
   const today = todayISO()
 
   const q = params.get('q') ?? ''
@@ -102,11 +104,11 @@ export default function Parties() {
         title="Parties"
         actions={
           <>
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Button variant="outline" onClick={guard(() => setImportOpen(true))}>
               <FileSpreadsheet />
               Import from Excel
             </Button>
-            <Button onClick={() => setFormOpen(true)}>
+            <Button onClick={guard(() => setFormOpen(true))}>
               <Plus />
               Add party
             </Button>

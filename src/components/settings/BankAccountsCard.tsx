@@ -5,11 +5,13 @@ import { SettingsSection } from '@/components/settings/SettingsSection'
 import { BankAccountDialog } from '@/components/shared/BankAccountDialog'
 import { Chip } from '@/components/shared/Chip'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
+import { usePlan } from '@/hooks/usePlan'
 import type { BankAccount } from '@/types/received'
 
 /** Settings → Your bank accounts: the ones you write cheques from and deposit cheques into. */
 export function BankAccountsCard() {
   const { accounts, loading } = useBankAccounts()
+  const { guard } = usePlan()
   // null: closed; 'new': adding; an account: editing it.
   const [editing, setEditing] = useState<BankAccount | 'new' | null>(null)
 
@@ -19,7 +21,7 @@ export function BankAccountsCard() {
       title="Your bank accounts"
       description="The accounts you write cheques from and deposit cheques into. Only a name and the last four digits are kept, never the full number."
       action={
-        <Button variant="outline" onClick={() => setEditing('new')}>
+        <Button variant="outline" onClick={guard(() => setEditing('new'))}>
           <Plus />
           Add account
         </Button>
@@ -46,7 +48,7 @@ export function BankAccountsCard() {
                 </span>
                 <span className="truncate text-[13px] text-ink-quiet">{account.bank_name}</span>
               </span>
-              <Button variant="ghost" className="text-brand" aria-label={`Edit ${account.name}`} onClick={() => setEditing(account)}>
+              <Button variant="ghost" className="text-brand" aria-label={`Edit ${account.name}`} onClick={guard(() => setEditing(account))}>
                 Edit
               </Button>
             </li>

@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { RowStatus, RowTags } from '@/components/cheques/RowChips'
 import { ReceivedActionDialog, type ReceivedActionMode } from '@/components/received/ReceivedActionDialog'
 import { useAppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { accountLabel } from '@/lib/bankAccounts'
 import { dueNote, receivedRow, rowTags } from '@/lib/chequeList'
 import { announceDataChange } from '@/lib/dataEvents'
@@ -65,6 +66,7 @@ interface ReceivedChequeDetailProps {
 /** A received cheque: what to do next, its details, the party and its history. */
 export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedChequeDetailProps) {
   const app = useAppActions()
+  const { guard } = usePlan()
   const [cheque, setCheque] = useState<ReceivedCheque | null>(null)
   const [history, setHistory] = useState<ReceivedChequeHistory[]>([])
   const [replaces, setReplaces] = useState<ChequeLink | null>(null)
@@ -74,6 +76,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
   const [undoOpen, setUndoOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  // On a read-only account these explain why they can't, instead (plan item 55).
+  const act = guard((mode: ReceivedActionMode) => setAction(mode))
+  const askUndo = guard(() => setUndoOpen(true))
+  const askDelete = guard(() => setDeleteOpen(true))
 
   const load = useCallback(async (id: string) => {
     const [chequeRes, historyRes, replacedByRes] = await Promise.all([
@@ -225,10 +231,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
     )
     const otherWays = (
       <div className="grid grid-cols-2 gap-2">
-        <Button variant="outline" size="lg" onClick={() => setAction('settle')}>
+        <Button variant="outline" size="lg" onClick={() => act('settle')}>
           Paid another way
         </Button>
-        <Button variant="outline" size="lg" onClick={() => setAction('replace')}>
+        <Button variant="outline" size="lg" onClick={() => act('replace')}>
           Got a new cheque
         </Button>
       </div>
@@ -241,7 +247,7 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
             'Held as security',
             `Review it on ${formatShortDate(cheque.due_date)}. Hand it back when it's no longer needed.`,
             <>
-              <Button variant="outline" size="lg" onClick={() => setAction('hand_back')}>
+              <Button variant="outline" size="lg" onClick={() => act('hand_back')}>
                 <Undo2 />
                 Hand it back
               </Button>
@@ -251,7 +257,7 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
                   Deposit it
                 </Button>
               )}
-              <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => setAction('write_off')}>
+              <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => act('write_off')}>
                 Write it off…
               </Button>
             </>
@@ -268,10 +274,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
             </Button>
             {otherWays}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="ghost" onClick={() => setAction('hand_back')}>
+              <Button variant="ghost" onClick={() => act('hand_back')}>
                 Hand it back
               </Button>
-              <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => setAction('write_off')}>
+              <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => act('write_off')}>
                 Write it off…
               </Button>
             </div>
@@ -283,10 +289,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
           'Did it clear?',
           `Deposited ${cheque.deposited_on ? formatShortDate(cheque.deposited_on) : ''}${cheque.deposit_account ? ` into ${accountLabel(cheque.deposit_account)}` : ''}. It usually takes ${clearingDays} day${clearingDays === 1 ? '' : 's'}.`,
           <>
-            <Button size="lg" onClick={() => setAction('clear')}>
+            <Button size="lg" onClick={() => act('clear')}>
               Mark cleared
             </Button>
-            <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => setAction('bounce')}>
+            <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => act('bounce')}>
               It bounced…
             </Button>
           </>
@@ -297,12 +303,12 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
           'What happens next?',
           `Bounced${cheque.bounced_on ? ` on ${formatShortDate(cheque.bounced_on)}` : ''}${cheque.bounce_reason ? `: ${cheque.bounce_reason}` : ''}.${Number(cheque.bank_charges) > 0 ? ` Your bank charged ${formatMoney(Number(cheque.bank_charges))}.` : ''}`,
           <>
-            <Button size="lg" onClick={() => setAction('redeposit')}>
+            <Button size="lg" onClick={() => act('redeposit')}>
               <Landmark />
               Deposit it again
             </Button>
             {otherWays}
-            <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => setAction('write_off')}>
+            <Button variant="ghost" className="text-problem hover:text-problem" onClick={() => act('write_off')}>
               Write it off…
             </Button>
           </>
@@ -329,22 +335,22 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuItem
-                    onSelect={() => {
+                    onSelect={guard(() => {
                       onClose()
                       app.editReceivedCheque(cheque)
-                    }}
+                    })}
                   >
                     <Pencil className="text-ink-quiet" />
                     Edit
                   </DropdownMenuItem>
                   {history.length > 0 && (
-                    <DropdownMenuItem onSelect={() => setUndoOpen(true)}>
+                    <DropdownMenuItem onSelect={askUndo}>
                       <Undo2 className="text-ink-quiet" />
                       Undo last change
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setDeleteOpen(true)} className="text-problem focus:text-problem">
+                  <DropdownMenuItem onSelect={askDelete} className="text-problem focus:text-problem">
                     <Trash2 />
                     Delete
                   </DropdownMenuItem>
@@ -441,7 +447,7 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
                   ))
                 )}
                 {history.length > 0 && (
-                  <Button variant="link" className="h-11 self-start px-0.5" onClick={() => setUndoOpen(true)}>
+                  <Button variant="link" className="h-11 self-start px-0.5" onClick={askUndo}>
                     <RotateCcw />
                     Undo last change
                   </Button>

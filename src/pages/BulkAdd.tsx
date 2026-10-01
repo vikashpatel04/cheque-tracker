@@ -11,6 +11,7 @@ import { AccountPicker } from '@/components/shared/AccountPicker'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { describeExisting, loadRecentChequeNumbers, useExistingChequeNumbers } from '@/hooks/useExistingChequeNumbers'
 import { useParties } from '@/hooks/useParties'
+import { usePlan } from '@/hooks/usePlan'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
 import { inChequeBook, nextFreeNumber, numbersInBook, suggestChequeNumber, type NumberedCheque } from '@/lib/chequeNumbers'
 import { currencySymbol, formatAmountInput, formatMoney, parseAmount, todayISO } from '@/lib/formatters'
@@ -57,6 +58,7 @@ const plural = (n: number) => `${n} cheque${n === 1 ? '' : 's'}`
  */
 export default function BulkAdd() {
   const navigate = useNavigate()
+  const { requireWrite } = usePlan()
   const { partyId } = useParams<{ partyId: string }>()
   const isPartyWise = Boolean(partyId)
 
@@ -172,6 +174,7 @@ export default function BulkAdd() {
     ].filter((m): m is string => Boolean(m))
 
   const handleSubmit = async () => {
+    if (!requireWrite()) return
     if (rows.some((r) => missing(r).length > 0)) {
       setAttempted(true)
       toast.error('Some cheques still need details. Each one says what.')

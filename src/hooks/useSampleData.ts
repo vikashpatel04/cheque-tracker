@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { usePlan } from '@/hooks/usePlan'
 import { useDataChanges } from '@/lib/dataEvents'
 import { todayISO } from '@/lib/formatters'
 import { getActiveRegion } from '@/lib/region'
@@ -11,6 +12,7 @@ import { addSampleData, hasSampleData, removeSampleData } from '@/lib/sampleData
  * and onboarding.
  */
 export function useSampleData() {
+  const { requireWrite } = usePlan()
   const [present, setPresent] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -19,6 +21,7 @@ export function useSampleData() {
   useDataChanges(check)
 
   const add = async () => {
+    if (!requireWrite()) return false
     setBusy(true)
     const { error, added } = await addSampleData(todayISO(), getActiveRegion().chequeValidityMonths)
     setBusy(false)
@@ -29,6 +32,7 @@ export function useSampleData() {
   }
 
   const remove = async () => {
+    if (!requireWrite()) return false
     setBusy(true)
     const { error } = await removeSampleData()
     setBusy(false)

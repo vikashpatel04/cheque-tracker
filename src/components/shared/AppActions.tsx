@@ -14,6 +14,7 @@ import { SearchPalette } from '@/components/shared/SearchPalette'
 import { createGivenCheque, updateGivenCheque } from '@/lib/chequeWrites'
 import { announceDataChange } from '@/lib/dataEvents'
 import { AppActionsContext, type AppActions } from '@/hooks/useAppActions'
+import { usePlan } from '@/hooks/usePlan'
 import { useSettings } from '@/hooks/useSettings'
 import type { GuideTopicId } from '@/lib/guide'
 import type { Cheque } from '@/types'
@@ -42,6 +43,7 @@ function rememberDirection(direction: ChequeDirection) {
 /** Holds the dialogs that any page can open (see hooks/useAppActions.ts). */
 export function AppActionsProvider({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings()
+  const { guard } = usePlan()
   const tracks = settings.tracks ?? 'both'
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
   const [received, setReceived] = useState<{ open: boolean; cheque: ReceivedCheque | null; series?: boolean }>({ open: false, cheque: null })
@@ -86,23 +88,26 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
 
   const directionSwitch = (direction: ChequeDirection) => <DirectionSwitch value={direction} onChange={(next) => openNew(next, false, newParty)} />
 
+  // On a read-only account, anything that would change data explains why it can't (plan item 55).
   const actions = useMemo<AppActions>(
     () => ({
-      newCheque: (direction, partyId) => openNew(direction ?? lastDirection(tracks === 'received' ? 'received' : 'given'), false, partyId ?? ''),
-      newGivenCheque: (partyId) => openNew('given', false, partyId ?? ''),
-      newReceivedCheque: (partyId) => openNew('received', false, partyId ?? ''),
-      newSeries: (partyId) => openNew('received', true, partyId ?? ''),
-      editReceivedCheque: (cheque) => setReceived({ open: true, cheque }),
-      editCheque: (cheque) => {
+      newCheque: guard((direction, partyId) =>
+        openNew(direction ?? lastDirection(tracks === 'received' ? 'received' : 'given'), false, partyId ?? '')
+      ),
+      newGivenCheque: guard((partyId) => openNew('given', false, partyId ?? '')),
+      newReceivedCheque: guard((partyId) => openNew('received', false, partyId ?? '')),
+      newSeries: guard((partyId) => openNew('received', true, partyId ?? '')),
+      editReceivedCheque: guard((cheque) => setReceived({ open: true, cheque })),
+      editCheque: guard((cheque) => {
         setDetailId(null)
         setForm({ open: true, cheque })
-      },
-      replaceCheque: (cheque) => {
+      }),
+      replaceCheque: guard((cheque) => {
         setDetailId(null)
         setForm({ open: true, cheque: null, replacing: cheque })
-      },
-      addFunds: (amount) => setFunds({ open: true, amount }),
-      importCheques: () => setImportOpen(true),
+      }),
+      addFunds: guard((amount) => setFunds({ open: true, amount })),
+      importCheques: guard(() => setImportOpen(true)),
       openSearch,
       openHelp: (topic) => {
         setSearchOpen(false)
@@ -112,17 +117,17 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         setSearchOpen(false)
         setDetailId(id)
       },
-      depositReceived: (ids) => {
+      depositReceived: guard((ids) => {
         setReceivedId(null)
         setDepositIds(ids)
-      },
+      }),
       openReceivedCheque: (id) => {
         setSearchOpen(false)
         setReceivedId(id)
       },
-      actOnReceived: (mode, cheque) => setReceivedAction({ mode, cheque }),
+      actOnReceived: guard((mode, cheque) => setReceivedAction({ mode, cheque })),
     }),
-    [openSearch, openNew, tracks]
+    [guard, openSearch, openNew, tracks]
   )
 
   return (
@@ -168,10 +173,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         chequeId={detailId}
         open={!!detailId}
         onOpenChange={(open) => !open && setDetailId(null)}
-        onEdit={(cheque) => {
-          setDetailId(null)
-          setForm({ open: true, cheque })
-        }}
+        onEdit={actions.editCheque}
         onRefresh={announceDataChange}
       />
 
@@ -186,7 +188,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         directionSwitch={directionSwitch('received')}
       />
 
-      <ReceivedChequeDetail chequeId={receivedId} onClose={() => setReceivedId(null)} onDeposit={(ids) => setDepositIds(ids)} />
+      <ReceivedChequeDetail chequeId={receivedId} onClose={() => setReceivedId(null)} onDeposit={guard((ids: string[]) => setDepositIds(ids))} />
 
       <DepositDialog ids={depositIds} onClose={() => setDepositIds(null)} />
 
