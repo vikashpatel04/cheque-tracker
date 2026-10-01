@@ -26,14 +26,15 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+  // captchaToken: from useCaptcha, when the bot check is on (components/auth/Captcha.tsx).
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } })
     return { error }
   }
 
   /** A new account. With email confirmation on, there's no session until the link is opened. */
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: backTo('/') } })
+  const signUp = async (email: string, password: string, captchaToken?: string) => {
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: backTo('/'), captchaToken } })
     return { session: data.session, error }
   }
 
@@ -44,14 +45,14 @@ export function useAuth() {
   }
 
   /** Sends the confirmation link again. */
-  const resendConfirmation = async (email: string) => {
-    const { error } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: backTo('/') } })
+  const resendConfirmation = async (email: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: backTo('/'), captchaToken } })
     return { error }
   }
 
   /** Emails a link to /reset-password. */
-  const sendPasswordReset = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: backTo('/reset-password') })
+  const sendPasswordReset = async (email: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: backTo('/reset-password'), captchaToken })
     return { error }
   }
 

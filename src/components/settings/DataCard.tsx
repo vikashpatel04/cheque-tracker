@@ -75,7 +75,8 @@ async function exportEverything() {
 
 /** Reads an export and previews what it would add; nothing is saved until Import. */
 function ImportFromExport() {
-  const { guard } = usePlan()
+  // Not part of the free trial, so trial accounts can't be refilled from another account's export.
+  const { requirePaid } = usePlan()
   const navigate = useNavigate()
   const input = useRef<HTMLInputElement>(null)
   const [plan, setPlan] = useState<ImportPlan | null>(null)
@@ -120,7 +121,7 @@ function ImportFromExport() {
   return (
     <>
       <input ref={input} type="file" accept=".xlsx,.xls" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={handleFile} />
-      <Button variant="outline" onClick={guard(() => input.current?.click())}>
+      <Button variant="outline" onClick={() => requirePaid() && input.current?.click()}>
         <Upload />
         Import from an export
       </Button>

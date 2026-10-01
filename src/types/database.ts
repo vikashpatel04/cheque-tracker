@@ -666,6 +666,24 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_refusals: {
+        Row: {
+          created_at: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       all_cheques: {

@@ -7,6 +7,7 @@ import { Chip } from '@/components/shared/Chip'
 import { REGION_PRESETS, countryName, detectPreset, findPreset } from '@/config/regions'
 import { useAuth } from '@/hooks/useAuth'
 import { useBankAccounts } from '@/hooks/useBankAccounts'
+import { usePlan } from '@/hooks/usePlan'
 import { useSettings } from '@/hooks/useSettings'
 import { formatCurrency, todayDate } from '@/lib/formatters'
 import { regionFromPreset, regionKey, regionToSettings, setActiveRegion } from '@/lib/region'
@@ -42,6 +43,8 @@ export default function Onboarding() {
   const { updateSettings } = useSettings()
   const { signOut } = useAuth()
   const { accounts } = useBankAccounts()
+  // An account without a plan (no free trial) can't add accounts yet; this explains why.
+  const { guard } = usePlan()
   const detected = useMemo(() => detectPreset(), [])
   const [step, setStep] = useState(1)
   const [country, setCountry] = useState(detected?.preset.country ?? '')
@@ -263,7 +266,7 @@ export default function Onboarding() {
                   ))}
                 </ul>
               )}
-              <Button variant="outline" size="lg" className="self-start" onClick={() => setAddingAccount(true)}>
+              <Button variant="outline" size="lg" className="self-start" onClick={guard(() => setAddingAccount(true))}>
                 <Plus />
                 {accounts.length ? 'Add another account' : 'Add an account'}
               </Button>

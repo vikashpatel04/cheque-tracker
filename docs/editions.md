@@ -53,6 +53,18 @@ The database is the source of truth. The app only reflects it:
 
 With billing off, none of this shows or holds anything back.
 
+### Free trials: one per person
+
+With billing on and `trial_days` above 0, a new account gets a free trial at sign-up (migration 021). To stop people signing up again and again for more trials:
+
+- **One trial per email address, ever.** A hash of each address that got a trial is kept in `internal.trial_claims`, even after the account is deleted. Addresses compare the way mail is delivered: case and "+anything" before the @ don't count, and for Gmail neither do dots.
+- **No trial for throwaway mail.** Addresses at a domain in `internal.throwaway_email_domains`, or one of its subdomains, get no trial.
+- **No sign-up is refused.** Such an account opens without a trial and can buy a pack straight away. `trial_refusals` records why, and the app explains it.
+- **Importing an export comes with a pack.** During a trial, the app won't import an export from another account. The Excel template stays open, because that's how new users bring in their records. This rule lives only in the app; the two above do the real work.
+- **The sign-up page says** "One free trial per person", and the terms should too.
+
+Only a hash of the address is kept, never the address itself. Say so in the privacy policy.
+
 ### Tests
 
 `tests/migrations.test.ts` applies every migration to an in-memory Postgres and checks both editions as real users: writes allowed with billing off, trials at sign-up, read-only accounts, comp grants, expired purchases, and that users can't write entitlements. It runs on every pull request.
@@ -86,6 +98,25 @@ set billing_enabled = true,
 
 Accounts created before this have no entitlement and become read-only. Give them one, for example with a comp grant.
 
+### Sign-up protection
+
+- **Throwaway-mail domains.** Migration 021 starts the list with about 70 well-known services. For far wider coverage, add the public list from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) (`disposable_email_blocklist.conf`, one domain per line). Paste its contents between the `$$` marks:
+
+  ```sql
+  insert into internal.throwaway_email_domains (domain)
+  select distinct lower(d) from regexp_split_to_table($$<paste the file here>$$, '\s+') as d
+  where lower(d) ~ '^[a-z0-9-]+(\.[a-z0-9-]+)+$'
+  on conflict do nothing;
+  ```
+
+  To let one address have another trial, delete its row from `internal.trial_claims`: `where email_hash = internal.email_hash('<address>')`. Or give the account a trial by hand (below).
+- **CAPTCHA.** The sign-in pages can run Cloudflare Turnstile, which usually passes without asking anything:
+  1. Create a Turnstile widget for your domain in Cloudflare.
+  2. Set its site key as `VITE_TURNSTILE_SITE_KEY` in the app's environment, and deploy.
+  3. Then, in Supabase, go to Authentication → Attack Protection, turn on CAPTCHA protection, choose Turnstile, and enter the secret key.
+
+  Keep that order. Once Supabase requires a CAPTCHA, sign-up, sign-in and password resets fail for any version of the app that doesn't send one. Google sign-in isn't affected.
+
 ### Granting a plan by hand
 
 ```sql
@@ -96,11 +127,15 @@ values ('<auth user id>', 'comp', 'Owner');
 -- A fixed period, e.g. a manual payment
 insert into entitlements (user_id, source, expires_at, payment_ref, note)
 values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>', '6-month pack');
+
+-- A free trial for an account that didn't get one (support goodwill)
+insert into entitlements (user_id, source, expires_at, note)
+values ('<auth user id>', 'trial', now() + interval '14 days', 'Free trial');
 ```
 
 ### Still needed before billing goes live
 
-- **Sign-up and onboarding:** email verification and password reset. Also CAPTCHA on sign-up, and a custom SMTP provider for auth emails.
+- **Sign-up:** a custom SMTP provider for auth emails, and CAPTCHA switched on (see Sign-up protection).
 - **Renewal reminders** before a pack ends.
 - **Legal pages:** terms, privacy policy, and refund and cancellation policy.
 

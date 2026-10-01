@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
+import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
 import { authMessage } from '@/lib/authMessage'
 
@@ -32,6 +33,7 @@ function linkProblem(): string {
 export default function Login() {
   const { signIn, signInWithGoogle, resendConfirmation, user } = useAuth()
   const options = useAuthOptions()
+  const captcha = useCaptcha()
   const navigate = useNavigate()
   const [error, setError] = useState(linkProblem)
   const [unconfirmed, setUnconfirmed] = useState('')
@@ -47,7 +49,8 @@ export default function Login() {
     setError('')
     setNotice('')
     setUnconfirmed('')
-    const { error } = await signIn(data.email, data.password)
+    const { error } = await signIn(data.email, data.password, captcha.token)
+    captcha.reset()
     if (error) {
       setError(authMessage(error.message))
       if (error.message.toLowerCase().includes('email not confirmed')) setUnconfirmed(data.email)
@@ -63,7 +66,8 @@ export default function Login() {
   }
 
   const resend = async () => {
-    const { error } = await resendConfirmation(unconfirmed)
+    const { error } = await resendConfirmation(unconfirmed, captcha.token)
+    captcha.reset()
     if (error) setError(authMessage(error.message))
     else {
       setError('')
@@ -117,7 +121,12 @@ export default function Login() {
           <p role="alert" className="text-sm text-problem">
             {error}{' '}
             {unconfirmed && (
-              <button type="button" className="font-semibold text-brand hover:underline" onClick={() => void resend()}>
+              <button
+                type="button"
+                className="font-semibold text-brand hover:underline disabled:text-ink-quiet disabled:no-underline"
+                disabled={!captcha.ready}
+                onClick={() => void resend()}
+              >
                 Send the link again
               </button>
             )}
@@ -128,7 +137,8 @@ export default function Login() {
             {notice}
           </p>
         )}
-        <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting}>
+        {captcha.element}
+        <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting || !captcha.ready}>
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>

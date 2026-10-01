@@ -54,7 +54,7 @@ export interface TestDatabase {
   /** Run a query as the database owner, like the service role or the SQL editor. */
   asAdmin<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[]; affectedRows?: number }>
   /** Create an auth user; the sign-up trigger runs as it does in Supabase. */
-  addUser(id: string): Promise<void>
+  addUser(id: string, email?: string | null): Promise<void>
 }
 
 export async function createTestDatabase(
@@ -92,8 +92,8 @@ export async function createTestDatabase(
 
   const asAdmin = <T>(sql: string, params: unknown[] = []) => db.query<T>(sql, params)
 
-  const addUser = async (id: string) => {
-    await db.query('INSERT INTO auth.users (id, email) VALUES ($1, $2)', [id, `${id.slice(0, 8)}@example.com`])
+  const addUser = async (id: string, email: string | null = `${id.slice(0, 8)}@example.com`) => {
+    await db.query('INSERT INTO auth.users (id, email) VALUES ($1, $2)', [id, email])
   }
 
   return { db, asUser, asAdmin, addUser }

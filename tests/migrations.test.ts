@@ -20,7 +20,7 @@ const PRIVILEGES_SQL = `
   FROM (VALUES ('anon'), ('authenticated'), ('service_role')) AS r(role)
   CROSS JOIN (VALUES ('parties'), ('cheques'), ('cheque_history'), ('daily_deposits'), ('settings'),
     ('instance_config'), ('entitlements'), ('bank_accounts'), ('received_cheques'),
-    ('received_cheque_history'), ('all_cheques'), ('packs'), ('payment_orders')) AS t(name)
+    ('received_cheque_history'), ('all_cheques'), ('packs'), ('payment_orders'), ('trial_refusals')) AS t(name)
   CROSS JOIN (VALUES ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE')) AS p(privilege)
   WHERE has_table_privilege(r.role, 'public.' || t.name, p.privilege)
   ORDER BY 1`

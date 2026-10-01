@@ -5,6 +5,9 @@ import type { Entitlement } from '@/types'
  * decides who may change data (has_write_access); the app only reflects it.
  */
 
+/** Why an account got no free trial at sign-up (migration 021). */
+export type TrialRefusal = 'used' | 'throwaway' | 'no_email'
+
 export interface PlanState {
   /** Off on self-hosted instances: every feature is free and there are no plans. */
   billingEnabled: boolean
@@ -19,6 +22,13 @@ export interface PlanState {
    * without access, or with a plan that never ends.
    */
   until: string | null
+  /**
+   * Has a bought pack, or a grant from the operator, that hasn't ended. Free
+   * trials don't count. Importing an export needs it.
+   */
+  paid: boolean
+  /** Why there was no free trial at sign-up, if there wasn't one. */
+  trialRefused: TrialRefusal | null
 }
 
 function isActive(e: Entitlement, now: number): boolean {
@@ -45,7 +55,12 @@ function accessEnds(current: Entitlement, entitlements: Entitlement[]): string |
 }
 
 /** The plan at a moment, from the user's entitlements. */
-export function planAt(billingEnabled: boolean, entitlements: Entitlement[], now: number): PlanState {
+export function planAt(
+  billingEnabled: boolean,
+  entitlements: Entitlement[],
+  now: number,
+  trialRefused: TrialRefusal | null = null
+): PlanState {
   const current = entitlements.filter((e) => isActive(e, now)).sort(lastsLonger)[0] ?? null
   const ended = current
     ? null
@@ -53,7 +68,8 @@ export function planAt(billingEnabled: boolean, entitlements: Entitlement[], now
         .filter((e) => e.expires_at && Date.parse(e.expires_at) <= now)
         .sort((a, b) => Date.parse(b.expires_at!) - Date.parse(a.expires_at!))[0] ?? null)
   const until = current ? accessEnds(current, entitlements) : null
-  return { billingEnabled, hasAccess: !billingEnabled || !!current, current, ended, until }
+  const paid = entitlements.some((e) => e.source !== 'trial' && (!e.expires_at || Date.parse(e.expires_at) > now))
+  return { billingEnabled, hasAccess: !billingEnabled || !!current, current, ended, until, paid, trialRefused }
 }
 
 /**
@@ -72,11 +88,42 @@ export function daysLeft(expiresAt: string, now = Date.now()): number {
   return Math.max(0, Math.ceil((Date.parse(expiresAt) - now) / 86_400_000))
 }
 
-/** What to call a read-only account, and the button that ends it. */
-export function readOnlyWording(ended: Entitlement | null): { title: string; action: string } {
-  if (!ended) return { title: 'No active plan', action: 'Choose a pack' }
-  if (ended.source === 'trial') return { title: 'Your free trial has ended', action: 'Choose a pack' }
-  return { title: 'Your plan has ended', action: 'Renew' }
+export interface PlanWording {
+  title: string
+  /** A sentence or two after the title. */
+  text: string
+  /** The button that leads to the packs. */
+  action: string
+}
+
+const DATA_IS_SAFE = 'Your cheques are safe, and you can still view and export them.'
+
+/** How to explain a read-only account, and the button that ends it. */
+export function readOnlyWording({ ended, trialRefused }: Pick<PlanState, 'ended' | 'trialRefused'>): PlanWording {
+  if (ended?.source === 'trial') return { title: 'Your free trial has ended', text: DATA_IS_SAFE, action: 'Choose a pack' }
+  if (ended) return { title: 'Your plan has ended', text: DATA_IS_SAFE, action: 'Renew' }
+  if (trialRefused === 'used') {
+    return {
+      title: 'Free trial already used',
+      text: 'This email address has had a free trial before, and trials are one per person. Choose a pack to start adding cheques.',
+      action: 'Choose a pack',
+    }
+  }
+  if (trialRefused === 'throwaway') {
+    return {
+      title: 'Free trials need your usual email',
+      text: 'This address is at a throwaway-mail service. Choose a pack to start, or sign up with your usual email or with Google.',
+      action: 'Choose a pack',
+    }
+  }
+  return { title: 'No active plan', text: 'Your account is read-only: everything stays visible and can be exported.', action: 'Choose a pack' }
+}
+
+/** Why importing an export waits for a pack (it isn't part of the free trial). */
+export const IMPORT_NEEDS_PACK: PlanWording = {
+  title: 'Importing an export comes with a pack',
+  text: 'During the free trial, add cheques one at a time, as a series, or from the Excel template.',
+  action: 'Choose a pack',
 }
 
 /*

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
+import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
 import { authMessage } from '@/lib/authMessage'
 
@@ -36,6 +37,7 @@ const signInLink = (
 export default function Signup() {
   const { signUp, signInWithGoogle, resendConfirmation, user } = useAuth()
   const options = useAuthOptions()
+  const captcha = useCaptcha()
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [sentTo, setSentTo] = useState('')
@@ -49,7 +51,8 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupForm) => {
     setError('')
-    const { session, error } = await signUp(data.email, data.password)
+    const { session, error } = await signUp(data.email, data.password, captcha.token)
+    captcha.reset()
     if (error) setError(authMessage(error.message))
     else if (session) navigate('/')
     else setSentTo(data.email)
@@ -62,7 +65,8 @@ export default function Signup() {
   }
 
   const resend = async () => {
-    const { error } = await resendConfirmation(sentTo)
+    const { error } = await resendConfirmation(sentTo, captcha.token)
+    captcha.reset()
     if (error) setError(authMessage(error.message))
     else setResent(true)
   }
@@ -84,8 +88,9 @@ export default function Signup() {
               {error}
             </p>
           )}
+          {!resent && captcha.element}
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void resend()} disabled={resent}>
+            <Button variant="outline" onClick={() => void resend()} disabled={resent || !captcha.ready}>
               {resent ? 'Sent again' : 'Send it again'}
             </Button>
             <Button
@@ -106,7 +111,20 @@ export default function Signup() {
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="For the cheques you give and the cheques you receive." footer={signInLink}>
+    <AuthLayout
+      title="Create your account"
+      subtitle={
+        <>
+          For the cheques you give and the cheques you receive.
+          {!!options?.trialDays && (
+            <span className="mt-1.5 block text-[15px] font-medium text-ink">
+              Free for {options.trialDays} days, then choose a pack. One free trial per person.
+            </span>
+          )}
+        </>
+      }
+      footer={signInLink}
+    >
       {options?.signUp === false ? (
         <p className="rounded-xl border bg-surface p-5 text-base leading-6">
           New accounts can&apos;t be created here. Ask whoever runs this copy of the app to add you.
@@ -144,7 +162,8 @@ export default function Signup() {
                 {error}
               </p>
             )}
-            <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting}>
+            {captcha.element}
+            <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting || !captcha.ready}>
               {isSubmitting ? 'Creating your account…' : 'Create account'}
             </Button>
           </form>

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { useAuth } from '@/hooks/useAuth'
+import { useCaptcha } from '@/hooks/useCaptcha'
 import { authMessage } from '@/lib/authMessage'
 
 const schema = z.object({ email: z.string().email('Enter your email address') })
@@ -21,6 +22,7 @@ const backToSignIn = (
 /** Ask for a link to set a new password (plan item 52). It leads to /reset-password. */
 export default function ForgotPassword() {
   const { sendPasswordReset } = useAuth()
+  const captcha = useCaptcha()
   const [error, setError] = useState('')
   const [sentTo, setSentTo] = useState('')
 
@@ -30,7 +32,8 @@ export default function ForgotPassword() {
 
   const onSubmit = async ({ email }: { email: string }) => {
     setError('')
-    const { error } = await sendPasswordReset(email)
+    const { error } = await sendPasswordReset(email, captcha.token)
+    captcha.reset()
     if (error) setError(authMessage(error.message))
     else setSentTo(email)
   }
@@ -61,7 +64,8 @@ export default function ForgotPassword() {
             {error}
           </p>
         )}
-        <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting}>
+        {captcha.element}
+        <Button type="submit" size="lg" className="h-[52px] w-full text-[17px]" disabled={isSubmitting || !captcha.ready}>
           {isSubmitting ? 'Sending…' : 'Send the link'}
         </Button>
       </form>

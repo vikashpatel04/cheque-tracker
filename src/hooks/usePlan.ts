@@ -14,6 +14,11 @@ export interface Plan extends PlanState {
   guard: <A extends unknown[]>(action: (...args: A) => unknown) => (...args: A) => void
   /** For code that can't be wrapped: whether changes are allowed. When not, it explains why. */
   requireWrite: () => boolean
+  /**
+   * Whether something that isn't part of the free trial (importing an export)
+   * is allowed. When not, it explains why.
+   */
+  requirePaid: () => boolean
   /** Loads the plan again, e.g. after paying. */
   refresh: () => Promise<void>
 }
@@ -28,12 +33,15 @@ const NO_PROVIDER: Plan = {
   current: null,
   ended: null,
   until: null,
+  paid: false,
+  trialRefused: null,
   readOnly: false,
   guard:
     (action) =>
     (...args) =>
       void action(...args),
   requireWrite: () => true,
+  requirePaid: () => true,
   refresh: async () => {},
 }
 

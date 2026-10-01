@@ -58,12 +58,12 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. I verified email sign-up, Google and a password reset on 2026-10-01.
 
-  On 2026-10-01 I picked 55, then 53. Fixed first: on narrow phones the "+" of Today's figures wrapped onto its own line (`43dec27`). 55 (read-only when a plan ends) is done, with migration 019; see its notes in the plan. 53 (Razorpay payments) is built, with migration 020 and the `payments` Edge Function; it waits for my Razorpay test keys and a test payment (the plan lists the steps; `docs/payments.md` has the setup).
+  On 2026-10-01 I picked 55, then 53. Fixed first: on narrow phones the "+" of Today's figures wrapped onto its own line (`43dec27`). 55 (read-only when a plan ends) is done, with migration 019; see its notes in the plan. 53 (Razorpay payments) is built, with migration 020 and the `payments` Edge Function; it waits for my Razorpay test keys and a test payment (the plan lists the steps; `docs/payments.md` has the setup). Then, against trial abuse (people signing up again with new addresses and importing their export), I chose A to E, built as item 84 with migration 021: one trial per email address, no trial for throwaway mail, importing an export needs a pack, a CAPTCHA (on once I set a Turnstile key), and "one free trial per person" on sign-up. My idea of tying exports to their account goes with item 10.
 
   83 (installing on phones) is noted for later.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix, 55 and 53. Pushing applies migrations 019 and 020 to the dev project; then regenerate `src/types/database.ts` (020's tables were added to it by hand).
+- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix, 55, 53 and 84. Pushing applies migrations 019 to 021 to the dev project; then regenerate `src/types/database.ts` (the new tables were added to it by hand).
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29

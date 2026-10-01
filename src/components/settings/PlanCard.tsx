@@ -11,7 +11,10 @@ import { readOnlyWording } from '@/lib/plan'
 
 function describe(plan: Plan): string {
   const { current, until } = plan
-  if (!current) return `${readOnlyWording(plan.ended).title}. Your account is read-only: everything stays visible and can be exported.`
+  if (!current) {
+    const wording = readOnlyWording(plan)
+    return `${wording.title}. ${wording.text}`
+  }
   if (!current.expires_at || !until) return 'Active, with no end date.'
   if (current.source === 'trial') {
     return until === current.expires_at

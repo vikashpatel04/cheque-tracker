@@ -21,7 +21,15 @@ function grant(source: Entitlement['source'], startsIn: number, endsIn: number |
 
 describe('the plan at a moment', () => {
   it('gives everyone access when billing is off', () => {
-    expect(planAt(false, [], NOW)).toEqual({ billingEnabled: false, hasAccess: true, current: null, ended: null, until: null })
+    expect(planAt(false, [], NOW)).toEqual({
+      billingEnabled: false,
+      hasAccess: true,
+      current: null,
+      ended: null,
+      until: null,
+      paid: false,
+      trialRefused: null,
+    })
   })
 
   it('is read-only with billing on and no active plan, and remembers what ended last', () => {
@@ -29,7 +37,7 @@ describe('the plan at a moment', () => {
     const plan = planAt(true, [trial], NOW)
     expect(plan.hasAccess).toBe(false)
     expect(plan.ended).toBe(trial)
-    expect(readOnlyWording(plan.ended)).toEqual({ title: 'Your free trial has ended', action: 'Choose a pack' })
+    expect(readOnlyWording(plan)).toMatchObject({ title: 'Your free trial has ended', action: 'Choose a pack' })
   })
 
   it('picks the plan that lasts longest, and one that never ends first', () => {
@@ -63,9 +71,19 @@ describe('the plan at a moment', () => {
     expect(nextPlanChange([grant('purchase', -40, -10)], NOW)).toBeNull()
   })
 
-  it('names plans that ended and accounts that never had one', () => {
-    expect(readOnlyWording(grant('purchase', -200, -20))).toEqual({ title: 'Your plan has ended', action: 'Renew' })
-    expect(readOnlyWording(null)).toEqual({ title: 'No active plan', action: 'Choose a pack' })
+  it('names plans that ended, and says why a new account got no trial', () => {
+    expect(readOnlyWording({ ended: grant('purchase', -200, -20), trialRefused: null })).toMatchObject({ title: 'Your plan has ended', action: 'Renew' })
+    expect(readOnlyWording({ ended: null, trialRefused: 'used' }).title).toBe('Free trial already used')
+    expect(readOnlyWording({ ended: null, trialRefused: 'throwaway' }).title).toBe('Free trials need your usual email')
+    expect(readOnlyWording({ ended: null, trialRefused: null })).toMatchObject({ title: 'No active plan', action: 'Choose a pack' })
+  })
+
+  it('counts a bought pack or a grant as paid, even before it starts, but never a trial', () => {
+    expect(planAt(true, [grant('trial', -2, 12)], NOW).paid).toBe(false)
+    expect(planAt(true, [grant('trial', -2, 12), grant('purchase', 12, 42)], NOW).paid).toBe(true)
+    expect(planAt(true, [grant('comp', -2, null)], NOW).paid).toBe(true)
+    expect(planAt(true, [grant('purchase', -40, -10)], NOW).paid).toBe(false)
+    expect(planAt(true, [], NOW, 'throwaway').trialRefused).toBe('throwaway')
   })
 
   it('counts whole days left, never below zero', () => {

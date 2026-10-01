@@ -60,7 +60,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
   - **Guide:** "Learn how cheques work" (/learn) answers the topics in `src/lib/guide.ts`. Where something might confuse, put a `HelpLink` to the topic; it opens the answer beside the page.
   - **Frame:** `Layout` has the sidebar and top bar on desktop (`lg` and up) and bottom tabs on phones. Pages start with `PageHeader`. The New menu, search (Ctrl K) and the cheque dialogs live once in `AppActionsProvider`; open them with `useAppActions()`. After saving anything, call `announceDataChange()` (`src/lib/dataEvents.ts`) so every list refreshes. Pick from a list with `Combobox` (`src/components/ui/combobox.tsx`): a popover on desktop, a sheet on phones (`useIsPhone`), so the keyboard never hides its search. The phone's back button closes the top overlay: the Radix roots in `src/components/ui` are wrapped with `closesOnBack` (`src/hooks/useCloseOnBack.ts`); wrap any new overlay root the same way.
   - **Installed app (PWA):** `pwa/service-worker.js` is built into `dist/sw.js` by `vite.config.ts`, and registered in production only by `src/lib/pwa.ts`, which also offers new versions and installing. Icons are in `public/icons/`. Test it with `npm run build`, then `npm run preview`.
-  - **Signing in:** `/login`, `/signup`, `/forgot-password` and `/reset-password` share `AuthLayout` (`src/components/auth/`). `useAuthOptions` reads Supabase's public auth settings to show Google and sign-up only when the project allows them.
+  - **Signing in:** `/login`, `/signup`, `/forgot-password` and `/reset-password` share `AuthLayout` (`src/components/auth/`). `useAuthOptions` reads Supabase's public auth settings to show Google and sign-up only when the project allows them. With `VITE_TURNSTILE_SITE_KEY` set, `useCaptcha` adds Cloudflare Turnstile to every form that signs in, signs up or sends an email; pass its token with the request.
   - `SettingsProvider` loads the user's settings and shows `Onboarding` (region, what you track, bank accounts) until a region is chosen. After that it keys the app by region, so the app remounts when the region changes. Today shows a first-run checklist until the setup is done or hidden.
 - **Given cheques:**
   - Tables: `cheques`, `cheque_history`, `daily_deposits` ("Add funds"), `parties`, `settings`.
@@ -76,7 +76,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 - **`all_cheques` view:** combines both directions for mixed screens. It's created with `security_invoker`, so row-level security still applies.
 - **Editions:**
   - `instance_config.billing_enabled`: false means self-hosted, with full access for everyone.
-  - `entitlements`: trial, purchase or comp. Only the service role writes them.
+  - `entitlements`: trial, purchase or comp. Only the service role writes them. Trials are one per email address, and none for throwaway mail (migration 021); importing an export needs a pack (`usePlan().requirePaid()`).
   - `has_write_access()` with RESTRICTIVE policies makes lapsed accounts read-only. The UI only reflects this: `PlanProvider` keeps the plan current, and on a read-only account anything that changes data opens a "plan has ended" dialog. Wrap any new action that writes in `usePlan().guard` (or check `requireWrite()`).
 - **Companions:** cheque-mcp and Cheque Watch read the given-side tables with the service-role key. Keep changes to `cheques`, `parties`, `cheque_history` and `daily_deposits` additive.
 - **Edge Function `supabase/functions/payments`:** sells packs through Razorpay: `/checkout`, `/confirm` and the `/webhook`. Only the service role can run `record_payment()`, which turns a checked payment into a `purchase` entitlement, once, starting when current access ends. Prices live in the hosted project's `packs` table, never in the repo. Settings → Plan (`PlanCard`, `src/lib/payments.ts`) lists the packs and opens Razorpay Checkout. See [docs/payments.md](docs/payments.md).
@@ -85,7 +85,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 ## Database changes
 
 - **Migrations:**
-  - Add a numbered migration; the next one is `supabase/migrations/021_…`.
+  - Add a numbered migration; the next one is `supabase/migrations/022_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
 - **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy.

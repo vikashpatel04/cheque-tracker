@@ -15,14 +15,16 @@ export function PlanBanner() {
   if (plan.loading || !plan.billingEnabled) return null
 
   if (plan.readOnly) {
-    const wording = readOnlyWording(plan.ended)
+    const wording = readOnlyWording(plan)
     return (
       <div
         role="status"
         className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b bg-attention-soft px-4 py-2 text-sm text-attention lg:px-10"
       >
         <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span>{wording.title}. Your cheques are safe, and you can still view and export them.</span>
+        <span>
+          {wording.title}. {wording.text}
+        </span>
         <Link to="/settings#plan" className="font-semibold underline underline-offset-2">
           {wording.action}
         </Link>
