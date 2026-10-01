@@ -263,7 +263,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - `useAuthOptions` reads Supabase's public auth settings, so the Google button and "Create account" show only when the project allows them.
     - Supabase's messages go through `authMessage`. Links from emails that failed come back to sign-in with the reason.
   - Still to do:
-    - The maintainer tries email sign-up (the confirmation email, then onboarding), Google, and a password reset.
+    - ~~The maintainer tries email sign-up, Google and a password reset.~~ Verified by the maintainer on 2026-10-01.
     - Before launch: CAPTCHA, custom SMTP (Supabase's own email only reaches the organization's members), leaked-password protection (Pro plan), Google brand verification (until then Google names the Supabase project, not the app), "Try it free for N days" when billing is on, and the terms and privacy line once item 57 has the pages.
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
 - [ ] **54.** Renewal reminders before a pack ends.

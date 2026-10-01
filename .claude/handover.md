@@ -56,7 +56,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
   69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
 
-  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. Next: I try email sign-up, Google and a password reset myself, then we pick what's next.
+  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. I verified email sign-up, Google and a password reset on 2026-10-01. Next: whatever I pick from the list of what's left.
 
   83 (installing on phones) is noted for later.
 
