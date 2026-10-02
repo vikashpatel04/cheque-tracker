@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { PlanContext, type Plan } from '@/hooks/usePlan'
-import { IMPORT_NEEDS_PACK, nextPlanChange, planAt, readOnlyWording, setReadOnly, type PlanWording, type TrialRefusal } from '@/lib/plan'
+import { IMPORT_NEEDS_BUSINESS, lapsedWording, nextPlanChange, planAt, setLapsed, type PlanWording, type TrialRefusal } from '@/lib/plan'
 import { supabase } from '@/lib/supabase'
 import type { Entitlement } from '@/types'
 
@@ -43,9 +43,10 @@ async function loadPlan(): Promise<Loaded | null> {
 
 /**
  * Loads the plan once for the app and keeps it current: it changes by itself
- * when a plan ends or a bought one starts (plan item 55). On a read-only
- * account, `guard` turns anything that changes data into the "plan has
- * ended" dialog, and the Supabase client refuses changes (lib/plan.ts).
+ * when a plan ends or a bought one starts (plan item 55). On the Free plan,
+ * `guard` turns what the Free plan can't do (adding, editing beyond notes,
+ * deleting) into a dialog that explains, and the Supabase client refuses new
+ * rows (lib/plan.ts). Moving cheques along isn't guarded.
  * It sits above onboarding too (App.tsx), so the first steps know the plan.
  */
 export function PlanProvider({ children }: { children: React.ReactNode }) {
@@ -84,23 +85,23 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     () => (loaded ? planAt(loaded.billingEnabled, loaded.entitlements, now, loaded.trialRefused) : null),
     [loaded, now]
   )
-  const readOnly = !!state && state.billingEnabled && !state.hasAccess
+  const lapsed = !!state && state.billingEnabled && !state.hasAccess
 
   useEffect(() => {
-    setReadOnly(readOnly)
-    return () => setReadOnly(false)
-  }, [readOnly])
+    setLapsed(lapsed)
+    return () => setLapsed(false)
+  }, [lapsed])
 
   const requireWrite = useCallback(() => {
-    if (readOnly && state) setAsking(readOnlyWording(state))
-    return !readOnly
-  }, [readOnly, state])
+    if (lapsed && state) setAsking(lapsedWording(state))
+    return !lapsed
+  }, [lapsed, state])
 
   // Importing an export isn't part of the free trial (see docs/editions.md).
   const requirePaid = useCallback(() => {
     if (!requireWrite()) return false
     if (!state?.billingEnabled || state.paid) return true
-    setAsking(IMPORT_NEEDS_PACK)
+    setAsking(IMPORT_NEEDS_BUSINESS)
     return false
   }, [requireWrite, state])
 
@@ -122,13 +123,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       until: state?.until ?? null,
       paid: state?.paid ?? false,
       trialRefused: state?.trialRefused ?? null,
-      readOnly,
+      lapsed,
       guard,
       requireWrite,
       requirePaid,
       refresh,
     }),
-    [state, readOnly, guard, requireWrite, requirePaid, refresh]
+    [state, lapsed, guard, requireWrite, requirePaid, refresh]
   )
 
   return (

@@ -288,8 +288,8 @@ export function ChequeDetail({ chequeId, open, onOpenChange, onEdit, onRefresh }
                 onFundAndPass={() => status.requestChained(cheque)}
                 onPassed={() => status.requestStatus(cheque, 'PASSED')}
                 onReturned={() => status.requestStatus(cheque, 'RETURNED')}
-                onPresent={guard(() => setRePresentOpen(true))}
-                onWriteOff={guard(() => setWriteOffOpen(true))}
+                onPresent={() => setRePresentOpen(true)}
+                onWriteOff={() => setWriteOffOpen(true)}
                 onReplace={() => app.replaceCheque(cheque)}
               />
 

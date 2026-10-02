@@ -11,13 +11,20 @@ export function extractTags(notes: string | null): ChequeTag[] {
   return tags
 }
 
+const isTagLine = (line: string) => ['[RE_PRESENTED]', '[FROM_RETURN]', '[WRITTEN_OFF]'].some((t) => line.startsWith(t))
+
 export function stripTagLines(notes: string | null): string {
   if (!notes) return ''
   return notes
     .split('\n')
-    .filter((line) => !['[RE_PRESENTED]', '[FROM_RETURN]', '[WRITTEN_OFF]'].some((t) => line.startsWith(t)))
+    .filter((line) => !isTagLine(line))
     .join('\n')
     .trim()
+}
+
+/** The tag lines in a cheque's notes, which stay as they are when the rest is edited. */
+export function tagLines(notes: string | null): string[] {
+  return (notes ?? '').split('\n').filter(isTagLine)
 }
 
 /** Returned cheque re-presented with the old flow (a separate cheque row was created). */

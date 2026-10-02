@@ -5,11 +5,15 @@ export { daysLeft } from '@/lib/plan'
 
 export interface Plan extends PlanState {
   loading: boolean
-  /** Billing is on and no plan is active: everything stays readable, nothing can change. */
-  readOnly: boolean
   /**
-   * Wraps something that changes data, such as opening a form or marking a
-   * cheque. On a read-only account it explains why it can't, instead.
+   * On the Free plan, after a trial or plan ended (billing on, nothing
+   * active): cheques can still move along and their notes change, but nothing
+   * can be added, edited or deleted.
+   */
+  lapsed: boolean
+  /**
+   * Wraps something the Free plan can't do, such as adding a cheque, editing
+   * one or deleting. On the Free plan it explains why, instead.
    */
   guard: <A extends unknown[]>(action: (...args: A) => unknown) => (...args: A) => void
   /** For code that can't be wrapped: whether changes are allowed. When not, it explains why. */
@@ -35,7 +39,7 @@ const NO_PROVIDER: Plan = {
   until: null,
   paid: false,
   trialRefused: null,
-  readOnly: false,
+  lapsed: false,
   guard:
     (action) =>
     (...args) =>

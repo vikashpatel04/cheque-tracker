@@ -14,7 +14,7 @@ import { isActivePath, NAV_ITEMS, type NavItem } from '@/components/shared/navig
 import { useAppActions } from '@/hooks/useAppActions'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
 import { useTodos } from '@/hooks/useTodayData'
-import { readOnlyWording } from '@/lib/plan'
+import { lapsedWording } from '@/lib/plan'
 import { useOnline } from '@/lib/pwa'
 import { cn } from '@/lib/utils'
 
@@ -55,21 +55,21 @@ function SidebarPlan() {
   const plan = usePlan()
   if (plan.loading || !plan.billingEnabled) return null
   const trial = plan.current?.source === 'trial' && plan.current.expires_at ? daysLeft(plan.current.expires_at) : null
-  if (!plan.readOnly && trial === null) return null
-  const wording = readOnlyWording(plan)
+  if (!plan.lapsed && trial === null) return null
+  const wording = lapsedWording(plan)
   return (
     <Link
       to="/settings#plan"
       className="flex flex-col gap-1 rounded-xl border bg-surface p-3.5 text-ink transition-colors hover:bg-hover"
     >
       <span className="text-sm font-semibold">
-        {plan.readOnly
+        {plan.lapsed
           ? wording.title
           : trial === 0
             ? 'Free trial · ends today'
             : `Free trial · ${trial} day${trial === 1 ? '' : 's'} left`}
       </span>
-      <span className="text-[13px] font-medium text-brand">{plan.readOnly ? wording.action : 'Choose a pack'}</span>
+      <span className="text-[13px] font-medium text-brand">{plan.lapsed ? wording.action : 'Choose Business'}</span>
     </Link>
   )
 }

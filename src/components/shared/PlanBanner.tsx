@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { AlertTriangle, Clock } from 'lucide-react'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
-import { readOnlyWording } from '@/lib/plan'
+import { lapsedWording } from '@/lib/plan'
 
 /** How many days before a trial ends to start reminding the user. */
 const TRIAL_REMINDER_DAYS = 3
@@ -14,8 +14,8 @@ export function PlanBanner() {
   const plan = usePlan()
   if (plan.loading || !plan.billingEnabled) return null
 
-  if (plan.readOnly) {
-    const wording = readOnlyWording(plan)
+  if (plan.lapsed) {
+    const wording = lapsedWording(plan)
     return (
       <div
         role="status"
@@ -23,7 +23,7 @@ export function PlanBanner() {
       >
         <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span>
-          {wording.title}. {wording.text}
+          {wording.title}. {wording.banner}
         </span>
         <Link to="/settings#plan" className="font-semibold underline underline-offset-2">
           {wording.action}
@@ -39,10 +39,16 @@ export function PlanBanner() {
       return (
         <div
           role="status"
-          className="flex items-center gap-2 border-b bg-waiting-soft px-4 py-2 text-sm text-waiting lg:px-10"
+          className="flex items-start gap-2 border-b bg-waiting-soft px-4 py-2 text-sm text-waiting lg:px-10"
         >
-          <Clock className="h-4 w-4 shrink-0" />
-          {days === 0 ? 'Your free trial ends today.' : `Your free trial ends in ${days} day${days === 1 ? '' : 's'}.`}
+          <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>
+            {days === 0 ? 'Your free trial ends today.' : `Your free trial ends in ${days} day${days === 1 ? '' : 's'}.`} Then
+            you&apos;re on the Free plan: your cheques keep moving, but adding needs Business.{' '}
+            <Link to="/settings#plan" className="font-semibold underline underline-offset-2">
+              Choose Business
+            </Link>
+          </span>
         </div>
       )
     }

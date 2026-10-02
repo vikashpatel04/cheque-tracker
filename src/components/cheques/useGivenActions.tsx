@@ -4,7 +4,6 @@ import { useRollbackAction } from '@/components/cheques/RollbackDialog'
 import { useChequeStatusActions } from '@/components/cheques/StatusActions'
 import { WriteOffDialog } from '@/components/cheques/WriteOffDialog'
 import { useAppActions } from '@/hooks/useAppActions'
-import { usePlan } from '@/hooks/usePlan'
 import { announceDataChange } from '@/lib/dataEvents'
 import type { Cheque, ChequeStatus } from '@/types'
 
@@ -26,7 +25,6 @@ export interface GivenActions {
  */
 export function useGivenActions() {
   const app = useAppActions()
-  const { guard } = usePlan()
   const status = useChequeStatusActions(announceDataChange)
   const rollback = useRollbackAction(announceDataChange)
   const [representing, setRepresenting] = useState<Cheque | null>(null)
@@ -35,9 +33,9 @@ export function useGivenActions() {
   const actions: GivenActions = {
     setStatus: status.requestStatus,
     fundAndPass: status.requestChained,
-    represent: guard(setRepresenting),
-    writeOff: guard(setWritingOff),
-    undo: rollback.requestRollback,
+    represent: setRepresenting,
+    writeOff: setWritingOff,
+    undo: (cheque) => void rollback.requestRollback(cheque),
     edit: app.editCheque,
     open: (cheque) => app.openCheque(cheque.id),
   }

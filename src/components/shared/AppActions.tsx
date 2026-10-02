@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { ChequeBulkUpload } from '@/components/cheques/BulkUpload'
 import { ChequeDetail } from '@/components/cheques/ChequeDetail'
 import { ChequeForm } from '@/components/cheques/ChequeForm'
+import { NotesDialog, type NotesTarget } from '@/components/cheques/NotesDialog'
 import { AddFundsFlow } from '@/components/deposit/AddFundsFlow'
 import { HelpSheet } from '@/components/guide/HelpSheet'
 import { DepositDialog } from '@/components/received/DepositDialog'
@@ -40,10 +41,15 @@ function rememberDirection(direction: ChequeDirection) {
   }
 }
 
+/** Who a cheque is with and its number, for the notes dialog's title. */
+function notesLabel(cheque: { cheque_number: string; party?: { name: string } | null }): string {
+  return cheque.party?.name ? `${cheque.party.name}, cheque ${cheque.cheque_number}` : `Cheque ${cheque.cheque_number}`
+}
+
 /** Holds the dialogs that any page can open (see hooks/useAppActions.ts). */
 export function AppActionsProvider({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings()
-  const { guard } = usePlan()
+  const { guard, lapsed } = usePlan()
   const tracks = settings.tracks ?? 'both'
   const [form, setForm] = useState<{ open: boolean; cheque: Cheque | null; replacing?: Cheque }>({ open: false, cheque: null })
   const [received, setReceived] = useState<{ open: boolean; cheque: ReceivedCheque | null; series?: boolean }>({ open: false, cheque: null })
@@ -56,6 +62,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
   const [importOpen, setImportOpen] = useState(false)
   const [funds, setFunds] = useState<{ open: boolean; amount?: number }>({ open: false })
   const [searchOpen, setSearchOpen] = useState(false)
+  // On the Free plan, Edit changes the notes only.
+  const [notesFor, setNotesFor] = useState<NotesTarget | null>(null)
   const [helpTopic, setHelpTopic] = useState<GuideTopicId | null>(null)
   const closeHelp = useCallback(() => setHelpTopic(null), [])
 
@@ -88,7 +96,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
 
   const directionSwitch = (direction: ChequeDirection) => <DirectionSwitch value={direction} onChange={(next) => openNew(next, false, newParty)} />
 
-  // On a read-only account, anything that would change data explains why it can't (plan item 55).
+  // On the Free plan (plan item 55), adding and replacing explain why they can't,
+  // Edit changes the notes only, and moving cheques along stays open.
   const actions = useMemo<AppActions>(
     () => ({
       newCheque: guard((direction, partyId) =>
@@ -97,16 +106,20 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
       newGivenCheque: guard((partyId) => openNew('given', false, partyId ?? '')),
       newReceivedCheque: guard((partyId) => openNew('received', false, partyId ?? '')),
       newSeries: guard((partyId) => openNew('received', true, partyId ?? '')),
-      editReceivedCheque: guard((cheque) => setReceived({ open: true, cheque })),
-      editCheque: guard((cheque) => {
+      editReceivedCheque: (cheque) =>
+        lapsed
+          ? setNotesFor({ table: 'received_cheques', id: cheque.id, notes: cheque.notes, label: notesLabel(cheque) })
+          : setReceived({ open: true, cheque }),
+      editCheque: (cheque) => {
         setDetailId(null)
-        setForm({ open: true, cheque })
-      }),
+        if (lapsed) setNotesFor({ table: 'cheques', id: cheque.id, notes: cheque.notes, label: notesLabel(cheque) })
+        else setForm({ open: true, cheque })
+      },
       replaceCheque: guard((cheque) => {
         setDetailId(null)
         setForm({ open: true, cheque: null, replacing: cheque })
       }),
-      addFunds: guard((amount) => setFunds({ open: true, amount })),
+      addFunds: (amount) => setFunds({ open: true, amount }),
       importCheques: guard(() => setImportOpen(true)),
       openSearch,
       openHelp: (topic) => {
@@ -117,17 +130,18 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         setSearchOpen(false)
         setDetailId(id)
       },
-      depositReceived: guard((ids) => {
+      depositReceived: (ids) => {
         setReceivedId(null)
         setDepositIds(ids)
-      }),
+      },
       openReceivedCheque: (id) => {
         setSearchOpen(false)
         setReceivedId(id)
       },
-      actOnReceived: guard((mode, cheque) => setReceivedAction({ mode, cheque })),
+      actOnReceived: (mode, cheque) =>
+        mode === 'replace' ? guard(() => setReceivedAction({ mode, cheque }))() : setReceivedAction({ mode, cheque }),
     }),
-    [guard, openSearch, openNew, tracks]
+    [guard, lapsed, openSearch, openNew, tracks]
   )
 
   return (
@@ -188,7 +202,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         directionSwitch={directionSwitch('received')}
       />
 
-      <ReceivedChequeDetail chequeId={receivedId} onClose={() => setReceivedId(null)} onDeposit={guard((ids: string[]) => setDepositIds(ids))} />
+      <ReceivedChequeDetail chequeId={receivedId} onClose={() => setReceivedId(null)} onDeposit={(ids) => setDepositIds(ids)} />
 
       <DepositDialog ids={depositIds} onClose={() => setDepositIds(null)} />
 
@@ -197,6 +211,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }) 
         cheque={receivedAction?.cheque ?? null}
         onClose={() => setReceivedAction(null)}
       />
+
+      <NotesDialog target={notesFor} onClose={() => setNotesFor(null)} />
 
       <AddFundsFlow
         open={funds.open}

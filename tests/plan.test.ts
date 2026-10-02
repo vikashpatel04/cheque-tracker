@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { daysLeft, needsPlan, nextPlanChange, planAt, readOnlyWording } from '@/lib/plan'
+import { daysLeft, lapsedWording, needsPlan, nextPlanChange, planAt } from '@/lib/plan'
 import type { Entitlement } from '@/types'
 
 const NOW = Date.parse('2026-10-01T10:00:00Z')
@@ -37,7 +37,7 @@ describe('the plan at a moment', () => {
     const plan = planAt(true, [trial], NOW)
     expect(plan.hasAccess).toBe(false)
     expect(plan.ended).toBe(trial)
-    expect(readOnlyWording(plan)).toMatchObject({ title: 'Your free trial has ended', action: 'Choose a pack' })
+    expect(lapsedWording(plan)).toMatchObject({ title: 'Your free trial has ended', action: 'Upgrade to Business' })
   })
 
   it('picks the plan that lasts longest, and one that never ends first', () => {
@@ -72,10 +72,13 @@ describe('the plan at a moment', () => {
   })
 
   it('names plans that ended, and says why a new account got no trial', () => {
-    expect(readOnlyWording({ ended: grant('purchase', -200, -20), trialRefused: null })).toMatchObject({ title: 'Your plan has ended', action: 'Renew' })
-    expect(readOnlyWording({ ended: null, trialRefused: 'used' }).title).toBe('Free trial already used')
-    expect(readOnlyWording({ ended: null, trialRefused: 'throwaway' }).title).toBe('Free trials need your usual email')
-    expect(readOnlyWording({ ended: null, trialRefused: null })).toMatchObject({ title: 'No active plan', action: 'Choose a pack' })
+    expect(lapsedWording({ ended: grant('purchase', -200, -20), trialRefused: null })).toMatchObject({
+      title: 'Your Business plan has ended',
+      action: 'Renew Business',
+    })
+    expect(lapsedWording({ ended: null, trialRefused: 'used' }).title).toBe('Free trial already used')
+    expect(lapsedWording({ ended: null, trialRefused: 'throwaway' }).title).toBe('Free trials need your usual email')
+    expect(lapsedWording({ ended: null, trialRefused: null })).toMatchObject({ title: "You're on the Free plan", action: 'Upgrade to Business' })
   })
 
   it('counts a bought pack or a grant as paid, even before it starts, but never a trial', () => {
@@ -92,13 +95,21 @@ describe('the plan at a moment', () => {
   })
 })
 
-describe('changes held back on a read-only account', () => {
+describe('changes held back on the Free plan', () => {
   const api = 'https://project.supabase.co'
 
-  it('are writes to the database API', () => {
+  it('are new rows, and changes to parties, bank accounts or funds added', () => {
     expect(needsPlan(`${api}/rest/v1/cheques`, 'POST')).toBe(true)
-    expect(needsPlan(`${api}/rest/v1/cheques?id=eq.1`, 'PATCH')).toBe(true)
-    expect(needsPlan(`${api}/rest/v1/rpc/change_cheque_status`, 'POST')).toBe(true)
+    expect(needsPlan(`${api}/rest/v1/parties`, 'POST')).toBe(true)
+    expect(needsPlan(`${api}/rest/v1/parties?id=eq.1`, 'PATCH')).toBe(true)
+    expect(needsPlan(`${api}/rest/v1/bank_accounts?id=eq.1`, 'PATCH')).toBe(true)
+  })
+
+  it('leave cheque changes and the status functions to the database, which allows notes and status changes', () => {
+    expect(needsPlan(`${api}/rest/v1/cheques?id=eq.1`, 'PATCH')).toBe(false)
+    expect(needsPlan(`${api}/rest/v1/received_cheques?id=eq.1`, 'PATCH')).toBe(false)
+    expect(needsPlan(`${api}/rest/v1/rpc/change_cheque_status`, 'POST')).toBe(false)
+    expect(needsPlan(`${api}/rest/v1/rpc/record_deposit`, 'POST')).toBe(false)
   })
 
   it('never include reads, your settings, signing in or server functions such as paying', () => {

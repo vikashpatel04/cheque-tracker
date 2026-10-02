@@ -90,75 +90,97 @@ export function daysLeft(expiresAt: string, now = Date.now()): number {
 
 export interface PlanWording {
   title: string
-  /** A sentence or two after the title. */
+  /** A sentence or two after the title, for dialogs and Settings. */
   text: string
-  /** The button that leads to the packs. */
+  /** One short line for the banner. */
+  banner: string
+  /** The button that leads to the Business plan. */
   action: string
 }
 
-const DATA_IS_SAFE = 'Your cheques are safe, and you can still view and export them.'
+/** What the Free plan still allows, said once. */
+const ON_FREE =
+  "You're on the Free plan: you can still move your cheques along, undo, add funds, edit notes and export. Upgrade to Business to add or change anything else."
+const ON_FREE_SHORT = 'You can still move your cheques along and export them.'
 
-/** How to explain a read-only account, and the button that ends it. */
-export function readOnlyWording({ ended, trialRefused }: Pick<PlanState, 'ended' | 'trialRefused'>): PlanWording {
-  if (ended?.source === 'trial') return { title: 'Your free trial has ended', text: DATA_IS_SAFE, action: 'Choose a pack' }
-  if (ended) return { title: 'Your plan has ended', text: DATA_IS_SAFE, action: 'Renew' }
+/**
+ * How to explain the Free plan (after a trial or plan ends, plan item 55), and
+ * the button that leads to Business.
+ */
+export function lapsedWording({ ended, trialRefused }: Pick<PlanState, 'ended' | 'trialRefused'>): PlanWording {
+  if (ended?.source === 'trial') {
+    return { title: 'Your free trial has ended', text: ON_FREE, banner: ON_FREE_SHORT, action: 'Upgrade to Business' }
+  }
+  if (ended) return { title: 'Your Business plan has ended', text: ON_FREE, banner: ON_FREE_SHORT, action: 'Renew Business' }
   if (trialRefused === 'used') {
     return {
       title: 'Free trial already used',
-      text: 'This email address has had a free trial before, and trials are one per person. Choose a pack to start adding cheques.',
-      action: 'Choose a pack',
+      text: 'This email address has had a free trial before, and trials are one per person. Choose Business to start adding cheques.',
+      banner: 'Trials are one per email address. Choose Business to start adding cheques.',
+      action: 'Choose Business',
     }
   }
   if (trialRefused === 'throwaway') {
     return {
       title: 'Free trials need your usual email',
-      text: 'This address is at a throwaway-mail service. Choose a pack to start, or sign up with your usual email or with Google.',
-      action: 'Choose a pack',
+      text: 'This address is at a throwaway-mail service. Choose Business to start, or sign up with your usual email or with Google.',
+      banner: 'This address is at a throwaway-mail service.',
+      action: 'Choose Business',
     }
   }
-  return { title: 'No active plan', text: 'Your account is read-only: everything stays visible and can be exported.', action: 'Choose a pack' }
+  return { title: "You're on the Free plan", text: ON_FREE, banner: ON_FREE_SHORT, action: 'Upgrade to Business' }
 }
 
-/** Why importing an export waits for a pack (it isn't part of the free trial). */
-export const IMPORT_NEEDS_PACK: PlanWording = {
-  title: 'Importing an export comes with a pack',
+/** Why importing an export waits for Business (it isn't part of the free trial). */
+export const IMPORT_NEEDS_BUSINESS: PlanWording = {
+  title: 'Importing an export comes with Business',
   text: 'During the free trial, add cheques one at a time, as a series, or from the Excel template.',
-  action: 'Choose a pack',
+  banner: 'Importing an export comes with Business.',
+  action: 'Choose Business',
 }
 
 /*
- * Whether the signed-in account is read-only (plan item 55): billing is on and
- * no plan is active. PlanProvider keeps this current, and the Supabase client
- * reads it to refuse changes before sending them. The database refuses them
- * too; this saves the trip, and makes sure no save quietly does nothing.
+ * Whether the signed-in account is on the Free plan after a trial or plan
+ * ended (plan item 55). PlanProvider keeps this current, and the Supabase
+ * client reads it to refuse new rows before sending them. The database
+ * refuses them too (migration 019); this saves the trip, and makes sure no
+ * save quietly changes nothing.
  */
 
 /** The same words the database uses when it refuses a change. */
-export const PLAN_ENDED_MESSAGE = 'Your plan has ended. Renew it to make changes.'
+export const FREE_PLAN_MESSAGE = "You're on the Free plan. Upgrade to Business to make changes."
 
-let readOnly = false
+let lapsed = false
 
-export function setReadOnly(value: boolean) {
-  readOnly = value
+export function setLapsed(value: boolean) {
+  lapsed = value
 }
 
-export function isReadOnly(): boolean {
-  return readOnly
+export function isLapsed(): boolean {
+  return lapsed
 }
 
 /**
- * Whether a request to Supabase changes data that needs a plan: anything but a
- * read sent to the database API. Your settings stay yours to change, and
- * sign-in and server functions (such as paying) aren't affected.
+ * Whether a request to Supabase is one the Free plan can't make, so it can be
+ * answered without sending it:
+ * - adding rows to any table but settings;
+ * - changing parties, bank accounts or funds added (row-level security would
+ *   quietly change nothing).
+ *
+ * Changes to cheques and the status functions go through: the database allows
+ * what the Free plan may do and explains the rest. Sign-in and server
+ * functions (such as paying) are never held back.
  */
 export function needsPlan(url: string, method: string): boolean {
-  if (method === 'GET' || method === 'HEAD') return false
+  if (method !== 'POST' && method !== 'PATCH') return false
   let path: string
   try {
     path = new URL(url).pathname
   } catch {
     return false
   }
-  const match = path.match(/\/rest\/v1\/(.+)$/)
-  return !!match && match[1] !== 'settings'
+  const table = path.match(/\/rest\/v1\/([^/]+)$/)?.[1]
+  if (!table || table === 'rpc' || table === 'settings') return false
+  if (method === 'POST') return true
+  return ['parties', 'bank_accounts', 'daily_deposits'].includes(table)
 }

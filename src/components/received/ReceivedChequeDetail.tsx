@@ -76,9 +76,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
   const [undoOpen, setUndoOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [busy, setBusy] = useState(false)
-  // On a read-only account these explain why they can't, instead (plan item 55).
-  const act = guard((mode: ReceivedActionMode) => setAction(mode))
-  const askUndo = guard(() => setUndoOpen(true))
+  // On the Free plan (plan item 55) cheques keep moving, but a replacement is a
+  // new cheque and deleting isn't allowed, so those explain why instead.
+  const act = (mode: ReceivedActionMode) => (mode === 'replace' ? guard(() => setAction(mode))() : setAction(mode))
+  const askUndo = () => setUndoOpen(true)
   const askDelete = guard(() => setDeleteOpen(true))
 
   const load = useCallback(async (id: string) => {
@@ -335,10 +336,10 @@ export function ReceivedChequeDetail({ chequeId, onClose, onDeposit }: ReceivedC
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuItem
-                    onSelect={guard(() => {
+                    onSelect={() => {
                       onClose()
                       app.editReceivedCheque(cheque)
-                    })}
+                    }}
                   >
                     <Pencil className="text-ink-quiet" />
                     Edit

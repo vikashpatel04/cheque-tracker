@@ -7,30 +7,30 @@ import { brand } from '@/config/brand'
 import { usePlan, type Plan } from '@/hooks/usePlan'
 import { formatMinorUnits, formatShortDate } from '@/lib/formatters'
 import { buyPack, loadPacks, loadPayments, packTotal, savingPercent, type Pack, type PaymentOrder } from '@/lib/payments'
-import { readOnlyWording } from '@/lib/plan'
+import { lapsedWording } from '@/lib/plan'
 
 function describe(plan: Plan): string {
   const { current, until } = plan
   if (!current) {
-    const wording = readOnlyWording(plan)
+    const wording = lapsedWording(plan)
     return `${wording.title}. ${wording.text}`
   }
-  if (!current.expires_at || !until) return 'Active, with no end date.'
+  if (!current.expires_at || !until) return 'Business, with no end date.'
   if (current.source === 'trial') {
     return until === current.expires_at
-      ? `Free trial, ends ${formatShortDate(current.expires_at)}. After that, everything stays readable and you can still export.`
-      : `Free trial until ${formatShortDate(current.expires_at)}, then your pack until ${formatShortDate(until)}.`
+      ? `Free trial of Business, ends ${formatShortDate(current.expires_at)}. After that you're on the Free plan: your cheques keep moving and you can export, but adding needs Business.`
+      : `Free trial until ${formatShortDate(current.expires_at)}, then Business until ${formatShortDate(until)}.`
   }
-  return `Active until ${formatShortDate(until)}.`
+  return `Business, until ${formatShortDate(until)}.`
 }
 
-/** What buying now does, in a line above the packs. */
+/** What buying now does, in a line above the choices. */
 function buyingNote(plan: Plan): string {
-  if (plan.readOnly) return 'Choose a pack to add and change cheques again.'
+  if (plan.lapsed) return 'Choose how long you want Business for. It starts straight away.'
   if (plan.current?.source === 'trial' && plan.until === plan.current.expires_at) {
-    return 'A pack starts when your trial ends, so buying now loses no days.'
+    return 'Business starts when your trial ends, so buying now loses no days.'
   }
-  return 'A new pack starts when your current one ends, so buying early loses nothing.'
+  return 'More time starts when your current Business plan ends, so renewing early loses nothing.'
 }
 
 /** The brand colour for Razorpay's window, from the Passbook tokens. */
@@ -66,7 +66,11 @@ function PackOption({ pack, packs, busy, onBuy }: { pack: Pack; packs: Pack[]; b
   )
 }
 
-/** Settings → Plan, on instances with billing on: your plan, packs to buy and your payments. Hidden on self-hosted instances. */
+/**
+ * Settings → Plan, on instances with billing on: your plan (a trial, Business
+ * or Free), how long to buy Business for, and your payments. The choices are
+ * the `packs` rows. Hidden on self-hosted instances.
+ */
 export function PlanCard() {
   const plan = usePlan()
   const [packs, setPacks] = useState<Pack[]>([])
@@ -101,8 +105,8 @@ export function PlanCard() {
     const startsLater = Date.parse(entitlement.starts_at) > Date.now() + 60_000
     toast.success(
       startsLater
-        ? `Thank you for buying ${pack.name}. It starts on ${formatShortDate(entitlement.starts_at)}, when your current plan ends.`
-        : `Thank you for buying ${pack.name}. You're all set until ${formatShortDate(entitlement.expires_at!)}.`
+        ? `Thank you. Business (${pack.name}) starts on ${formatShortDate(entitlement.starts_at)}, when your current plan ends.`
+        : `Thank you. You're on Business until ${formatShortDate(entitlement.expires_at!)}.`
     )
     await plan.refresh()
     reload()
@@ -120,7 +124,9 @@ export function PlanCard() {
               <PackOption key={pack.id} pack={pack} packs={packs} busy={buying !== null} onBuy={() => void buy(pack)} />
             ))}
           </ul>
-          <p className="text-[13px] text-ink-quiet">Payments are handled by Razorpay. A pack is paid once and doesn&apos;t renew by itself.</p>
+          <p className="text-[13px] text-ink-quiet">
+            Payments are handled by Razorpay. Business is paid once for the time you choose, and doesn&apos;t renew by itself.
+          </p>
         </div>
       )}
 
@@ -131,7 +137,7 @@ export function PlanCard() {
             {payments.map((p) => (
               <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 border-b border-line-soft py-2.5 last:border-0">
                 <span className="text-[15px]">
-                  {p.pack_name}
+                  Business, {p.pack_name}
                   <span className="text-ink-quiet"> · {formatShortDate(p.paid_at ?? p.created_at)}</span>
                 </span>
                 <span className="flex items-baseline gap-3">

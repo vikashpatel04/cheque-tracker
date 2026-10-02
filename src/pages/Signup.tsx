@@ -118,7 +118,7 @@ export default function Signup() {
           For the cheques you give and the cheques you receive.
           {!!options?.trialDays && (
             <span className="mt-1.5 block text-[15px] font-medium text-ink">
-              Free for {options.trialDays} days, then choose a pack. One free trial per person.
+              Free for {options.trialDays} days. No card needed. One free trial per person.
             </span>
           )}
         </>

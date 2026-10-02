@@ -147,7 +147,7 @@ export async function buyPack(pack: Pack, shop: { name: string; color: string })
   if (confirmed.error || !confirmed.data) {
     return {
       status: 'failed',
-      error: `${await functionError(confirmed.error)}. If money left your account, your pack is added within a few minutes.`,
+      error: `${await functionError(confirmed.error)}. If money left your account, Business is added within a few minutes.`,
     }
   }
   return { status: 'paid', entitlement: confirmed.data.entitlement }

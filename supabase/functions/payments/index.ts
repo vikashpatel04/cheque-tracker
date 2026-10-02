@@ -102,14 +102,14 @@ async function recordPaid(admin: SupabaseClient, order: Order, paymentId: string
 
 async function checkout(admin: SupabaseClient, req: Request): Promise<Response> {
   const user = await signedInUser(admin, req)
-  if (!user) return fail('Sign in to buy a pack', 401)
+  if (!user) return fail('Sign in to buy Business', 401)
 
   const { data: config } = await admin.from('instance_config').select('billing_enabled').maybeSingle()
-  if (!config?.billing_enabled) return fail("This copy of the app doesn't sell packs", 404)
+  if (!config?.billing_enabled) return fail("This copy of the app doesn't sell plans", 404)
 
   const { pack_id } = (await req.json().catch(() => ({}))) as { pack_id?: string }
   const { data: pack } = await admin.from('packs').select('*').eq('id', pack_id ?? '').eq('active', true).maybeSingle()
-  if (!pack) return fail("That pack isn't on sale", 404)
+  if (!pack) return fail("That choice isn't on sale", 404)
 
   const { data: forever } = await admin
     .from('entitlements')
