@@ -86,7 +86,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 ## Database changes
 
 - **Migrations:**
-  - Add a numbered migration; the next one is `supabase/migrations/022_…`.
+  - Add a numbered migration; the next one is `supabase/migrations/023_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
 - **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy on insert. For updates the Free plan may make, follow migration 019.
