@@ -138,7 +138,7 @@ describe('import_data', () => {
     expect(await countFor(U1, 'daily_deposits')).toBe(2)
   })
 
-  it("isn't available to visitors or to read-only accounts", async () => {
+  it("isn't available to visitors or to accounts without a paid plan", async () => {
     const anon = await t.asAdmin<{ allowed: boolean }>(
       `SELECT has_function_privilege('anon', 'public.import_data(jsonb)', 'EXECUTE') AS allowed`
     )
@@ -147,7 +147,7 @@ describe('import_data', () => {
     // U4 signed up while billing was off, so it has no plan once billing is on.
     await t.asAdmin('UPDATE instance_config SET billing_enabled = true')
     try {
-      await expect(importAs(U4, PAYLOAD)).rejects.toThrow(/row-level security/)
+      await expect(importAs(U4, PAYLOAD)).rejects.toThrow(/Business plan/)
     } finally {
       await t.asAdmin('UPDATE instance_config SET billing_enabled = false')
     }

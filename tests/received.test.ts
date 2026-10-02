@@ -320,11 +320,14 @@ describe('privacy and plans', () => {
     expect(seenByOther.rows[0].n).toBe(0)
   })
 
-  it('make received cheques read-only without a plan when billing is on', async () => {
+  it('keep received cheques moving on the Free plan, but nothing new comes in', async () => {
     const a = await newCheque()
+    const b = await newCheque()
     await t.asAdmin('UPDATE instance_config SET billing_enabled = true')
     try {
-      await expect(run('deposit', a)).rejects.toThrow(/plan has ended/)
+      await run('deposit', a)
+      expect(await statusOf(a)).toBe('DEPOSITED')
+      await expect(run('replace', b)).rejects.toThrow(/Free plan/)
       await expect(newCheque()).rejects.toThrow(/row-level security/)
       const visible = await t.asUser<{ n: number }>(U1, 'SELECT count(*)::int AS n FROM received_cheques WHERE id = $1', [a])
       expect(visible.rows[0].n).toBe(1)
