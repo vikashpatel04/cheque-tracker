@@ -1,12 +1,12 @@
-# Payments: selling packs with Razorpay
+# Payments: selling Business with Razorpay
 
 Only for the hosted edition. On a self-hosted copy billing is off, so none of this shows; see [editions.md](./editions.md).
 
-A **pack** is a number of months of access, paid once. It doesn't renew by itself. A new pack starts when the access you already have ends, whether that's a free trial or packs bought earlier, so buying early loses nothing.
+The paid plan is **Business**, bought for a number of months and paid once. It doesn't renew by itself. Each length on sale (1, 6 or 12 months) is a row in the `packs` table. A new period starts when the access you already have ends, whether that's a free trial or time bought earlier, so buying early loses nothing. When it ends, the account is on the Free plan ([editions.md](./editions.md)).
 
 ## How a payment works
 
-1. In Settings → Plan, the user picks a pack. The app calls the `payments` Edge Function's `/checkout`. It creates a Razorpay order for the pack's price, tax included, and saves it in `payment_orders`.
+1. In Settings → Plan, the user picks how long to buy Business for. The app calls the `payments` Edge Function's `/checkout`. It creates a Razorpay order for that length's price, tax included, and saves it in `payment_orders`.
 2. The app opens Razorpay Checkout, loaded from `checkout.razorpay.com` only at this point, and the user pays.
 3. The app sends the payment to `/confirm`. The function then:
    - checks Checkout's signature with the key secret;
@@ -20,7 +20,7 @@ The prices are never in this repository. They live in the `packs` table of the h
 ## Setting it up
 
 1. **Razorpay.** Create an account and use its **test mode** first. Under Account & Settings → API keys, generate a key pair. Live keys come after Razorpay activates the account.
-2. **Packs.** Add them in the SQL editor of the hosted project. Amounts are in paise: ₹1 is 100. Set `tax_percent` and `tax_name` if you charge tax, and leave them out if you don't. The buyer pays `amount` plus the tax, and Settings shows both.
+2. **Lengths and prices.** Add one `packs` row per length in the SQL editor of the hosted project. Amounts are in paise: ₹1 is 100. Set `tax_percent` and `tax_name` if you charge tax, and leave them out if you don't. The buyer pays `amount` plus the tax, and Settings shows both.
 
    ```sql
    insert into packs (id, name, months, currency, amount, tax_percent, tax_name, sort) values
@@ -29,7 +29,7 @@ The prices are never in this repository. They live in the `packs` table of the h
      ('12m', '12 months', 12, 'INR', <price in paise>, <tax %>, 'GST', 3);
    ```
 
-   To stop selling a pack, set `active = false`. Don't delete it: past orders refer to it. To change a price, update the row; orders already made keep what was paid.
+   To stop selling a length, set `active = false`. Don't delete it: past orders refer to it. To change a price, update the row; orders already made keep what was paid.
 3. **Secrets.** Set them on the project:
 
    ```bash
@@ -47,7 +47,7 @@ The prices are never in this repository. They live in the `packs` table of the h
    - URL: `https://<project-ref>.supabase.co/functions/v1/payments/webhook`
    - Secret: the `RAZORPAY_WEBHOOK_SECRET` from step 3
    - Events: `order.paid`
-6. **Billing.** Turn it on as described in [editions.md](./editions.md). Settings → Plan then shows the packs.
+6. **Billing.** Turn it on as described in [editions.md](./editions.md). Settings → Plan then shows Business and its lengths.
 
 To go live, do steps 3 and 5 again with the live keys and a live-mode webhook.
 
@@ -57,7 +57,7 @@ In test mode, pay with the test cards or UPI IDs from Razorpay's documentation; 
 - Settings → Plan says how long you're covered;
 - the payment is listed under Payments;
 - `entitlements` has a `purchase` row whose `payment_ref` is the payment id;
-- buying during a trial starts the pack when the trial ends.
+- buying during a trial starts Business when the trial ends.
 
 ## Refunds and problems
 

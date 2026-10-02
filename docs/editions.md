@@ -9,7 +9,7 @@ This is the usual model for open-source products with a paid cloud: anyone can s
 | | Self-hosted (default) | Hosted (chequetracker.com) |
 |---|---|---|
 | `instance_config.billing_enabled` | `false` | `true` |
-| Plans and limits | None. Every feature is free. | Adding or changing data needs an active plan |
+| Plans | None. Every feature is free. | A free trial, then Business, or the Free plan |
 | Free trial | Not applicable | `instance_config.trial_days` |
 | Sign-ups | Off by default | Open |
 | Name and logo | Your own (see [TRADEMARKS.md](../TRADEMARKS.md)) | Cheque Tracker |
@@ -35,21 +35,52 @@ One row per grant of access: a `trial`, a `purchase` (with the payment provider'
 
 Users can read their own rows. Only the service role can create or change them: the payment webhook, or an operator in the SQL editor. The schema is public, so this matters. No API call can grant someone a plan.
 
-### Read-only accounts
+### Plans: trial, Business and Free
 
-`has_write_access()` is true when billing is off, or when the signed-in user has an active entitlement. Restrictive row-level security policies on `parties`, `cheques`, `cheque_history`, `daily_deposits`, `received_cheques`, `received_cheque_history` and `bank_accounts` require it for inserts, updates and deletes:
-- **Reads are never blocked.** A user whose plan ends keeps seeing and exporting everything.
-- **Settings stay writable.**
-- **Self-hosted instances are unaffected,** because `has_write_access()` is always true there.
+On the hosted edition there are three states, and `entitlements.plan` names the paid one `business`:
 
-When a read-only account changes a given cheque, the database functions say "Your plan has ended. Renew it to make changes." (migration 019), as the received-cheque functions already did. Jobs with no signed-in user, such as auto-pass and the companions using the service role, aren't limited by plans.
+| | What it is | What you can do |
+|---|---|---|
+| **Free trial** | `trial_days` from sign-up (30 on chequetracker.com), no card | Everything Business can, except importing an export |
+| **Business** | Bought for 1, 6 or 12 months, paid once, renewed by choice. Prices are the operator's `packs` rows | Everything |
+| **Free** | What an account is on once its trial or plan ends | Move its cheques along and export, nothing new |
+
+An **Enterprise** plan with AI features may come later. Nothing checks for it yet: any active entitlement gives full access.
+
+### The Free plan
+
+`has_write_access()` is true when billing is off, or when the signed-in user has an active entitlement. Without it, the account is on the Free plan (migration 019).
+
+**Still works:**
+- every status change on both sides, through the status functions: fund, pass, return, present again, write off, deposit, clear, bounce, re-deposit, paid another way, hand back;
+- undo;
+- adding funds for the cheques they cover;
+- editing a cheque's notes;
+- reading and exporting everything;
+- settings.
+
+**Needs Business:**
+- adding cheques, parties, bank accounts or a replacement cheque;
+- changing anything else on a cheque, or a party;
+- deleting;
+- importing an export.
+
+**How it works:**
+- The status functions mark their own transaction as a lifecycle change (`app.given_lifecycle`, `app.received_lifecycle`), so history and funds added are accepted inside them.
+- The `RESTRICTIVE` insert policies keep anything new out.
+- A trigger (`internal.free_plan_update_guard`) lets the Free plan change a cheque's notes only, and says why when it refuses.
+- Jobs with no signed-in user, such as auto-pass and the companions using the service role, aren't limited by plans.
+
+**Reminders:** reminders by email, WhatsApp or push (plan items 41 and 42) go only to accounts on a trial or Business. The Free plan keeps its records and Today's to-do list, but the app stops watching its dates.
 
 The database is the source of truth. The app only reflects it:
-- `PlanProvider` loads the plan once and keeps it current: it changes by itself when a plan ends or a bought pack starts. `usePlan()` reads it.
-- On a read-only account, every button that would change data opens a "Your plan has ended" dialog (or "Your free trial has ended") that leads to Settings → Plan. Components wrap such actions in `usePlan().guard`, or call `requireWrite()` where they can't wrap.
-- The Supabase client also refuses changes once it knows the account is read-only (`src/lib/plan.ts`), so no save quietly does nothing. Reads, your settings, sign-in and server functions (such as paying) are never held back.
-- `PlanBanner` shows a notice when an account is read-only or a trial is ending.
-- `PlanCard` in Settings shows the current plan.
+- `PlanProvider` loads the plan once and keeps it current: it changes by itself when a plan ends or a bought one starts. `usePlan()` reads it, and `usePlan().lapsed` means the Free plan.
+- **Guards:**
+  - Buttons for what the Free plan can't do are wrapped in `usePlan().guard` (or check `requireWrite()`). They open a dialog that leads to Settings → Plan.
+  - On the Free plan, Edit opens a notes-only dialog.
+  - Moving cheques along isn't guarded.
+- **No silent saves:** the Supabase client refuses new rows, and changes to parties, bank accounts and funds added, itself (`src/lib/plan.ts`). Otherwise row-level security would make those saves quietly do nothing. Reads, settings, sign-in and server functions (such as paying) are never held back.
+- `PlanBanner` shows a notice on the Free plan and when a trial is ending. `PlanCard` in Settings shows the plan, the lengths you can buy Business for, and your payments.
 
 With billing off, none of this shows or holds anything back.
 
@@ -65,8 +96,8 @@ With billing on and `trial_days` above 0, a new account gets a free trial at sig
   - On any other domain, such as a company's own, every address counts as a different person.
   - A shared inbox, such as `accounts@` handed to a new colleague, gets one trial in all. You can give the newcomer one by hand (below).
 - **No trial for throwaway mail.** Addresses at a domain in `internal.throwaway_email_domains`, or one of its subdomains, get no trial.
-- **No sign-up is refused.** Such an account opens without a trial and can buy a pack straight away. `trial_refusals` records why, and the app explains it.
-- **Importing an export comes with a pack.** During a trial, the app won't import an export from another account. The Excel template stays open, because that's how new users bring in their records. This rule lives only in the app; the two above do the real work.
+- **No sign-up is refused.** Such an account opens without a trial and can buy Business straight away. `trial_refusals` records why, and the app explains it.
+- **Importing an export needs Business.** A free trial can't import an export (`import_data()` refuses, migration 019). The Excel template stays open, because that's how new users bring in their records.
 - **The sign-up page says** "One free trial per person", and the terms should too.
 
 Only a hash of the address is kept, never the address itself. Say so in the privacy policy.
@@ -87,9 +118,9 @@ Only a hash of the address is kept, never the address itself. Say so in the priv
 
 Never develop against production, and never point development tools at it.
 
-### Selling packs
+### Selling Business
 
-Packs are bought in Settings → Plan, through Razorpay and the `payments` Edge Function. Setting it up (packs and their prices, keys, the webhook) is in [payments.md](./payments.md). Prices live only in the hosted project's database.
+Business is bought in Settings → Plan, through Razorpay and the `payments` Edge Function. Each length on sale (1, 6 or 12 months) is a row in the `packs` table. Setting it up (the lengths and their prices, keys, the webhook) is in [payments.md](./payments.md). Prices live only in the hosted project's database.
 
 ### Switching billing on
 
@@ -98,7 +129,7 @@ Run this in the production SQL editor, once payments are set up.
 ```sql
 update instance_config
 set billing_enabled = true,
-    trial_days = 14,            -- or 0 for no trial
+    trial_days = 30,            -- or 0 for no trial
     default_country_code = 'IN';
 ```
 
@@ -132,17 +163,17 @@ values ('<auth user id>', 'comp', 'Owner');
 
 -- A fixed period, e.g. a manual payment
 insert into entitlements (user_id, source, expires_at, payment_ref, note)
-values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>', '6-month pack');
+values ('<auth user id>', 'purchase', now() + interval '6 months', '<payment id>', '6 months');
 
 -- A free trial for an account that didn't get one (support goodwill)
 insert into entitlements (user_id, source, expires_at, note)
-values ('<auth user id>', 'trial', now() + interval '14 days', 'Free trial');
+values ('<auth user id>', 'trial', now() + interval '30 days', 'Free trial');
 ```
 
 ### Still needed before billing goes live
 
 - **Sign-up:** a custom SMTP provider for auth emails, and CAPTCHA switched on (see Sign-up protection).
-- **Renewal reminders** before a pack ends.
+- **Renewal reminders** before Business ends.
 - **Legal pages:** terms, privacy policy, and refund and cancellation policy.
 
 ## What never goes in this repository

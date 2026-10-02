@@ -18,6 +18,13 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **3.** Several countries from day one, India first, with nothing country-specific in the code (see `docs/regions.md`).
 - **4.** The given side says "Funded" instead of "Deposited" (the database value stays `DEPOSITED`), and the word "Parties" stays.
 - **5.** The hosted service sells prepaid packs through Razorpay.
+  - Reshaped on 2026-10-02 (items 55 and 84):
+    - **Business:** the paid plan, prepaid for 1, 6 or 12 months; auto-renew comes later.
+    - **The free trial:** 30 days, no card.
+    - **Free:** what an account is on once a trial or plan ends. Cheques keep moving, nothing new goes in.
+    - **Enterprise:** later, with AI features.
+    - **Reminders:** only for trial and Business accounts.
+    - **Rejected:** a cheque-count limit. People pay for the hosting, since the same app is free to self-host.
 - **6.** PWA only for now; native apps later.
   - Reconfirmed on 2026-09-28: rework the web version (the PWA) first. The maintainer decides about native apps once it's done.
 - **70.** Cheques you give show their amount without a minus sign (decided 2026-09-28). People who give cheques think about when money is needed, not about signs; the figures that matter are for today ("Needed in the bank today"). Received amounts keep their "+" until the maintainer reviews the receiving side.
@@ -236,6 +243,7 @@ Already in the database (migration 012; see `docs/received-cheques.md`): deposit
 Next:
 
 - [ ] **41.** Reminders, by email by default, with PWA push as an option.
+  - Decided 2026-10-02: only accounts on a free trial or Business get reminders (email, WhatsApp, push). The Free plan keeps its records and Today's to-dos, but the app stops watching its dates.
 - [ ] **42.** A WhatsApp nudge to the payer through a `wa.me` link.
 - [ ] **43.** Cheque photos, stored in a private bucket.
 - [ ] **44.** When a received cheque clears into an account, offer to use that money for given cheques on the same account.
@@ -265,7 +273,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
   - Still to do:
     - ~~The maintainer tries email sign-up, Google and a password reset.~~ Verified by the maintainer on 2026-10-01.
     - Before launch: CAPTCHA, custom SMTP (Supabase's own email only reaches the organization's members), leaked-password protection (Pro plan), Google brand verification (until then Google names the Supabase project, not the app), "Try it free for N days" when billing is on, and the terms and privacy line once item 57 has the pages.
-    - 2026-10-01, with 84: the CAPTCHA (Cloudflare Turnstile) and the trial line are built. The CAPTCHA is on only when `VITE_TURNSTILE_SITE_KEY` is set; the maintainer then turns on Supabase's CAPTCHA setting with the matching secret, in that order (`docs/editions.md`). The trial line reads "Free for N days, then choose a pack. One free trial per person." from `instance_config`, only with billing on.
+    - 2026-10-01, with 84: the CAPTCHA (Cloudflare Turnstile) and the trial line are built. The CAPTCHA is on only when `VITE_TURNSTILE_SITE_KEY` is set; the maintainer then turns on Supabase's CAPTCHA setting with the matching secret, in that order (`docs/editions.md`). The trial line reads "Free for N days. No card needed. One free trial per person." from `instance_config`, only with billing on.
 - [ ] **53.** Payments: Razorpay checkout, and a webhook Edge Function that verifies each payment and inserts a `purchase` entitlement. A new pack starts when the current one ends, so buying early loses nothing.
   - Built 2026-10-01, not yet pushed; waiting for the maintainer's Razorpay test keys to try a real (test-mode) payment. Setup and how it works: `docs/payments.md`.
   - **Database:** migration 020 adds:
@@ -285,8 +293,30 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     4. Add packs to the dev project.
     5. Turn billing on there for the test.
     6. Make one test payment.
-- [ ] **54.** Renewal reminders before a pack ends.
+- [ ] **54.** Renewal reminders before Business ends.
 - [x] **55.** Read-only UI: expired accounts stay readable and can still export, and actions that write are disabled. On the given side, a refused change currently says "Cheque not found".
+  - **Reshaped on 2026-10-02 as the Free plan** (`8f7f487` database, `7b2389e` app). The notes below, from 2026-10-01, are the first version: plain read-only.
+    - **Still works:** every status change on both sides, undo, adding funds for the cheques they cover, editing notes, reading, export and settings.
+    - **Needs Business:** adding cheques, parties, bank accounts or replacements, changing anything else, deleting, and importing.
+    - **Database (rewritten unpushed migration 019):**
+      - The status functions set `app.given_lifecycle` (the received side already had `app.received_lifecycle`), and history and funds-added inserts are allowed inside them.
+      - `internal.free_plan_update_guard` replaces the UPDATE policies on cheques and received cheques: notes only, with a message instead of a silent no-op.
+      - `record_deposit` needs at least one cheque on the Free plan. `replace_received_cheque` needs write access.
+      - `import_data` needs a paid plan (`internal.has_paid_plan()`), not a trial.
+      - The paid plan's name is `business`.
+
+      Tested in `tests/freePlan.test.ts`.
+    - **App:**
+      - `usePlan().lapsed` replaces `readOnly`.
+      - Status actions, undo, Add funds and deposits aren't guarded.
+      - Edit opens `NotesDialog` on the Free plan.
+      - The Supabase client's safety net blocks only new rows, and changes to parties, bank accounts and funds added.
+      - The wording says Free, Business and "Upgrade to Business".
+
+      Checked in the browser with a faked ended trial and every change intercepted:
+      - New, Delete, Excel upload, Add party and "Got a new cheque" explain;
+      - Mark funded, a to-do's Deposit, Add funds and "Paid another way" go ahead;
+      - Edit opens the notes dialog.
   - Built 2026-10-01, not yet pushed.
   - **Database:** migration 019 makes the given-side functions say "Your plan has ended. Renew it to make changes.", like the received side. It adds `internal.require_write_access()` and calls it first in `change_cheque_status`, `represent_cheque`, `write_off_cheque`, `rollback_cheque_status` and `record_deposit`; each body is otherwise the latest one, unchanged. Jobs with no signed-in user (auto-pass, the companions) are unaffected. Tested in `tests/migrations.test.ts`; the test helper now clears the signed-in user after each query, as the service role has none.
   - **App:** `PlanProvider` (in `App.tsx`, around onboarding and the app) loads the plan once and recomputes it when a plan ends or a bought pack starts, and when the app comes back into view. On a read-only account, every button that would change data opens a "Your plan has ended" / "Your free trial has ended" dialog with a button to Settings → Plan, instead of a disabled button. Viewing, search and export work as before. `usePlan().guard` wraps the actions (app-wide actions, status changes, undo, edit, delete, Add several, parties, bank accounts, import, sample data, Delete all data); `requireWrite()` covers the rest.
@@ -303,6 +333,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
   - **B. No trial for throwaway mail.** `internal.throwaway_email_domains` starts with about 70 well-known services (subdomains count). The full public list can be added (`docs/editions.md`).
   - Neither blocks the sign-up: the account opens without a trial, `trial_refusals` says why, and the app explains in the banner, the dialogs and Settings → Plan. A pack can be bought straight away. `PlanProvider` moved above onboarding, so its bank-account step explains too.
   - **C. Importing an export comes with a pack.** During a trial, Settings → Import from an export says so instead of opening the file; a pack bought for later already unlocks it. The Excel template stays open, as that's how new users bring their records. It's a speed bump in the app only: anyone can add rows through the API during their trial, so A and B do the real work.
+    - 2026-10-02: now enforced in the database too. `import_data()` needs Business (migration 019), not a trial.
   - **D. CAPTCHA** on sign-up, sign-in, the password reset and "send it again": see 52.
   - **E.** The sign-up page says "One free trial per person"; the terms (57) must say it too.
   - Checked in the browser: with Cloudflare's always-pass test key (in a temporary local env file, since removed), Turnstile loaded, passed without asking, and its token went with the reset and sign-up requests (intercepted, so nothing was sent or created); after a failed attempt a fresh check re-enabled the button. With made-up data in the page: the throwaway banner and dialog, and the import rule during a trial and after buying.
@@ -311,9 +342,29 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
   - Found on 2026-10-01 (55, 53, 84):
     - **Terms:** one free trial per person, and trials created to get around that can be ended (84).
     - **Privacy policy:** a hash of each address that had a trial is kept, even after deletion, to prevent repeat trials (84). Payments go through Razorpay (53).
-    - **Account deletion has to work without a plan:** read-only accounts can't even "Delete all data" today (55).
+    - **Account deletion has to work without a plan:** the Free plan can't "Delete all data", or delete a single cheque, which was decided on 2026-10-02 (55).
     - **Deleting a user is blocked by the database.** `settings`, `parties`, `cheques`, `daily_deposits`, `bank_accounts` and `received_cheques` reference `auth.users` without `ON DELETE CASCADE`, so their rows must go first, or a migration adds the cascades.
     - **Payment records:** `payment_orders` are deleted with the user today. Decide whether tax rules need them kept.
+- [ ] **85.** A short tour of the app (decided 2026-10-02).
+  - Four or five skippable steps after the first cheque is added: New, Today's to-dos, Cheques, Parties.
+  - It ends by offering "Learn how cheques work", without opening it by force.
+  - An in-house component loaded only when needed, remembered in `settings.tour_done_at`. A "Show me around again" link sits on the Learn page.
+  - It must not make the app heavier.
+- [ ] **86.** A demo account replaces sample data (decided 2026-10-02). Each visitor gets a private demo:
+  - "Try the demo" signs them in anonymously, with sample cheques seeded by a SQL function.
+  - Signing out discards it, and a daily cleanup removes abandoned demos.
+  - Demos can't buy or import. A bar invites them to create an account.
+  - Needs the maintainer to turn on anonymous sign-ins, protected by the CAPTCHA.
+  - Sample data in real accounts goes; the dev project's sample set is removed first.
+- [ ] **87.** Two sites on chequetracker.com (decided 2026-10-02).
+  - **The website** is at the apex and `www`: a static site in a separate private repo (Astro on Vercel), with home, pricing, FAQ, terms, privacy, refunds and contact.
+  - **The app** is at `app.chequetracker.com`.
+  - **The website's header** has Sign in and "Start free trial". Its home page sends signed-in visitors to the app, using a `ct_signed_in` cookie on `.chequetracker.com` that the app sets. The cookie is only a flag, never a token.
+  - **Order:** the website and its legal pages come before payments go live, because Razorpay's activation and Google's brand verification need them.
+  - **The maintainer sets up:** Vercel domains, Supabase's Site URL and redirect URLs, Google's origins, Turnstile's hostnames, and email sending from a subdomain with SPF, DKIM and DMARC.
+- [ ] **88.** A faster start.
+  - **Measured on localhost (2026-10-02):** a ~0.7 s `auth.getUser()` before any data, and `bank_accounts` fetched about 10 times.
+  - **Fixes:** make `useBankAccounts` a shared store, and have `SettingsProvider` use `getSession()`. Compare production-preview timings before and after.
 - [ ] **58.** End-to-end tests with Playwright, and error tracking.
 - [ ] **59.** A production Supabase project that deploys from a release branch or tags, and tagged releases for self-hosters.
 - [ ] **60.** The maintainer's own data moves from their personal instance to the hosted service as a normal account. Item 9 helps.
@@ -345,6 +396,6 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
 
 These are kept outside this repo. Ask the maintainer.
 
-- [ ] **65.** Free trial length.
+- [x] **65.** Free trial length: 30 days, no card (decided 2026-10-02). Set as `instance_config.trial_days` in the hosted project.
 - [ ] **66.** International pricing, and whether to sell abroad through a merchant of record.
 - [ ] **67.** Where the private business plan lives.

@@ -76,10 +76,11 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 - **`all_cheques` view:** combines both directions for mixed screens. It's created with `security_invoker`, so row-level security still applies.
 - **Editions:**
   - `instance_config.billing_enabled`: false means self-hosted, with full access for everyone.
-  - `entitlements`: trial, purchase or comp. Only the service role writes them. Trials are one per email address, and none for throwaway mail (migration 021); importing an export needs a pack (`usePlan().requirePaid()`).
-  - `has_write_access()` with RESTRICTIVE policies makes lapsed accounts read-only. The UI only reflects this: `PlanProvider` keeps the plan current, and on a read-only account anything that changes data opens a "plan has ended" dialog. Wrap any new action that writes in `usePlan().guard` (or check `requireWrite()`).
+  - `entitlements`: trial, purchase or comp. Only the service role writes them. The paid plan is **Business** (`plan = 'business'`); Enterprise may come later. Trials are one per email address, and none for throwaway mail (migration 021). Importing an export needs Business, not a trial (`import_data()`, `usePlan().requirePaid()`).
+  - **The Free plan** (migration 019): without an active trial or Business plan (`has_write_access()` false), an account can still move its cheques along (status functions, undo, funds added for cheques) and edit notes, but can't add, change, delete or import. Status functions set `app.given_lifecycle` / `app.received_lifecycle`. A trigger lets the Free plan change notes only. RESTRICTIVE insert policies keep new rows out.
+  - The UI only reflects this. `PlanProvider` keeps the plan current; `usePlan().lapsed` means the Free plan. Wrap any new action the Free plan can't do (adding, editing beyond notes, deleting) in `usePlan().guard`, or check `requireWrite()`. Never guard a status change. See [docs/editions.md](docs/editions.md).
 - **Companions:** cheque-mcp and Cheque Watch read the given-side tables with the service-role key. Keep changes to `cheques`, `parties`, `cheque_history` and `daily_deposits` additive.
-- **Edge Function `supabase/functions/payments`:** sells packs through Razorpay: `/checkout`, `/confirm` and the `/webhook`. Only the service role can run `record_payment()`, which turns a checked payment into a `purchase` entitlement, once, starting when current access ends. Prices live in the hosted project's `packs` table, never in the repo. Settings → Plan (`PlanCard`, `src/lib/payments.ts`) lists the packs and opens Razorpay Checkout. See [docs/payments.md](docs/payments.md).
+- **Edge Function `supabase/functions/payments`:** sells Business through Razorpay: `/checkout`, `/confirm` and the `/webhook`. Only the service role can run `record_payment()`, which turns a checked payment into a `purchase` entitlement, once, starting when current access ends. Prices live in the hosted project's `packs` table, never in the repo. Each length on sale is a `packs` row. Settings → Plan (`PlanCard`, `src/lib/payments.ts`) lists them and opens Razorpay Checkout. See [docs/payments.md](docs/payments.md).
 - **Edge Function `supabase/functions/auto-pass`:** marks funded cheques as passed at each user's `auto_pass_time`, in their time zone. It's scheduled by hand; see [docs/self-hosting.md](docs/self-hosting.md).
 
 ## Database changes
@@ -88,7 +89,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
   - Add a numbered migration; the next one is `supabase/migrations/022_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
-- **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy.
+- **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy on insert. For updates the Free plan may make, follow migration 019.
 - **Privileges:** grant them explicitly for every new table, view and function.
   - Projects run with "automatically expose new tables" off, so new tables give anon and authenticated nothing usable. Automatic RLS is on.
   - Signed-in users never get DELETE; the app soft-deletes with `deleted_at`.
