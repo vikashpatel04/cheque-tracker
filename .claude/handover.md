@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-10-01, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-02, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -16,69 +16,116 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 ## Where things stand
 
-- **Code:** all work is committed on `main`. 149 tests pass; lint (0 errors, 2 known warnings) and build are clean.
+- **Code:** all work is committed on `main`; nothing is pushed since `c164418`. 193 tests pass; lint (0 errors, 2 known warnings) and build are clean.
+- **Unpushed commits** (oldest first):
+  - `e2d4b20`: the CI fix;
+  - `0eeeb41`: 69, loading less up front;
+  - `9972c3b`, `bccfe2f`: 52, sign-up, Google and password reset;
+  - `43dec27`: the "+" on Today;
+  - `8b683cd`: 55, first version;
+  - `132f353`: 53, payments;
+  - `38913db`, `1134f38`: 84, one trial per person;
+  - `8f7f487`, `7b2389e`, `3e3d753`: the Free and Business plans;
+  - `1435d56`, `817f17f`: 85, the tour.
+- **Unpushed migrations:**
+  - `019_free_plan.sql`: the Free plan; rewritten before it was ever pushed, replacing the first `019_plan_ended_message.sql`.
+  - `020_payments.sql`: plan lengths, orders and `record_payment()`.
+  - `021_one_trial_per_person.sql`.
+  - `022_tour.sql`.
+
+  Pushing applies them to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tool: the new tables and columns were added to it by hand.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
   - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–018 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
-  - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked.
-  - My v0 data is imported there as sample data: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"); Settings → Sample data removes it.
+  - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked and no plan rules apply.
+  - My v0 data is imported there: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"). Settings → Sample data removes it; remove it before item 86 takes that button away.
+  - Google sign-in is set up (OAuth client in Testing). Email confirmation is on, the minimum password length is 8, and anonymous sign-ins are off (item 86 needs them on).
   - `.env.local` points at it.
-- **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself. If the pane can't load `localhost:5173`, open `http://127.0.0.1:5173` instead; a sign-in on one address doesn't carry over to the other.
+- **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself.
+  - `http://127.0.0.1:5173` is a separate, signed-out address: use it to look at the sign-in pages without signing me out.
   - To test the installed app (service worker, offline start, updates), run `npm run build`, then the "preview" configuration (port 4173). The dev server has no service worker on purpose.
-- **Redesign:**
-  - The design is done and approved: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. I liked the "Passbook" look: warm paper, cheque-ink blue, green only for money in, IBM Plex fonts. Keep it exactly.
-  - **Building it (item 14) started on 2026-09-28, web version first.** Step 1 is done: the Passbook colours (light and dark), fonts, the new frame (sidebar and top bar on desktop, bottom tabs on phones, New menu, search, activity bell, appearance), and the installed app (icons, offline start, update prompt, install option). `CLAUDE.md` says where each piece lives.
-  - Step 2 is done: Today in the All, Given and Received views, replacing the dashboard. Its logic is `src/lib/today.ts`. Settings has "What you track", which needs migration 017 (see below).
-  - Step 3 is done: the Cheques list (tabs, saved views, filters, table and phone cards with swipe, export) and the cheque detail panel. Returned is now a saved view.
-  - Step 4 is done: the received-cheque screens (form, deposit, detail and every action, search) and Settings → Sample data. One sample set is on the dev project (I said yes on 2026-09-29); remove it any time in Settings. I'll review the receiving side's wording and signs later.
-  - Step 5 is done: Add funds (one panel), the Calendar (own month grid and agenda), Parties (the list and the two-way party ledger, with phone and WhatsApp links), Reports (seven tabs, filters that stay in view, PDF and Excel export per tab), Settings (the board's sections, each saved as it changes), and onboarding (region, what you track, bank accounts, then Today's first-run checklist). Item 14 is complete.
-  - Since then: given cheques pick their bank from Your bank accounts (plan item 74), and a "Learn how cheques work" guide with question links around the app (75). The plan's step 5 notes say what each part does and what was left for later.
-  - `docs/design-brief.md` describes it. Its "Chosen: Passbook" section has the exact fonts, colour tokens (light and dark), status-chip families and layout rules to build from.
-  - `docs/feature-map.md` lists every current feature and where it goes, so nothing gets dropped. Its "Views" section says what Today shows in each view.
+  - Plan rules only show with billing on. To check them without changing Supabase, fake `instance_config` and `entitlements` in the page by wrapping `window.fetch`, and intercept every change request, so my real data isn't touched. That's how items 55, 53, 84 and the Free plan were checked; their plan notes say how.
+- **Waiting on me** (each needs my go-ahead or my accounts; never done for me):
+  1. Push. Then the types get regenerated.
+  2. **Payments (53):**
+     - Razorpay test-mode keys;
+     - the three secrets;
+     - deploy the `payments` function;
+     - the webhook;
+     - plan lengths and prices in the `packs` table;
+     - billing on in dev for one test payment.
+
+     Steps in `docs/payments.md`.
+  3. **CAPTCHA:**
+     - a Cloudflare Turnstile widget;
+     - `VITE_TURNSTILE_SITE_KEY` in Vercel, deployed first;
+     - only then CAPTCHA protection in Supabase with the secret key.
+
+     The order matters: `docs/editions.md`, "Sign-up protection".
+  4. **Throwaway-mail list (84):** I can load the full public list myself (SQL in `docs/editions.md`), or say yes to Claude downloading `disposable_email_blocklist.conf` from github.com/disposable-email-domains into a migration.
+  5. **To try the Free plan for real:** `trial_days = 30` and billing on in dev. That puts my own account on Free, unless I give myself a comp grant.
+  6. **Demo (86):** turn on anonymous sign-ins in Supabase.
+  7. **Two sites (87):** Vercel domains, Supabase Site URL and redirect URLs on `app.chequetracker.com`, Google's authorized origins, Turnstile hostnames, and email sending from a subdomain with SPF, DKIM and DMARC.
+- **Design:**
+  - The Passbook design is approved and built: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. Keep it exactly.
+  - `docs/design-brief.md` has the fonts, colour tokens, status chips and layout rules. `docs/feature-map.md` lists every feature.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
-- **Item 14, done in five steps:**
-  1. ~~Tokens, fonts and the new frame~~ (done).
-  2. ~~Today in all three views~~ (done).
-  3. ~~Cheques and cheque detail~~ (done).
-  4. ~~The received-cheque screens~~ (done).
-  5. ~~Add funds, Calendar, Parties, Reports, Settings and onboarding~~ (done).
+- **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. If a tracked file ever goes missing, `git show HEAD:<file>` has it. The website (item 87) will be a new private repo in a new folder next to this one, such as `chequetracker-site`.
 
-  From my first review on the phone (2026-09-29), plan items 77–80 are done:
-  - 77–79 are an account on given cheques and on funds added (migration 018), and date dividers in Add funds. I pushed them as `29532f0`.
-  - The types were regenerated, and 77–79 were checked in the browser on 2026-10-01.
-  - 80 makes pickers open as a sheet on phones. It's committed, not pushed.
+## What's next
 
-  81 (the next cheque number from the chosen account's cheque book), 76 (the last screens in the old look) and 82 (the phone's back button closes the open dialog or sheet, via CloseWatcher) are done, and I pushed them on 2026-10-01; I still check 82 on my Android phone.
+In this order unless I say otherwise:
+1. **86, the demo account,** once I've turned on anonymous sign-ins. The design is in the plan's item 86.
+2. **87, the app's part of the two sites:**
+   - the `ct_signed_in` cookie;
+   - "Back to website", and the terms and privacy links on sign-up;
+   - `docs/hosting.md`.
 
-  CI on `main` had failed since 2026-09-29: tests needed `.env.local`, which CI doesn't have. It's fixed in `vitest.config.ts` (committed, not pushed).
+   Then the website itself, in its own repo, with its own plan.
+3. **88, a faster start,** whenever I ask. The main file has grown from 1,048 kB to 1,072 kB since 69 (payments, plans, CAPTCHA); look at that too.
 
-  Next: 69 (load less up front), then 52 (sign-up, with Google sign-in and sign-up).
+After that:
+- **Before launch:**
+  - 54: renewal reminders;
+  - 56: admin;
+  - 57: legal pages and account deletion; the plan lists what it needs;
+  - 58: end-to-end tests;
+  - 59: the production project;
+  - the 52 leftovers: SMTP, leaked-password protection, Google brand verification.
+- **Features:** 41 and 42, reminders, for trial and Business only.
 
-  69 is done (2026-10-01): the first download went from 2,534 kB (756 kB compressed) to 1,048 kB (302 kB).
+83 (installing on phones) is for later. Tick the feature map off as you go, and check every screen at desktop and phone width.
 
-  52 (create user) is built: the sign-in pages, with Google, sign-up and password reset; see its notes in the plan. I verified email sign-up, Google and a password reset on 2026-10-01.
+## Decided on 2026-10-02
 
-  On 2026-10-01 I picked 55, then 53. Fixed first: on narrow phones the "+" of Today's figures wrapped onto its own line (`43dec27`). 55 (read-only when a plan ends) is done, with migration 019; see its notes in the plan. 53 (Razorpay payments) is built, with migration 020 and the `payments` Edge Function; it waits for my Razorpay test keys and a test payment (the plan lists the steps; `docs/payments.md` has the setup). Then, against trial abuse (people signing up again with new addresses and importing their export), I chose A to E, built as item 84 with migration 021: one trial per email address, no trial for throwaway mail, importing an export needs a pack, a CAPTCHA (on once I set a Turnstile key), and "one free trial per person" on sign-up. My idea of tying exports to their account goes with item 10.
+- **Plans:**
+  - a 30-day free trial, with no card;
+  - **Business**, prepaid for 1, 6 or 12 months (auto-renew later);
+  - **Free** once a trial or plan ends;
+  - **Enterprise** later, with AI features.
+- **The Free plan:**
+  - **Still works:** cheques keep moving (every status change, undo, funds for ticked cheques), notes can be edited, and everything can be read and exported.
+  - **Needs Business:** adding, other edits, deleting and importing.
+- **Rejected:** a cheque-count limit. People pay for the hosting, since the same app is free to self-host.
+- **Reminders:** only trial and Business accounts get them.
+- **Importing an export:** needs Business, not a trial.
+- **The email checks** from 84 stay, and the CAPTCHA.
+- **A short tour** after the first cheque, ending with an offer of "Learn how cheques work" (85, built).
+- **The demo:**
+  - Sample data goes. Each visitor gets a private demo: an anonymous sign-in, seeded in one request.
+  - Signing out discards it, and a daily cleanup removes abandoned demos.
+  - Demos get a one-day Business grant, can't buy or import, and see a bar inviting them to sign up (86).
+- **The domain:**
+  - `chequetracker.com` and `www` are a static website in a private repo (Astro on Vercel): home, pricing, FAQ, terms, privacy, refunds, contact.
+  - `app.chequetracker.com` is this app.
+  - The website's header has Sign in and "Start free trial", and its home page sends signed-in visitors to the app (87).
+  - The legal pages come before payments go live.
+- **Pricing:** stays as decided, and is reviewed once reminders exist. Prices never go in the repo.
 
-  On 2026-10-02 we reworked the plans and the first experience. The decisions are in the plan's "Decided" item 5, and in items 41, 55, 65 and 85–88.
-  - **The plans:**
-    - a 30-day free trial with no card;
-    - **Business**, prepaid for 1, 6 or 12 months;
-    - **Free** once a trial or plan ends: cheques keep moving (status changes, undo, funds for ticked cheques, notes), but nothing new goes in, nothing else changes, nothing is deleted, and nothing is imported;
-    - **Enterprise** later, with AI.
-  - **Reminders** go only to trial and Business accounts.
-  - **Built:** the Free plan in the database (migration 019, rewritten before it was pushed) and in the app, plus the plan names.
-  - **Next, in this order unless I say otherwise:**
-    - ~~the tour (85)~~, done 2026-10-02 (migration 022);
-    - the demo account replacing sample data (86);
-    - the two sites on chequetracker.com (87), with the website in its own private repo;
-    - a faster start (88) whenever I ask.
+## Decided on 2026-10-01
 
-  83 (installing on phones) is noted for later.
-
-  Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix, 55, 53, 84 and the Free plan (55 reshaped). Pushing applies migrations 019 to 022 to the dev project; then regenerate `src/types/database.ts` (the new tables were added to it by hand).
-- **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
+- **One trial per email address, never by name** (84). Two addresses count as one only when the provider delivers them to the same inbox. On a company's own domain, every address is its own person.
+- **My idea of tying each export to its account** goes with item 10, when exports get IDs anyway.
 
 ## Decided on 2026-09-29
 

@@ -366,18 +366,52 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
       - the guide button opens /learn;
       - a real Esc closes it once;
       - with `tour_done_at` faked as empty, it started by itself, and Skip saved it once.
-- [ ] **86.** A demo account replaces sample data (decided 2026-10-02). Each visitor gets a private demo:
-  - "Try the demo" signs them in anonymously, with sample cheques seeded by a SQL function.
-  - Signing out discards it, and a daily cleanup removes abandoned demos.
-  - Demos can't buy or import. A bar invites them to create an account.
-  - Needs the maintainer to turn on anonymous sign-ins, protected by the CAPTCHA.
-  - Sample data in real accounts goes; the dev project's sample set is removed first.
+- [ ] **86.** A demo account replaces sample data (decided 2026-10-02): each visitor gets a private demo, not one shared account.
+  - **Why not shared:** visitors would overwrite each other, and closed tabs never sign out, so "reset on sign-out" wouldn't hold.
+  - **Starting it:** a "Try the demo, no sign-up" button on the sign-in and sign-up pages, and a `/demo` route the website can link to. It signs in with Supabase's anonymous sign-in (`is_anonymous`), which gives a real, isolated, throwaway account.
+  - **Seeding:** one request to a SQL function `start_demo()`. It holds the current sample set, moved from `src/lib/sampleData.ts` into SQL, with dates relative to today and the region from the instance's default. The tour starts straight away.
+  - **Clearing it:** signing out discards the account, which can't be signed back into. A daily cleanup removes demo accounts older than 24 hours, deleting their rows in order, since users' rows don't cascade (see 57).
+  - **Rules for demo accounts:**
+    - a one-day Business grant, never a trial;
+    - exempt from the one-trial-per-email checks (84);
+    - they can't buy (the `payments` function refuses them) or import;
+    - a bar says "You're in the demo. Changes are cleared when you sign out", with a "Create an account" button.
+  - **Needs the maintainer:**
+    - turn on anonymous sign-ins in Supabase (off until now on purpose; yes only for this). The CAPTCHA (52) applies to them, and Supabase rate-limits them per IP.
+    - remove the dev project's sample set in Settings first.
+  - **Remove:** `src/lib/sampleData.ts`, `useSampleData`, the sample offers in `SetupChecklist.tsx` and `Today.tsx`, Settings → Sample data, and `tests/sampleData.test.ts`. A test for `start_demo()` replaces it.
 - [ ] **87.** Two sites on chequetracker.com (decided 2026-10-02).
-  - **The website** is at the apex and `www`: a static site in a separate private repo (Astro on Vercel), with home, pricing, FAQ, terms, privacy, refunds and contact.
-  - **The app** is at `app.chequetracker.com`.
-  - **The website's header** has Sign in and "Start free trial". Its home page sends signed-in visitors to the app, using a `ct_signed_in` cookie on `.chequetracker.com` that the app sets. The cookie is only a flag, never a token.
+  - **The website** at the apex, with `www` redirecting to it. It's a static site in a separate private repo (Astro on Vercel), in a new folder next to this one such as `chequetracker-site`, and gets its own plan when started.
+    - **Pages:** home, pricing, FAQ, terms, privacy, refunds and contact, built from the item 30 boards.
+    - **Content:** the hero and features from `docs/design-brief.md`, with no mention of open source.
+    - **Header:** Sign in (to `app.chequetracker.com/login`) and "Start free trial" (to `/signup`). A small inline script sends signed-in visitors from the home page to the app; pricing and the legal pages stay readable.
+    - **Pricing page:**
+      - the 30-day trial;
+      - Business for 1, 6 or 12 months, tax extra, with "After your trial you stay on Free: keep updating your cheques and export your data";
+      - Enterprise as coming soon, with a contact link.
+    - **Prices** live only there and in the `packs` table. A small public prices endpoint can come later, if keeping them in step becomes a chore.
+  - **The app** at `app.chequetracker.com`. Its part, in this repo:
+    - **The cookie:**
+      - `useAuth` sets a `ct_signed_in=1` cookie on sign-in and clears it on sign-out;
+      - it's only a flag, never a token or personal data;
+      - it's set on `Domain=$VITE_COOKIE_DOMAIN` (`.chequetracker.com` on the hosted edition), `Secure`, `SameSite=Lax`;
+      - self-hosted copies leave the variable unset and set nothing;
+      - the helper lives in `src/lib`, with a unit test, and the variable goes in `.env.example` and `src/vite-env.d.ts`.
+    - **Links to the website** through `brand.siteUrl` (`VITE_SITE_URL`): a "Back to website" link in `AuthLayout`, and "By continuing you agree to the Terms and Privacy Policy" on sign-up, linking to `${siteUrl}/terms` and `/privacy` (57).
+    - **Docs:** `docs/hosting.md`, with the DNS and service settings.
+  - **Why two sites:**
+    - the installed app's service worker answers every page on its own address, so a landing page there would never reach visitors;
+    - a static page ranks better in search;
+    - prices stay out of this public repo;
+    - marketing scripts can't touch sign-in tokens;
+    - each can be changed without redeploying the other.
   - **Order:** the website and its legal pages come before payments go live, because Razorpay's activation and Google's brand verification need them.
-  - **The maintainer sets up:** Vercel domains, Supabase's Site URL and redirect URLs, Google's origins, Turnstile's hostnames, and email sending from a subdomain with SPF, DKIM and DMARC.
+  - **The maintainer sets up:**
+    - Vercel domains;
+    - Supabase's Site URL and redirect URLs on `app.…`;
+    - Google's authorized origins;
+    - Turnstile's hostnames;
+    - email sending from a subdomain (such as `mail.`) with SPF, DKIM and DMARC, and `support@` on the apex.
 - [ ] **88.** A faster start.
   - **Measured on localhost (2026-10-02):** a ~0.7 s `auth.getUser()` before any data, and `bank_accounts` fetched about 10 times.
   - **Fixes:** make `useBankAccounts` a shared store, and have `SettingsProvider` use `getSession()`. Compare production-preview timings before and after.

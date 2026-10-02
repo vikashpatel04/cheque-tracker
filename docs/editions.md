@@ -174,7 +174,8 @@ values ('<auth user id>', 'trial', now() + interval '30 days', 'Free trial');
 
 - **Sign-up:** a custom SMTP provider for auth emails, and CAPTCHA switched on (see Sign-up protection).
 - **Renewal reminders** before Business ends.
-- **Legal pages:** terms, privacy policy, and refund and cancellation policy.
+- **The website and its legal pages:** chequetracker.com as a separate site, with the app at `app.chequetracker.com` (plan item 87). Terms (including one free trial per person), privacy policy (including the trial email hashes), and refund and cancellation policy. Razorpay's account activation and Google's brand verification both need them, so they come before payments go live.
+- **Account deletion** that works on any plan, including Free (plan item 57).
 
 ## What never goes in this repository
 
