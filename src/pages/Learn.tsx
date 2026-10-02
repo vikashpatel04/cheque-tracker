@@ -1,10 +1,12 @@
 import { useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Compass } from 'lucide-react'
 import { TopicAnswer } from '@/components/guide/GuideTopics'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { Button } from '@/components/ui/button'
 import { goToSection, useCurrentSection } from '@/hooks/useCurrentSection'
 import { GUIDE_SECTIONS, GUIDE_TOPICS } from '@/lib/guide'
+import { startTour } from '@/lib/tour'
 import { cn } from '@/lib/utils'
 
 /**
@@ -83,6 +85,10 @@ export default function Learn() {
             How a cheque moves from written or received to paid, both ways, and answers to questions people often have. Wherever you see a
             question with a <span className="font-semibold text-brand">?</span> in the app, it opens one of these answers.
           </p>
+          <Button variant="outline" className="self-start" onClick={startTour}>
+            <Compass />
+            Show me around the app
+          </Button>
           {GUIDE_SECTIONS.map((section) => (
             <div key={section} className="flex flex-col gap-4">
               <h2 className="pt-2 font-title text-2xl">{section}</h2>

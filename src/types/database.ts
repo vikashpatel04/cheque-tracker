@@ -619,6 +619,7 @@ export type Database = {
           id: string
           locale: string | null
           timezone: string | null
+          tour_done_at: string | null
           tracks: string
           updated_at: string | null
           user_id: string
@@ -639,6 +640,7 @@ export type Database = {
           id?: string
           locale?: string | null
           timezone?: string | null
+          tour_done_at?: string | null
           tracks?: string
           updated_at?: string | null
           user_id: string
@@ -659,6 +661,7 @@ export type Database = {
           id?: string
           locale?: string | null
           timezone?: string | null
+          tour_done_at?: string | null
           tracks?: string
           updated_at?: string | null
           user_id?: string

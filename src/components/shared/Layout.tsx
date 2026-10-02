@@ -10,6 +10,7 @@ import { MoreSheet } from '@/components/shared/MoreSheet'
 import { NewMenuButton, NewSheet } from '@/components/shared/NewMenu'
 import { PlanBanner } from '@/components/shared/PlanBanner'
 import { SourceLink } from '@/components/shared/SourceLink'
+import { TourLauncher } from '@/components/tour/TourLauncher'
 import { isActivePath, NAV_ITEMS, type NavItem } from '@/components/shared/navigation'
 import { useAppActions } from '@/hooks/useAppActions'
 import { daysLeft, usePlan } from '@/hooks/usePlan'
@@ -24,11 +25,15 @@ const CONTENT_WIDTH = 'mx-auto w-full max-w-[1400px]'
 /** The search shortcut as this device writes it. */
 const SEARCH_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'
 
+/** How the tour finds a page's link in the sidebar or the bottom tabs: "nav-cheques". */
+const tourName = (item: NavItem) => `nav-${item.to.slice(1) || 'today'}`
+
 function SidebarLink({ item, count }: { item: NavItem; count?: number }) {
   return (
     <NavLink
       to={item.to}
       end={item.to === '/'}
+      data-tour={tourName(item)}
       className={({ isActive }) =>
         cn(
           'flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] transition-colors',
@@ -151,7 +156,7 @@ function BottomTabs() {
     )
 
   const tab = (item: NavItem) => (
-    <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => tabClass(isActive)}>
+    <NavLink key={item.to} to={item.to} end={item.to === '/'} data-tour={tourName(item)} className={({ isActive }) => tabClass(isActive)}>
       <item.icon className="h-[22px] w-[22px]" aria-hidden="true" />
       <span>{item.label}</span>
     </NavLink>
@@ -170,6 +175,7 @@ function BottomTabs() {
             <button
               type="button"
               aria-label="New"
+              data-tour="new"
               onClick={() => setNewOpen(true)}
               className="-mt-[18px] flex h-14 w-14 items-center justify-center rounded-full bg-brand text-brand-ink shadow-fab transition-colors hover:bg-brand-hover"
             >
@@ -219,6 +225,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <BottomTabs />
       </div>
+      <TourLauncher />
     </AppActionsProvider>
   )
 }

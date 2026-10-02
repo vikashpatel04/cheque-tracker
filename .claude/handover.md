@@ -69,7 +69,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   - **Reminders** go only to trial and Business accounts.
   - **Built:** the Free plan in the database (migration 019, rewritten before it was pushed) and in the app, plus the plan names.
   - **Next, in this order unless I say otherwise:**
-    - the tour (85);
+    - ~~the tour (85)~~, done 2026-10-02 (migration 022);
     - the demo account replacing sample data (86);
     - the two sites on chequetracker.com (87), with the website in its own private repo;
     - a faster start (88) whenever I ask.
@@ -77,7 +77,7 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
   83 (installing on phones) is noted for later.
 
   Tick the feature map off as you go, and check every screen at desktop and phone width. Items 10 and 11 were moved; see their notes in the plan.
-- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix, 55, 53, 84 and the Free plan (55 reshaped). Pushing applies migrations 019 to 021 to the dev project; then regenerate `src/types/database.ts` (the new tables were added to it by hand).
+- **Pushed:** everything up to `c164418` (items 76–82), on 2026-10-01. Migrations 001–018 are applied to the dev project. Committed but not pushed: the CI fix, 69, 52, the "+" fix, 55, 53, 84 and the Free plan (55 reshaped). Pushing applies migrations 019 to 022 to the dev project; then regenerate `src/types/database.ts` (the new tables were added to it by hand).
 - **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. On 2026-09-26 some of this repo's files were accidentally moved into the v0 folder; they're back. If a tracked file ever goes missing, `git show HEAD:<file>` has it.
 
 ## Decided on 2026-09-29

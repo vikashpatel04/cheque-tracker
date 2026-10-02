@@ -37,7 +37,7 @@ function Amount({ todo, direction }: { todo: Todo; direction: 'in' | 'out' }) {
 export function TodoList({ todos, today, loading, onAction, emptyHint }: TodoListProps) {
   const count = todos.length
   return (
-    <section aria-labelledby="todo-title" className="flex min-w-0 flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:bg-surface">
+    <section aria-labelledby="todo-title" data-tour="todo" className="flex min-w-0 flex-col lg:overflow-hidden lg:rounded-xl lg:border lg:bg-surface">
       <div className="flex items-baseline justify-between pb-3 lg:border-b lg:border-line-soft lg:px-[22px] lg:py-[18px]">
         <h2 id="todo-title" className="text-xl font-semibold lg:text-[19px]">
           To do

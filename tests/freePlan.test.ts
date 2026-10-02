@@ -138,7 +138,7 @@ describe('on the Free plan, an account can still', () => {
   it('read everything and change its settings', async () => {
     const { rows } = await t.asUser<{ n: number }>(FREE, 'SELECT count(*)::int AS n FROM received_cheque_history')
     expect(rows[0].n).toBeGreaterThan(0)
-    await t.asUser(FREE, `UPDATE settings SET timezone = 'Asia/Kolkata' WHERE user_id = $1`, [FREE])
+    await t.asUser(FREE, `UPDATE settings SET timezone = 'Asia/Kolkata', tour_done_at = now() WHERE user_id = $1`, [FREE])
   })
 })
 

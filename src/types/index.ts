@@ -117,6 +117,11 @@ export interface Settings {
    * Missing on databases without that migration, which means both.
    */
   tracks?: Tracks
+  /**
+   * When the tour of the app was finished or skipped (migration 022). Null
+   * means it starts after the first cheque; missing on older databases.
+   */
+  tour_done_at?: string | null
   created_at: string
   updated_at: string
 }

@@ -77,7 +77,7 @@ export function NewMenuButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="gap-2 pl-4 pr-3.5">
+        <Button className="gap-2 pl-4 pr-3.5" data-tour="new">
           <Plus strokeWidth={2.2} />
           New
           <ChevronDown className="!size-4" />

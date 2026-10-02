@@ -345,11 +345,27 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - **Account deletion has to work without a plan:** the Free plan can't "Delete all data", or delete a single cheque, which was decided on 2026-10-02 (55).
     - **Deleting a user is blocked by the database.** `settings`, `parties`, `cheques`, `daily_deposits`, `bank_accounts` and `received_cheques` reference `auth.users` without `ON DELETE CASCADE`, so their rows must go first, or a migration adds the cascades.
     - **Payment records:** `payment_orders` are deleted with the user today. Decide whether tax rules need them kept.
-- [ ] **85.** A short tour of the app (decided 2026-10-02).
+- [x] **85.** A short tour of the app (decided 2026-10-02).
   - Four or five skippable steps after the first cheque is added: New, Today's to-dos, Cheques, Parties.
   - It ends by offering "Learn how cheques work", without opening it by force.
   - An in-house component loaded only when needed, remembered in `settings.tour_done_at`. A "Show me around again" link sits on the Learn page.
   - It must not make the app heavier.
+  - Built 2026-10-02, not yet pushed:
+    - **Database:** migration 022 adds `settings.tour_done_at`. Accounts that already have cheques count as done, so it doesn't interrupt them.
+    - **Starting:** `TourLauncher` (in `Layout`) starts the tour once the first cheque is in and no dialog is open. Only accounts that haven't done it check for that.
+    - **Replaying:** "Show me around the app" on the Learn page replays it (`startTour` in `src/lib/tour.ts`).
+    - **The tour:**
+      - `Tour` is a 4 kB lazy chunk (1.8 kB compressed).
+      - It moves to Today and steps through New, Today's to-dos, Cheques and Parties, then offers "Learn how cheques work" or Done.
+      - Targets are marked `data-tour`, and the one on screen is used (phone tabs or the desktop sidebar).
+      - A tall target (the to-dos) is highlighted from its top.
+    - **Ending it:** Skip, Done, Esc and the phone's back button all end it.
+    - **Checked in the browser** at 1280×800 and 375×812:
+      - every highlight and card stays on screen;
+      - the Tour code downloads only when it starts;
+      - the guide button opens /learn;
+      - a real Esc closes it once;
+      - with `tour_done_at` faked as empty, it started by itself, and Skip saved it once.
 - [ ] **86.** A demo account replaces sample data (decided 2026-10-02). Each visitor gets a private demo:
   - "Try the demo" signs them in anonymously, with sample cheques seeded by a SQL function.
   - Signing out discards it, and a daily cleanup removes abandoned demos.

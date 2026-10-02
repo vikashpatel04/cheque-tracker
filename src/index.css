@@ -28,6 +28,8 @@
   --brand-ink: #ffffff;
   --brand-soft: #e4eaf3;
   --track: #ece8de;
+  /* Dims the page behind the tour (the dialogs' overlay colour); the same in dark. */
+  --scrim: rgb(16 22 29 / 0.45);
   --thumb: #ffffff;
   --hover: #efece4;
 
@@ -157,6 +159,7 @@
   --color-line-field: var(--line-field);
   --color-line-soft: var(--line-soft);
   --color-ink: var(--ink);
+  --color-scrim: var(--scrim);
   --color-ink-quiet: var(--ink-quiet);
   --color-ink-nav: var(--ink-nav);
   --color-ink-faint: var(--ink-faint);
