@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-10-02, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-03, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -14,21 +14,19 @@ Continue building Cheque Tracker in this repository. Read `CLAUDE.md` first and 
 
 The agreed plan and its progress are in `.claude/plan.md`. Work through its **Order of work** from the first unticked item, one at a time. Check with me before anything that changes Supabase settings or data.
 
-## In progress (2026-10-03)
+## Done on 2026-10-03
 
-I asked for 86 (the demo, with its security taken care of) and 87 (the two sites). The website goes in my existing private repo `../cheque-tracker-website`: delete the old site (it was for the open-source family) and start fresh there.
+I asked for the demo with its security taken care of, and for the two-site setup, with the website in my existing private repo, started afresh.
 
-- **86, the demo: built and committed** (plan item 86 has the details). Migration 023 isn't pushed yet.
-  - **Anonymous sign-ins:** they still read as off on the dev project (`/auth/v1/settings` says `anonymous_users: false`). Keep them off until 023 is pushed, then turn them on (docs/editions.md, "Turning on the demo").
-  - **My dev account still has the old sample set** (30 parties); Settings → Your data → Remove sample data clears it. Then delete `src/lib/sampleData.ts` and `useSampleData`.
-- **87, the app's part: built and committed** (the cookie, "Back to website", the terms line, safe headers, `docs/hosting.md`).
-- **87, the website: next.** In `../cheque-tracker-website`:
-  - local `master` is one merged PR behind `origin/master`, so fast-forward first;
-  - remove the old files and start the new Astro site (its untracked `screenshots/` are old-site captures).
+- **86, the demo:** built and committed (`61b6062`); plan item 86 has the details. The database keeps anonymous sessions in bounds, even with billing off.
+- **87, the app's part:** built and committed (`9720370`): the `ct_signed_in` flag, "Back to website", the terms line, safe headers, and `docs/hosting.md`.
+- **87, the website:** `../cheque-tracker-website`.
+  - The old open-source family site was removed (`b10683d`), and the new site built from the Landing board (`a2b5f65`).
+  - Its own `CLAUDE.md` and `.claude/plan.md` say how it works and what's left before launch. The legal pages are drafts until my details are in its `src/config.ts`.
 
 ## Where things stand
 
-- **Code:** all work is committed on `main`; nothing is pushed since `c164418`. 193 tests pass; lint (0 errors, 2 known warnings) and build are clean.
+- **Code:** all work is committed on `main`; nothing is pushed since `c164418`. 215 tests pass; lint (0 errors, 2 known warnings) and build are clean.
 - **Unpushed commits** (oldest first):
   - `e2d4b20`: the CI fix;
   - `0eeeb41`: 69, loading less up front;
@@ -38,20 +36,23 @@ I asked for 86 (the demo, with its security taken care of) and 87 (the two sites
   - `132f353`: 53, payments;
   - `38913db`, `1134f38`: 84, one trial per person;
   - `8f7f487`, `7b2389e`, `3e3d753`: the Free and Business plans;
-  - `1435d56`, `817f17f`: 85, the tour.
+  - `1435d56`, `817f17f`: 85, the tour;
+  - `61b6062`: 86, the demo;
+  - `9720370`: 87, the app's part of the two sites.
 - **Unpushed migrations:**
   - `019_free_plan.sql`: the Free plan; rewritten before it was ever pushed, replacing the first `019_plan_ended_message.sql`.
   - `020_payments.sql`: plan lengths, orders and `record_payment()`.
   - `021_one_trial_per_person.sql`.
   - `022_tour.sql`.
+  - `023_demo.sql`: the demo. `020_payments.sql` also changed before it was ever pushed: a bought plan's start ignores a demo's day.
 
   Pushing applies them to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tool: the new tables and columns were added to it by hand.
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
   - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–018 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
   - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked and no plan rules apply.
-  - My v0 data is imported there: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"). Settings → Sample data removes it; remove it before item 86 takes that button away.
-  - Google sign-in is set up (OAuth client in Testing). Email confirmation is on, the minimum password length is 8, and anonymous sign-ins are off (item 86 needs them on).
+  - My v0 data is imported there: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"). Settings → Your data → Remove sample data still removes it; that row shows only while the set is there.
+  - Google sign-in is set up (OAuth client in Testing). Email confirmation is on, the minimum password length is 8, and anonymous sign-ins read as off: keep them off until 023 is pushed.
   - `.env.local` points at it.
 - **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself.
   - `http://127.0.0.1:5173` is a separate, signed-out address: use it to look at the sign-in pages without signing me out.
@@ -76,37 +77,46 @@ I asked for 86 (the demo, with its security taken care of) and 87 (the two sites
      The order matters: `docs/editions.md`, "Sign-up protection".
   4. **Throwaway-mail list (84):** I can load the full public list myself (SQL in `docs/editions.md`), or say yes to Claude downloading `disposable_email_blocklist.conf` from github.com/disposable-email-domains into a migration.
   5. **To try the Free plan for real:** `trial_days = 30` and billing on in dev. That puts my own account on Free, unless I give myself a comp grant.
-  6. **Demo (86):** turn on anonymous sign-ins in Supabase.
-  7. **Two sites (87):** Vercel domains, Supabase Site URL and redirect URLs on `app.chequetracker.com`, Google's authorized origins, Turnstile hostnames, and email sending from a subdomain with SPF, DKIM and DMARC.
+  6. **Demo (86):** after pushing 023, allow anonymous sign-ins in Supabase and check their rate limit (`docs/editions.md`, "Turning on the demo").
+  7. **Two sites (87),** in `docs/hosting.md`:
+     - the website's Vercel project, on the apex with `www` redirecting;
+     - this app on `app.`, with `VITE_SITE_URL` and `VITE_COOKIE_DOMAIN` set;
+     - Supabase's Site URL and redirect URLs;
+     - Google's origin and consent-screen links;
+     - Turnstile's hostname;
+     - email from a subdomain with SPF, DKIM and DMARC, and the `support@` mailbox.
+  8. **The website repo:**
+     - push it (two commits);
+     - fill in my details in its `src/config.ts`;
+     - review its legal drafts. Its plan, "Before launch", lists the proposals to confirm, such as the refund rules.
 - **Design:**
   - The Passbook design is approved and built: 27 boards on a private Claude Design canvas, https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG. Keep it exactly.
   - `docs/design-brief.md` has the fonts, colour tokens, status chips and layout rules. `docs/feature-map.md` lists every feature.
   - To read a board's markup, use the Artifact tool's `read` on the canvas, `project/<Board>.dc.html`.
-- **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. If a tracked file ever goes missing, `git show HEAD:<file>` has it. The website (item 87) will be a new private repo in a new folder next to this one, such as `chequetracker-site`.
+- **Folders:** this repo is `C:\Users\vikas\projects\cheque-tracker`, and v0 is `../Cheque-Tracker-v0`. If a tracked file ever goes missing, `git show HEAD:<file>` has it. The website is the private repo `vikashpatel04/cheque-tracker-website`, in `../cheque-tracker-website`, with its own `CLAUDE.md` and plan.
 
 ## What's next
 
 In this order unless I say otherwise:
-1. **86, the demo account,** once I've turned on anonymous sign-ins. The design is in the plan's item 86.
-2. **87, the app's part of the two sites:**
-   - the `ct_signed_in` cookie;
-   - "Back to website", and the terms and privacy links on sign-up;
-   - `docs/hosting.md`.
-
-   Then the website itself, in its own repo, with its own plan.
-3. **88, a faster start,** whenever I ask. The main file has grown from 1,048 kB to 1,072 kB since 69 (payments, plans, CAPTCHA); look at that too.
+1. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
+2. **The website's launch steps,** with me: its own plan, "Before launch".
 
 After that:
 - **Before launch:**
   - 54: renewal reminders;
   - 56: admin;
-  - 57: legal pages and account deletion; the plan lists what it needs;
+  - 57: account deletion in the app, and a final review of the website's legal drafts; the plan lists what they need;
   - 58: end-to-end tests;
   - 59: the production project;
   - the 52 leftovers: SMTP, leaked-password protection, Google brand verification.
 - **Features:** 41 and 42, reminders, for trial and Business only.
 
 83 (installing on phones) is for later. Tick the feature map off as you go, and check every screen at desktop and phone width.
+
+## Decided on 2026-10-03
+
+- **The website** lives in my existing private repo `cheque-tracker-website`. The old site for the open-source family was deleted and the new one started there; the old one stays in its history.
+- **Anonymous sign-ins** for the demo are allowed only with the database keeping them in bounds (86): a day, once, small, few per hour, never paid or imported, and deleted after.
 
 ## Decided on 2026-10-02
 
