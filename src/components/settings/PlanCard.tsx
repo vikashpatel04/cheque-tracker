@@ -5,6 +5,7 @@ import { SettingsSection } from '@/components/settings/SettingsSection'
 import { Chip } from '@/components/shared/Chip'
 import { brand } from '@/config/brand'
 import { usePlan, type Plan } from '@/hooks/usePlan'
+import { useSignOut } from '@/hooks/useSignOut'
 import { formatMinorUnits, formatShortDate } from '@/lib/formatters'
 import { buyPack, loadPacks, loadPayments, packTotal, savingPercent, type Pack, type PaymentOrder } from '@/lib/payments'
 import { lapsedWording } from '@/lib/plan'
@@ -69,10 +70,12 @@ function PackOption({ pack, packs, busy, onBuy }: { pack: Pack; packs: Pack[]; b
 /**
  * Settings → Plan, on instances with billing on: your plan (a trial, Business
  * or Free), how long to buy Business for, and your payments. The choices are
- * the `packs` rows. Hidden on self-hosted instances.
+ * the `packs` rows. Hidden on self-hosted instances. The demo can't buy, so it
+ * offers an account instead.
  */
 export function PlanCard() {
   const plan = usePlan()
+  const leave = useSignOut()
   const [packs, setPacks] = useState<Pack[]>([])
   const [payments, setPayments] = useState<PaymentOrder[]>([])
   const [buying, setBuying] = useState<string | null>(null)
@@ -84,10 +87,24 @@ export function PlanCard() {
   }, [])
 
   useEffect(() => {
-    if (shown) reload()
-  }, [shown, reload])
+    if (shown && !plan.demo) reload()
+  }, [shown, plan.demo, reload])
 
   if (!shown) return null
+
+  if (plan.demo) {
+    return (
+      <SettingsSection
+        id="plan"
+        title="Plan"
+        description="The demo: everything in Business for a day, with made-up cheques. Create an account to keep track of your own."
+      >
+        <Button className="self-start" onClick={() => void leave('/signup')}>
+          Create an account
+        </Button>
+      </SettingsSection>
+    )
+  }
 
   const forever = !!plan.current && !plan.until
 

@@ -39,6 +39,7 @@ const NO_PROVIDER: Plan = {
   until: null,
   paid: false,
   trialRefused: null,
+  demo: false,
   lapsed: false,
   guard:
     (action) =>

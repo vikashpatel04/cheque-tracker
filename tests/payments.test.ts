@@ -117,6 +117,22 @@ describe('recording a payment', () => {
     expect(pack.starts).toBe(trial.ends)
   })
 
+  it("starts now when the only other plan is a demo's day (migration 023)", async () => {
+    const converted = '77777777-7777-4777-8777-777777777777'
+    await t.addUser(converted)
+    await t.asAdmin('DELETE FROM entitlements WHERE user_id = $1', [converted])
+    await t.asAdmin(
+      `INSERT INTO entitlements (user_id, source, expires_at, note) VALUES ($1, 'demo', now() + interval '1 day', 'Demo')`,
+      [converted]
+    )
+    await order('order_5', converted, 'p1')
+    await t.asAdmin(`SELECT record_payment('order_5', 'pay_5')`)
+    const { rows } = await t.asAdmin<{ starts_now: boolean }>(
+      `SELECT starts_at < now() + interval '1 minute' AS starts_now FROM entitlements WHERE payment_ref = 'pay_5'`
+    )
+    expect(rows).toEqual([{ starts_now: true }])
+  })
+
   it("isn't something signed-in users can call, even for their own order", async () => {
     await order('order_4', OTHER, 'p1')
     await expect(t.asUser(OTHER, `SELECT record_payment('order_4', 'pay_4')`)).rejects.toThrow(/permission denied/)

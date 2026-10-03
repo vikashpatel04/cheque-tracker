@@ -22,7 +22,7 @@ export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
         <SheetContent side="bottom" className="max-h-[90dvh] overflow-y-auto px-4 pt-5">
           <SheetHeader className="text-left">
             <SheetTitle className="font-title text-2xl">More</SheetTitle>
-            <SheetDescription className="truncate">{user?.email}</SheetDescription>
+            <SheetDescription className="truncate">{user?.is_anonymous ? "You're trying the demo" : user?.email}</SheetDescription>
           </SheetHeader>
           <nav aria-label="More" className="mt-1 flex flex-col">
             {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
@@ -73,7 +73,7 @@ export function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
             className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-line-strong bg-surface text-[15px] font-semibold text-brand"
           >
             <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
-            Sign out
+            {user?.is_anonymous ? 'End the demo' : 'Sign out'}
           </button>
         </SheetContent>
       </Sheet>

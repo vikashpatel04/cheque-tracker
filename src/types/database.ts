@@ -267,6 +267,7 @@ export type Database = {
         Row: {
           billing_enabled: boolean
           default_country_code: string | null
+          demos_per_hour: number
           id: boolean
           trial_days: number
           updated_at: string
@@ -274,6 +275,7 @@ export type Database = {
         Insert: {
           billing_enabled?: boolean
           default_country_code?: string | null
+          demos_per_hour?: number
           id?: boolean
           trial_days?: number
           updated_at?: string
@@ -281,6 +283,7 @@ export type Database = {
         Update: {
           billing_enabled?: boolean
           default_country_code?: string | null
+          demos_per_hour?: number
           id?: boolean
           trial_days?: number
           updated_at?: string
@@ -750,6 +753,7 @@ export type Database = {
         Args: { p_cheque_id: string; p_reason?: string }
         Returns: undefined
       }
+      end_demo: { Args: never; Returns: undefined }
       has_write_access: { Args: never; Returns: boolean }
       import_data: { Args: { p_data: Json }; Returns: Json }
       is_legacy_represented: {
@@ -820,6 +824,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      start_demo: { Args: { p_region: Json }; Returns: undefined }
       write_off_cheque: {
         Args: { p_cheque_id: string; p_reason: string }
         Returns: undefined

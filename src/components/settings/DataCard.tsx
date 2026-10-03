@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, FlaskConical, Trash2, Upload } from 'lucide-react'
+import { Download, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -206,7 +206,7 @@ function ImportFromExport() {
   )
 }
 
-/** Settings → Your data: export, import, sample data, and deleting everything. */
+/** Settings → Your data: export, import, removing the old sample set, and deleting everything. */
 export function DataCard() {
   const { requireWrite } = usePlan()
   const sample = useSampleData()
@@ -259,24 +259,19 @@ export function DataCard() {
         </div>
       </div>
 
-      <div id="sample-data" className="scroll-mt-4 border-t border-line-soft pt-4 lg:scroll-mt-[92px]">
-        <SettingRow
-          label="Sample data"
-          hint="Made-up parties, an account and cheques in every state, to see how things work. Their names end in “(sample)”, and you can remove them all here. Given samples are only added to an account with no given cheques."
-        >
-          {sample.present ? (
+      {sample.present && (
+        <div id="sample-data" className="scroll-mt-4 border-t border-line-soft pt-4 lg:scroll-mt-[92px]">
+          <SettingRow
+            label="Sample data"
+            hint="Made-up parties, an account and cheques from the sample set this app used to offer. Their names end in “(sample)”. Remove them all in one go."
+          >
             <Button variant="outline" className="text-problem" disabled={sample.busy} onClick={() => void sample.remove()}>
               <Trash2 />
               {sample.busy ? 'Removing…' : 'Remove sample data'}
             </Button>
-          ) : (
-            <Button variant="outline" disabled={sample.busy || sample.present === null} onClick={() => void sample.add()}>
-              <FlaskConical />
-              {sample.busy ? 'Adding…' : 'Try with sample data'}
-            </Button>
-          )}
-        </SettingRow>
-      </div>
+          </SettingRow>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 rounded-xl border border-problem-line p-3.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">

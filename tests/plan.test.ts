@@ -29,7 +29,19 @@ describe('the plan at a moment', () => {
       until: null,
       paid: false,
       trialRefused: null,
+      demo: false,
     })
+  })
+
+  it("gives a demo only its own day, whatever the edition, and never counts it as paid", () => {
+    const day = grant('demo', 0, 1)
+    expect(planAt(false, [day], NOW, null, true)).toMatchObject({ hasAccess: true, current: day, paid: false, demo: true })
+    const over = grant('demo', -2, -1)
+    const ended = planAt(false, [over], NOW, null, true)
+    expect(ended).toMatchObject({ hasAccess: false, ended: over })
+    expect(lapsedWording(ended)).toMatchObject({ title: 'This demo has ended', action: 'Create an account', demo: true })
+    // An account that was a demo doesn't keep its day.
+    expect(planAt(true, [day], NOW)).toMatchObject({ hasAccess: false, current: null, ended: null })
   })
 
   it('is read-only with billing on and no active plan, and remembers what ended last', () => {

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import { GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
+import { DemoLink, GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
@@ -123,7 +123,12 @@ export default function Signup() {
           )}
         </>
       }
-      footer={signInLink}
+      footer={
+        <>
+          {signInLink}
+          <DemoLink options={options} />
+        </>
+      }
     >
       {options?.signUp === false ? (
         <p className="rounded-xl border bg-surface p-5 text-base leading-6">

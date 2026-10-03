@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 /**
  * Settings (design board Settings-desktop): a list of sections beside them on
  * desktop, a row of them on phones. Each section has an address, e.g.
- * /settings#sample-data. Reminders come with plan item 41.
+ * /settings#data. Reminders come with plan item 41.
  */
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -95,13 +95,17 @@ export default function SettingsPage() {
         <DataCard />
         <SettingsSection id="profile" title="Profile and sign-in">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 flex-col">
-              <span className="text-sm text-ink-quiet">Signed in as</span>
-              <span className="break-all text-[15px] font-semibold">{user?.email}</span>
-            </div>
+            {user?.is_anonymous ? (
+              <span className="text-[15px]">You&apos;re trying the demo. Ending it clears everything in it.</span>
+            ) : (
+              <div className="flex min-w-0 flex-col">
+                <span className="text-sm text-ink-quiet">Signed in as</span>
+                <span className="break-all text-[15px] font-semibold">{user?.email}</span>
+              </div>
+            )}
             <Button variant="outline" className="self-start sm:self-auto" onClick={() => void signOut()}>
               <LogOut />
-              Sign out
+              {user?.is_anonymous ? 'End the demo' : 'Sign out'}
             </Button>
           </div>
         </SettingsSection>

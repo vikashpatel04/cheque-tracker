@@ -146,7 +146,7 @@ export interface Entitlement {
   id: string
   user_id: string
   plan: string
-  source: 'trial' | 'purchase' | 'comp'
+  source: 'trial' | 'purchase' | 'comp' | 'demo'
   starts_at: string
   /** Null for grants that never expire. */
   expires_at: string | null

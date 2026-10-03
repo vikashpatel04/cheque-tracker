@@ -11,7 +11,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { PlanContext, type Plan } from '@/hooks/usePlan'
-import { IMPORT_NEEDS_BUSINESS, lapsedWording, nextPlanChange, planAt, setLapsed, type PlanWording, type TrialRefusal } from '@/lib/plan'
+import { useSignOut } from '@/hooks/useSignOut'
+import {
+  DEMO_CANT_IMPORT,
+  IMPORT_NEEDS_BUSINESS,
+  lapsedWording,
+  nextPlanChange,
+  planAt,
+  setLapsed,
+  type PlanWording,
+  type TrialRefusal,
+} from '@/lib/plan'
 import { supabase } from '@/lib/supabase'
 import type { Entitlement } from '@/types'
 
@@ -22,22 +32,27 @@ interface Loaded {
   billingEnabled: boolean
   entitlements: Entitlement[]
   trialRefused: TrialRefusal | null
+  /** An anonymous sign-in: the demo (plan item 86). */
+  demo: boolean
 }
 
 async function loadPlan(): Promise<Loaded | null> {
-  const [config, entitlements, refusal] = await Promise.all([
+  const [config, entitlements, refusal, session] = await Promise.all([
     supabase.from('instance_config').select('billing_enabled').maybeSingle(),
     supabase.from('entitlements').select('*'),
     supabase.from('trial_refusals').select('reason').maybeSingle(),
+    supabase.auth.getSession(),
   ])
+  const demo = !!session.data.session?.user.is_anonymous
   // A database without the editions migration behaves like a self-hosted one.
   const billingEnabled = !config.error && !!config.data?.billing_enabled
   // Unknown isn't read-only: the database still decides.
-  if (billingEnabled && entitlements.error) return null
+  if ((billingEnabled || demo) && entitlements.error) return null
   return {
     billingEnabled,
     entitlements: (entitlements.data ?? []) as Entitlement[],
     trialRefused: (refusal.data?.reason as TrialRefusal | undefined) ?? null,
+    demo,
   }
 }
 
@@ -51,6 +66,7 @@ async function loadPlan(): Promise<Loaded | null> {
  */
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
+  const leave = useSignOut()
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [now, setNow] = useState(() => Date.now())
   // The dialog explaining why something waits for a pack, while it's open.
@@ -82,10 +98,11 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   }, [loaded, now])
 
   const state = useMemo(
-    () => (loaded ? planAt(loaded.billingEnabled, loaded.entitlements, now, loaded.trialRefused) : null),
+    () => (loaded ? planAt(loaded.billingEnabled, loaded.entitlements, now, loaded.trialRefused, loaded.demo) : null),
     [loaded, now]
   )
-  const lapsed = !!state && state.billingEnabled && !state.hasAccess
+  // A demo whose day is over is like the Free plan, whatever the edition.
+  const lapsed = !!state && (state.billingEnabled || state.demo) && !state.hasAccess
 
   useEffect(() => {
     setLapsed(lapsed)
@@ -100,6 +117,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   // Importing an export isn't part of the free trial (see docs/editions.md).
   const requirePaid = useCallback(() => {
     if (!requireWrite()) return false
+    if (state?.demo) {
+      setAsking(DEMO_CANT_IMPORT)
+      return false
+    }
     if (!state?.billingEnabled || state.paid) return true
     setAsking(IMPORT_NEEDS_BUSINESS)
     return false
@@ -123,6 +144,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       until: state?.until ?? null,
       paid: state?.paid ?? false,
       trialRefused: state?.trialRefused ?? null,
+      demo: state?.demo ?? false,
       lapsed,
       guard,
       requireWrite,
@@ -143,7 +165,9 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Not now</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate('/settings#plan')}>{asking?.action}</AlertDialogAction>
+            <AlertDialogAction onClick={() => (asking?.demo ? void leave('/signup') : navigate('/settings#plan'))}>
+              {asking?.action}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

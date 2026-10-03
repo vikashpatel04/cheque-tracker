@@ -130,10 +130,11 @@ BEGIN
   PERFORM pg_advisory_xact_lock(hashtext('record_payment:' || o.user_id::text));
 
   -- Start when the access the user already has ends (a trial or packs bought
-  -- earlier), or now. A grant that never ends doesn't delay it.
+  -- earlier), or now. A grant that never ends doesn't delay it, and neither
+  -- does a demo's day (migration 023).
   SELECT greatest(now(), coalesce(max(expires_at), now())) INTO v_start
   FROM entitlements
-  WHERE user_id = o.user_id AND expires_at > now();
+  WHERE user_id = o.user_id AND expires_at > now() AND source <> 'demo';
 
   INSERT INTO entitlements (user_id, source, starts_at, expires_at, payment_ref, note)
   VALUES (o.user_id, 'purchase', v_start, v_start + make_interval(months => o.months), p_payment_id, o.pack_name)

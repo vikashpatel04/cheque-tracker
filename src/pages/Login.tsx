@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import { GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
+import { DemoLink, GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
@@ -80,14 +80,17 @@ export default function Login() {
       title="Sign in"
       subtitle="Welcome back. Your cheques are where you left them."
       footer={
-        options?.signUp !== false && (
-          <>
-            New here?{' '}
-            <Link to="/signup" className="font-semibold text-brand hover:underline">
-              Create an account
-            </Link>
-          </>
-        )
+        <>
+          {options?.signUp !== false && (
+            <>
+              New here?{' '}
+              <Link to="/signup" className="font-semibold text-brand hover:underline">
+                Create an account
+              </Link>
+            </>
+          )}
+          <DemoLink options={options} />
+        </>
       }
     >
       {options?.google && (

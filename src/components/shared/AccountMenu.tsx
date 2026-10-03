@@ -43,13 +43,19 @@ export function AccountMenu() {
             aria-label="Your account"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-hover"
           >
-            {initials(user?.email)}
+            {user?.is_anonymous ? 'D' : initials(user?.email)}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" sideOffset={8} className="w-72">
           <DropdownMenuLabel className="flex flex-col gap-0.5 px-2.5 py-2 font-normal">
-            <span className="text-[13px] text-ink-quiet">Signed in as</span>
-            <span className="truncate text-[15px] font-semibold">{user?.email}</span>
+            {user?.is_anonymous ? (
+              <span className="text-[15px] font-semibold">You&apos;re trying the demo</span>
+            ) : (
+              <>
+                <span className="text-[13px] text-ink-quiet">Signed in as</span>
+                <span className="truncate text-[15px] font-semibold">{user?.email}</span>
+              </>
+            )}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => navigate('/settings')}>
@@ -84,7 +90,7 @@ export function AccountMenu() {
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void signOut()}>
             <LogOut className="text-ink-quiet" />
-            Sign out
+            {user?.is_anonymous ? 'End the demo' : 'Sign out'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

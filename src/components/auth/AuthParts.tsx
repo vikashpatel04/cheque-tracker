@@ -1,5 +1,7 @@
 import { forwardRef, useState, type InputHTMLAttributes } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import type { AuthOptions } from '@/hooks/useAuthOptions'
 
 /** "Continue with Google", with Google's own mark. */
 export function GoogleButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
@@ -14,6 +16,20 @@ export function GoogleButton({ onClick, disabled }: { onClick: () => void; disab
       <img src="/google-g.svg" alt="" aria-hidden="true" className="h-5 w-5" />
       Continue with Google
     </Button>
+  )
+}
+
+/** "Just looking? Try the demo", where this copy of the app offers one (plan item 86). */
+export function DemoLink({ options }: { options: AuthOptions | null }) {
+  if (!options?.demo) return null
+  return (
+    <p className="mt-3 text-ink-quiet">
+      Just looking?{' '}
+      <Link to="/demo" className="font-semibold text-brand hover:underline">
+        Try the demo
+      </Link>
+      , no sign-up needed.
+    </p>
   )
 }
 

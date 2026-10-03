@@ -102,9 +102,25 @@ With billing on and `trial_days` above 0, a new account gets a free trial at sig
 
 Only a hash of the address is kept, never the address itself. Say so in the privacy policy.
 
+### The demo
+
+Visitors can try the app without signing up (plan item 86, migration 023). "Try the demo" on the sign-in and sign-up pages, or a link to `/demo`, signs them in with Supabase's anonymous sign-in. That gives each visitor a private account of their own, which `start_demo()` fills with made-up parties and cheques in every state, in the region their browser suggests. Ending the demo (signing out, or "Create an account") deletes the account and everything in it (`end_demo()`). Visitors never share data.
+
+An anonymous session is a real signed-in session, so the database keeps demos in bounds, not the app:
+
+- **A day, whatever the edition.** An anonymous account can change data only during its one-day `demo` grant, even where billing is off. Signing in anonymously without starting the demo gives an empty account that can't add anything.
+- **Once, and only for anonymous accounts.** `start_demo()` gives the grant once per account, and never to a real one.
+- **No trial, no buying, no importing.** Demos get no free trial and leave no trace in `trial_claims`. The `payments` function refuses them, and so does `import_data()`.
+- **Small.** A demo holds at most 50 parties, 5 bank accounts, 100 cheques each way, 30 funds added and 300 history entries each way, with each row at most 2 kB. It can't be used as free storage.
+- **Few at a time.** `instance_config.demos_per_hour` (50 to start) caps how many demos start in an hour across the instance. Setting it to 0 turns the demo off at once.
+- **Gone after a day.** Demos more than a day old are deleted as new ones start. Where pg_cron is installed (Supabase has it), migration 023 also schedules the `remove-expired-demos` job to delete them every hour.
+- **Made into a real account through the API** (the app never does this), a demo loses its day and gets no trial.
+
+In the demo, the app shows a bar saying so, says "End the demo" instead of "Sign out", and offers an account instead of plans or importing.
+
 ### Tests
 
-`tests/migrations.test.ts` applies every migration to an in-memory Postgres and checks both editions as real users: writes allowed with billing off, trials at sign-up, read-only accounts, comp grants, expired purchases, and that users can't write entitlements. It runs on every pull request.
+`tests/migrations.test.ts` applies every migration to an in-memory Postgres and checks both editions as real users: writes allowed with billing off, trials at sign-up, read-only accounts, comp grants, expired purchases, and that users can't write entitlements. `tests/demo.test.ts` checks the demo the same way, with anonymous users. They run on every pull request.
 
 ## Running the hosted edition
 
@@ -152,7 +168,18 @@ Accounts created before this have no entitlement and become read-only. Give them
   2. Set its site key as `VITE_TURNSTILE_SITE_KEY` in the app's environment, and deploy.
   3. Then, in Supabase, go to Authentication → Attack Protection, turn on CAPTCHA protection, choose Turnstile, and enter the secret key.
 
-  Keep that order. Once Supabase requires a CAPTCHA, sign-up, sign-in and password resets fail for any version of the app that doesn't send one. Google sign-in isn't affected.
+  Keep that order. Once Supabase requires a CAPTCHA, sign-up, sign-in, password resets and the demo fail for any version of the app that doesn't send one. Google sign-in isn't affected.
+
+### Turning on the demo
+
+1. Push migration 023 first. Until then, an anonymous sign-in on an instance with billing off would have full access.
+2. In Supabase, go to Authentication → Sign In / Providers and allow anonymous sign-ins. New sign-ups must be allowed too.
+3. Under Authentication → Rate Limits, check the limit for anonymous sign-ins per IP address. Supabase starts at 30 an hour.
+4. With CAPTCHA protection on (above), every anonymous sign-in needs a Turnstile token. The `/demo` page sends one.
+5. Choose how many demos may start in an hour: `update instance_config set demos_per_hour = 50;`. Set it to 0 to turn the demo off without touching Supabase's settings.
+6. Check the clean-up job: `select jobname, schedule from cron.job where jobname = 'remove-expired-demos';`.
+
+Self-hosted copies: Supabase keeps anonymous sign-ins off unless you allow them, so there's no demo there by default.
 
 ### Granting a plan by hand
 

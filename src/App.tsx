@@ -22,6 +22,8 @@ const SettingsPage = lazy(() => import('@/pages/Settings'))
 const BulkAdd = lazy(() => import('@/pages/BulkAdd'))
 const CalendarPage = lazy(() => import('@/pages/Calendar'))
 const Learn = lazy(() => import('@/pages/Learn'))
+// The demo's start page (plan item 86), only for visitors.
+const Demo = lazy(() => import('@/pages/Demo'))
 
 /** Shown in the frame while a page loads. */
 function PageLoading() {
@@ -54,6 +56,14 @@ function AppRoutes() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route
+        path="/demo"
+        element={
+          <Suspense fallback={null}>
+            <Demo />
+          </Suspense>
+        }
+      />
       <Route
         path="/*"
         element={

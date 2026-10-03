@@ -8,5 +8,7 @@ export function authMessage(message: string): string {
   if (m.includes('signups not allowed') || m.includes('signup is disabled')) return "New accounts can't be created here. Ask whoever runs this copy of the app."
   if (m.includes('rate limit') || m.includes('only request this after')) return 'Too many tries in a short time. Wait a minute, then try again.'
   if (m.includes('provider is not enabled')) return "Google sign-in isn't set up here yet. Use your email instead."
+  if (m.includes('anonymous sign-ins are disabled')) return "The demo isn't available here right now."
+  if (m.includes('captcha')) return "We couldn't check that you're not a robot. Try again."
   return message
 }

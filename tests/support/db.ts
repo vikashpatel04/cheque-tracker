@@ -1,8 +1,8 @@
 /**
  * An in-memory Postgres (PGlite) with every migration in supabase/migrations
  * applied, plus small stand-ins for what Supabase provides: the anon,
- * authenticated and service roles, auth.users and auth.uid(). Queries can
- * run as a signed-in user, with row-level security on.
+ * authenticated and service roles, auth.users, auth.uid() and auth.jwt().
+ * Queries can run as a signed-in user, with row-level security on.
  *
  * By default the database behaves like a Supabase project with "automatically
  * expose new tables" turned off, so tests only pass if the migrations grant
@@ -19,11 +19,18 @@ const SUPABASE_STANDINS = `
   CREATE ROLE service_role NOLOGIN BYPASSRLS;
   CREATE ROLE supabase_auth_admin NOLOGIN;
   CREATE SCHEMA auth;
-  CREATE TABLE auth.users (id uuid PRIMARY KEY, email text);
+  CREATE TABLE auth.users (
+    id uuid PRIMARY KEY,
+    email text,
+    is_anonymous boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now()
+  );
   CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
     AS $$ SELECT nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+  CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE
+    AS $$ SELECT nullif(current_setting('request.jwt.claims', true), '')::jsonb $$;
   GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
-  GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
+  GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt() TO anon, authenticated, service_role;
   CREATE SCHEMA extensions;
   CREATE SCHEMA cron;
   CREATE TABLE cron.job (jobid bigint, jobname text);
@@ -49,12 +56,18 @@ const AUTOMATIC_RLS = `
 
 export interface TestDatabase {
   db: PGlite
-  /** Run a query as a signed-in user (role authenticated, auth.uid() = uid). */
+  /**
+   * Run a query as a signed-in user (role authenticated, auth.uid() = uid).
+   * Their token says whether they're anonymous, as auth.users does.
+   */
   asUser<T = Record<string, unknown>>(uid: string, sql: string, params?: unknown[]): Promise<{ rows: T[]; affectedRows?: number }>
   /** Run a query as the database owner, like the service role or the SQL editor. */
   asAdmin<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[]; affectedRows?: number }>
-  /** Create an auth user; the sign-up trigger runs as it does in Supabase. */
-  addUser(id: string, email?: string | null): Promise<void>
+  /**
+   * Create an auth user; the sign-up trigger runs as it does in Supabase.
+   * `anonymous` is an anonymous sign-in (a demo), which has no email.
+   */
+  addUser(id: string, email?: string | null, options?: { anonymous?: boolean; createdAt?: string }): Promise<void>
 }
 
 export async function createTestDatabase(
@@ -81,19 +94,36 @@ export async function createTestDatabase(
   }
 
   const asUser = async <T>(uid: string, sql: string, params: unknown[] = []) => {
-    await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub', '${uid}', false);`)
+    const user = await db.query<{ is_anonymous: boolean }>('SELECT is_anonymous FROM auth.users WHERE id = $1', [uid])
+    const claims = { sub: uid, role: 'authenticated', is_anonymous: user.rows[0]?.is_anonymous ?? false }
+    await db.query(`SELECT set_config('request.jwt.claim.sub', $1, false), set_config('request.jwt.claims', $2, false)`, [
+      uid,
+      JSON.stringify(claims),
+    ])
+    await db.exec('SET ROLE authenticated')
     try {
       return await db.query<T>(sql, params)
     } finally {
       // Back to no signed-in user, like the service role.
-      await db.exec(`RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false);`)
+      await db.exec(
+        `RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claims', '', false);`
+      )
     }
   }
 
   const asAdmin = <T>(sql: string, params: unknown[] = []) => db.query<T>(sql, params)
 
-  const addUser = async (id: string, email: string | null = `${id.slice(0, 8)}@example.com`) => {
-    await db.query('INSERT INTO auth.users (id, email) VALUES ($1, $2)', [id, email])
+  const addUser = async (
+    id: string,
+    email: string | null = `${id.slice(0, 8)}@example.com`,
+    { anonymous = false, createdAt }: { anonymous?: boolean; createdAt?: string } = {}
+  ) => {
+    await db.query('INSERT INTO auth.users (id, email, is_anonymous, created_at) VALUES ($1, $2, $3, coalesce($4, now()))', [
+      id,
+      anonymous ? null : email,
+      anonymous,
+      createdAt ?? null,
+    ])
   }
 
   return { db, asUser, asAdmin, addUser }

@@ -1,16 +1,14 @@
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { resetActivity } from '@/hooks/useActivity'
-import { resetTodayData } from '@/hooks/useTodayData'
 
-/** Signs out and goes to the sign-in page. */
+/**
+ * Signs out (in the demo, ends it), then loads the sign-in page, or `to`,
+ * afresh. Nothing the account loaded stays in memory, and the route guard
+ * can't send the page elsewhere first.
+ */
 export function useSignOut() {
   const { signOut } = useAuth()
-  const navigate = useNavigate()
-  return async () => {
+  return async (to = '/login') => {
     await signOut()
-    resetActivity()
-    resetTodayData()
-    navigate('/login')
+    window.location.replace(to)
   }
 }

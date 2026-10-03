@@ -77,13 +77,6 @@ export function useTodayData() {
   return snapshot
 }
 
-/** Forget the loaded cheques, e.g. when someone signs out. */
-export function resetTodayData() {
-  started = false
-  state = { loading: true, given: [], received: [], error: null }
-  listeners.forEach((listener) => listener())
-}
-
 /** Everything to do today, both directions, most urgent first. */
 export function useTodos(): { todos: Todo[]; loading: boolean } {
   const { given, received, loading } = useTodayData()

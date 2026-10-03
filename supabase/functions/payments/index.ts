@@ -103,6 +103,8 @@ async function recordPaid(admin: SupabaseClient, order: Order, paymentId: string
 async function checkout(admin: SupabaseClient, req: Request): Promise<Response> {
   const user = await signedInUser(admin, req)
   if (!user) return fail('Sign in to buy Business', 401)
+  // A demo (an anonymous sign-in, migration 023) is deleted within a day, so it can't buy.
+  if (user.is_anonymous) return fail('Create an account to buy Business', 403)
 
   const { data: config } = await admin.from('instance_config').select('billing_enabled').maybeSingle()
   if (!config?.billing_enabled) return fail("This copy of the app doesn't sell plans", 404)

@@ -108,6 +108,8 @@ Built in 14, step 5 (2026-09-29): every row above has its section. Preferences b
 
 Built in 14, step 4 (2026-09-28): the form (one, security or a series), the deposit panel, the cheque detail with every action and undo, bank accounts in Settings, search, and sample data to try it.
 
+2026-10-03: the demo replaced sample data (plan item 86). Visitors try the app at `/demo` without signing up, and "Your data" only offers to remove an old sample set.
+
 | Capability | In the redesign |
 |---|---|
 | Add a received cheque: regular or security, party, number, bank it's drawn on, amount, received on, cheque date, deposit-by date, account, notes | Add cheque, received |

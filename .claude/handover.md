@@ -14,6 +14,23 @@ Continue building Cheque Tracker in this repository. Read `CLAUDE.md` first and 
 
 The agreed plan and its progress are in `.claude/plan.md`. Work through its **Order of work** from the first unticked item, one at a time. Check with me before anything that changes Supabase settings or data.
 
+## In progress (2026-10-03)
+
+I asked for 86 (the demo, with its security taken care of) and 87 (the two sites). The website goes in my existing private repo `../cheque-tracker-website`: delete the old site (it was for the open-source family) and start fresh there.
+
+- **86, the demo: built and committed** (plan item 86 has the details). Migration 023 isn't pushed yet.
+  - **Anonymous sign-ins:** they still read as off on the dev project (`/auth/v1/settings` says `anonymous_users: false`). Keep them off until 023 is pushed, then turn them on (docs/editions.md, "Turning on the demo").
+  - **My dev account still has the old sample set** (30 parties); Settings → Your data → Remove sample data clears it. Then delete `src/lib/sampleData.ts` and `useSampleData`.
+- **87:**
+  - **App side:**
+    - the `ct_signed_in` cookie, from one listener and never for demos;
+    - `brand.siteUrl` with no default;
+    - "Back to website" and the terms line;
+    - `docs/hosting.md`.
+  - **Website:**
+    - `../cheque-tracker-website` local `master` is one merged PR behind `origin/master`: fast-forward first, then remove the old files and start the new Astro site;
+    - its untracked `screenshots/` are old-site captures.
+
 ## Where things stand
 
 - **Code:** all work is committed on `main`; nothing is pushed since `c164418`. 193 tests pass; lint (0 errors, 2 known warnings) and build are clean.

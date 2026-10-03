@@ -374,15 +374,10 @@ export default function Today() {
                   Add a given cheque
                 </Button>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => actions.newReceivedCheque()}>
-                    <ArrowDownLeft />
-                    Add a received cheque
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate('/settings#sample-data')}>
-                    Try with sample data
-                  </Button>
-                </div>
+                <Button onClick={() => actions.newReceivedCheque()}>
+                  <ArrowDownLeft />
+                  Add a received cheque
+                </Button>
               )}
             </section>
           ) : (

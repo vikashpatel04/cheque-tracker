@@ -5,6 +5,7 @@ import { AccountMenu } from '@/components/shared/AccountMenu'
 import { ActivityBell } from '@/components/shared/ActivityBell'
 import { AppActionsProvider } from '@/components/shared/AppActions'
 import { AppLogo } from '@/components/shared/AppLogo'
+import { DemoBar } from '@/components/shared/DemoBar'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { MoreSheet } from '@/components/shared/MoreSheet'
 import { NewMenuButton, NewSheet } from '@/components/shared/NewMenu'
@@ -58,7 +59,7 @@ function SidebarLink({ item, count }: { item: NavItem; count?: number }) {
 /** The plan, on instances that sell plans. Paid plans don't nag. */
 function SidebarPlan() {
   const plan = usePlan()
-  if (plan.loading || !plan.billingEnabled) return null
+  if (plan.loading || !plan.billingEnabled || plan.demo) return null
   const trial = plan.current?.source === 'trial' && plan.current.expires_at ? daysLeft(plan.current.expires_at) : null
   if (!plan.lapsed && trial === null) return null
   const wording = lapsedWording(plan)
@@ -215,6 +216,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex min-w-0 flex-col">
           <TopBar />
           <OfflineBanner />
+          <DemoBar />
           <PlanBanner />
           {/* min-w-0 and a horizontal clip, so wide tables and charts scroll inside
               their own wrappers instead of scrolling the page. Clip rather than

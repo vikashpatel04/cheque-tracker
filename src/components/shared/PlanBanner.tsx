@@ -8,11 +8,11 @@ const TRIAL_REMINDER_DAYS = 3
 
 /**
  * Plan notices on instances with billing on. Renders nothing on self-hosted
- * instances.
+ * instances, or in the demo, which has its own bar (DemoBar).
  */
 export function PlanBanner() {
   const plan = usePlan()
-  if (plan.loading || !plan.billingEnabled) return null
+  if (plan.loading || !plan.billingEnabled || plan.demo) return null
 
   if (plan.lapsed) {
     const wording = lapsedWording(plan)

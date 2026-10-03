@@ -78,8 +78,3 @@ export function useActivity() {
 
   return { items: snapshot.items, unread, markSeen, refresh }
 }
-
-/** Forget the loaded activity, e.g. when someone signs out. */
-export function resetActivity() {
-  setState({ items: null })
-}

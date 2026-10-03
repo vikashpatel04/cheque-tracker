@@ -29,6 +29,11 @@ export interface PlanState {
   paid: boolean
   /** Why there was no free trial at sign-up, if there wasn't one. */
   trialRefused: TrialRefusal | null
+  /**
+   * A demo (an anonymous sign-in, migration 023): its one-day grant is its
+   * only access, whatever the edition, and it can't buy or import.
+   */
+  demo: boolean
 }
 
 function isActive(e: Entitlement, now: number): boolean {
@@ -54,22 +59,28 @@ function accessEnds(current: Entitlement, entitlements: Entitlement[]): string |
   }
 }
 
-/** The plan at a moment, from the user's entitlements. */
+/**
+ * The plan at a moment, from the user's entitlements. A demo's day counts
+ * only for the demo itself, as in the database (has_write_access).
+ */
 export function planAt(
   billingEnabled: boolean,
   entitlements: Entitlement[],
   now: number,
-  trialRefused: TrialRefusal | null = null
+  trialRefused: TrialRefusal | null = null,
+  demo = false
 ): PlanState {
-  const current = entitlements.filter((e) => isActive(e, now)).sort(lastsLonger)[0] ?? null
+  const grants = entitlements.filter((e) => (e.source === 'demo') === demo)
+  const current = grants.filter((e) => isActive(e, now)).sort(lastsLonger)[0] ?? null
   const ended = current
     ? null
-    : (entitlements
+    : (grants
         .filter((e) => e.expires_at && Date.parse(e.expires_at) <= now)
         .sort((a, b) => Date.parse(b.expires_at!) - Date.parse(a.expires_at!))[0] ?? null)
-  const until = current ? accessEnds(current, entitlements) : null
-  const paid = entitlements.some((e) => e.source !== 'trial' && (!e.expires_at || Date.parse(e.expires_at) > now))
-  return { billingEnabled, hasAccess: !billingEnabled || !!current, current, ended, until, paid, trialRefused }
+  const until = current ? accessEnds(current, grants) : null
+  const paid = grants.some((e) => (e.source === 'purchase' || e.source === 'comp') && (!e.expires_at || Date.parse(e.expires_at) > now))
+  const hasAccess = demo ? !!current : !billingEnabled || !!current
+  return { billingEnabled, hasAccess, current, ended, until, paid, trialRefused, demo }
 }
 
 /**
@@ -96,6 +107,8 @@ export interface PlanWording {
   banner: string
   /** The button that leads to the Business plan. */
   action: string
+  /** In the demo, the button leaves it to create an account instead. */
+  demo?: boolean
 }
 
 /** What the Free plan still allows, said once. */
@@ -107,7 +120,20 @@ const ON_FREE_SHORT = 'You can still move your cheques along and export them.'
  * How to explain the Free plan (after a trial or plan ends, plan item 55), and
  * the button that leads to Business.
  */
-export function lapsedWording({ ended, trialRefused }: Pick<PlanState, 'ended' | 'trialRefused'>): PlanWording {
+export function lapsedWording({
+  ended,
+  trialRefused,
+  demo,
+}: Pick<PlanState, 'ended' | 'trialRefused'> & { demo?: boolean }): PlanWording {
+  if (demo) {
+    return {
+      title: 'This demo has ended',
+      text: 'A demo lasts a day. Create an account to keep track of your own cheques.',
+      banner: 'Create an account to keep going.',
+      action: 'Create an account',
+      demo: true,
+    }
+  }
   if (ended?.source === 'trial') {
     return { title: 'Your free trial has ended', text: ON_FREE, banner: ON_FREE_SHORT, action: 'Upgrade to Business' }
   }
@@ -137,6 +163,15 @@ export const IMPORT_NEEDS_BUSINESS: PlanWording = {
   text: 'During the free trial, add cheques one at a time, as a series, or from the Excel template.',
   banner: 'Importing an export comes with Business.',
   action: 'Choose Business',
+}
+
+/** Why the demo has no import: its data is made up, and it's deleted within a day. */
+export const DEMO_CANT_IMPORT: PlanWording = {
+  title: "The demo can't import",
+  text: 'Create an account to bring in an export of your own cheques.',
+  banner: "The demo can't import.",
+  action: 'Create an account',
+  demo: true,
 }
 
 /*

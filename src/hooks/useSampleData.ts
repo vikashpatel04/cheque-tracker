@@ -2,14 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { usePlan } from '@/hooks/usePlan'
 import { useDataChanges } from '@/lib/dataEvents'
-import { todayISO } from '@/lib/formatters'
-import { getActiveRegion } from '@/lib/region'
-import { addSampleData, hasSampleData, removeSampleData } from '@/lib/sampleData'
+import { hasSampleData, removeSampleData } from '@/lib/sampleData'
 
 /**
- * The made-up sample set (src/lib/sampleData.ts): whether it's there, and
- * adding or removing it with a message either way. For Settings → Your data
- * and onboarding.
+ * The old sample set (src/lib/sampleData.ts): whether it's still there, and
+ * removing it with a message either way. For Settings → Your data.
  */
 export function useSampleData() {
   const { requireWrite } = usePlan()
@@ -19,17 +16,6 @@ export function useSampleData() {
   const check = useCallback(() => void hasSampleData().then(setPresent), [])
   useEffect(check, [check])
   useDataChanges(check)
-
-  const add = async () => {
-    if (!requireWrite()) return false
-    setBusy(true)
-    const { error, added } = await addSampleData(todayISO(), getActiveRegion().chequeValidityMonths)
-    setBusy(false)
-    if (error) toast.error(`Stopped after ${added ?? 0} sample cheques: ${error}`)
-    else toast.success(`Added ${added} sample cheques. Have a look at Today and Cheques.`)
-    check()
-    return !error
-  }
 
   const remove = async () => {
     if (!requireWrite()) return false
@@ -42,5 +28,5 @@ export function useSampleData() {
     return !error
   }
 
-  return { present, busy, add, remove }
+  return { present, busy, remove }
 }

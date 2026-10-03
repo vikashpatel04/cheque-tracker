@@ -366,7 +366,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
       - the guide button opens /learn;
       - a real Esc closes it once;
       - with `tour_done_at` faked as empty, it started by itself, and Skip saved it once.
-- [ ] **86.** A demo account replaces sample data (decided 2026-10-02): each visitor gets a private demo, not one shared account.
+- [x] **86.** A demo account replaces sample data (decided 2026-10-02): each visitor gets a private demo, not one shared account.
   - **Why not shared:** visitors would overwrite each other, and closed tabs never sign out, so "reset on sign-out" wouldn't hold.
   - **Starting it:** a "Try the demo, no sign-up" button on the sign-in and sign-up pages, and a `/demo` route the website can link to. It signs in with Supabase's anonymous sign-in (`is_anonymous`), which gives a real, isolated, throwaway account.
   - **Seeding:** one request to a SQL function `start_demo()`. It holds the current sample set, moved from `src/lib/sampleData.ts` into SQL, with dates relative to today and the region from the instance's default. The tour starts straight away.
@@ -380,6 +380,21 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - turn on anonymous sign-ins in Supabase (off until now on purpose; yes only for this). The CAPTCHA (52) applies to them, and Supabase rate-limits them per IP.
     - remove the dev project's sample set in Settings first.
   - **Remove:** `src/lib/sampleData.ts`, `useSampleData`, the sample offers in `SetupChecklist.tsx` and `Today.tsx`, Settings → Sample data, and `tests/sampleData.test.ts`. A test for `start_demo()` replaces it.
+  - Built 2026-10-03, not yet pushed. On 2026-10-02 the maintainer asked for its security to be taken care of.
+    - **Database (migration 023):**
+      - A demo's write access is its one-day `demo` grant, even with billing off; the grant counts for nobody else (`has_write_access`).
+      - `start_demo(p_region)` and `end_demo()` are SECURITY INVOKER wrappers around `internal.*`. They check `is_anonymous` in the token and in `auth.users`, give one grant per account, and hold an advisory lock so `instance_config.demos_per_hour` (50; 0 turns demos off) holds.
+      - The seed is the old sample set, in SQL, through the same status functions, with history dated to each step's day.
+      - `internal.demo_limits` triggers cap a demo's rows (parties 50, bank accounts 5, cheques 100 each way, funds 30, history 300 each way) and each row at 2 kB.
+      - Demos get no trial (`handle_new_user`) and can't import (`has_paid_plan`). `record_payment` ignores a demo's day (020, unpushed). The `payments` function refuses anonymous users at checkout.
+      - Demos over a day old are deleted as new ones start (never the caller's own) and hourly by the `remove-expired-demos` pg_cron job, scheduled only where pg_cron exists.
+    - **App:**
+      - `/demo` (lazy) starts the demo by itself once the CAPTCHA passes, in the browser's region, or the instance default. "Just looking? Try the demo" shows on sign-in and sign-up only when Supabase allows anonymous sign-ins and `demos_per_hour > 0`.
+      - `DemoBar`; "End the demo" in the account menu, More and Settings; the Plan section offers an account; Import explains that the demo can't import.
+      - Signing out of a demo calls `end_demo` and then loads the next page afresh, which also fixed a race with the route guard.
+      - Loading sample data is gone. Settings → Your data shows "Remove sample data" only while an account still has the old set, which the maintainer's dev account does.
+    - **Tests:** `tests/demo.test.ts` (21). Breaking the demo branch of `has_write_access`, or the size limit, fails 4 of them.
+    - **Checked in the browser** with made-up data in the page and every write blocked: the link and `/demo` with the real settings (no demo) and with demos faked on; the refusal message; the bar, menus and Settings in a faked demo session; and "Create an account" ending the demo and opening sign-up.
 - [ ] **87.** Two sites on chequetracker.com (decided 2026-10-02).
   - **The website** at the apex, with `www` redirecting to it. It's a static site in a separate private repo (Astro on Vercel), in a new folder next to this one such as `chequetracker-site`, and gets its own plan when started.
     - **Pages:** home, pricing, FAQ, terms, privacy, refunds and contact, built from the item 30 boards.

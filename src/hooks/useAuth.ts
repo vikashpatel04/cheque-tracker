@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
+import { endDemo } from '@/lib/demo'
 import { supabase } from '@/lib/supabase'
 
 /** An address in this app, for links in emails and for coming back from Google. */
@@ -61,8 +62,13 @@ export function useAuth() {
     return { error }
   }
 
+  /** Signing out of the demo ends it, which deletes it (plan item 86). */
   const signOut = async () => {
-    await supabase.auth.signOut()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.user.is_anonymous) await endDemo()
+    else await supabase.auth.signOut()
   }
 
   return { user, session, loading, signIn, signUp, signInWithGoogle, resendConfirmation, sendPasswordReset, updatePassword, signOut }
