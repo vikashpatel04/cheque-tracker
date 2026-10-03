@@ -21,15 +21,10 @@ I asked for 86 (the demo, with its security taken care of) and 87 (the two sites
 - **86, the demo: built and committed** (plan item 86 has the details). Migration 023 isn't pushed yet.
   - **Anonymous sign-ins:** they still read as off on the dev project (`/auth/v1/settings` says `anonymous_users: false`). Keep them off until 023 is pushed, then turn them on (docs/editions.md, "Turning on the demo").
   - **My dev account still has the old sample set** (30 parties); Settings → Your data → Remove sample data clears it. Then delete `src/lib/sampleData.ts` and `useSampleData`.
-- **87:**
-  - **App side:**
-    - the `ct_signed_in` cookie, from one listener and never for demos;
-    - `brand.siteUrl` with no default;
-    - "Back to website" and the terms line;
-    - `docs/hosting.md`.
-  - **Website:**
-    - `../cheque-tracker-website` local `master` is one merged PR behind `origin/master`: fast-forward first, then remove the old files and start the new Astro site;
-    - its untracked `screenshots/` are old-site captures.
+- **87, the app's part: built and committed** (the cookie, "Back to website", the terms line, safe headers, `docs/hosting.md`).
+- **87, the website: next.** In `../cheque-tracker-website`:
+  - local `master` is one merged PR behind `origin/master`, so fast-forward first;
+  - remove the old files and start the new Astro site (its untracked `screenshots/` are old-site captures).
 
 ## Where things stand
 

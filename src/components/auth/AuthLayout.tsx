@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ArrowDownLeft, CalendarCheck, Hourglass, ArrowLeftRight, Smartphone, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowLeft, CalendarCheck, Hourglass, ArrowLeftRight, Smartphone, Wallet } from 'lucide-react'
 import { AppLogo } from '@/components/shared/AppLogo'
 import { SourceLink } from '@/components/shared/SourceLink'
 import { brand } from '@/config/brand'
@@ -26,7 +26,18 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
       <ProductPanel />
       <main className="flex min-h-dvh flex-col bg-background lg:bg-surface">
         <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col gap-[22px] px-5 pb-6 pt-9 sm:justify-center lg:max-w-[440px] lg:px-8">
-          <AppLogo size="sm" className="lg:hidden" />
+          <div className="flex items-center justify-between gap-3">
+            <AppLogo size="sm" className="lg:hidden" />
+            {brand.siteUrl && (
+              <a
+                href={brand.siteUrl}
+                className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-ink-quiet hover:text-ink"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Back to website
+              </a>
+            )}
+          </div>
           <div className="flex flex-col gap-2">
             <h1 className="font-title text-[30px] leading-[38px]">{title}</h1>
             {subtitle && <div className="text-base leading-6 text-ink-quiet">{subtitle}</div>}

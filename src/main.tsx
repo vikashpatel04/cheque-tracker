@@ -17,9 +17,11 @@ import './index.css'
 import App from './App'
 import { initTheme } from '@/lib/theme'
 import { registerServiceWorker } from '@/lib/pwa'
+import { watchSignedIn } from '@/lib/siteCookie'
 
 initTheme()
 registerServiceWorker()
+watchSignedIn()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import { DemoLink, GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
+import { DemoLink, GoogleButton, LegalLine, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
@@ -172,6 +172,7 @@ export default function Signup() {
               {isSubmitting ? 'Creating your account…' : 'Create account'}
             </Button>
           </form>
+          <LegalLine doing="creating an account" />
         </>
       )}
     </AuthLayout>

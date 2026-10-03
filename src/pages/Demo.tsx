@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
+import { LegalLine } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
 import { useCaptcha } from '@/hooks/useCaptcha'
@@ -82,6 +83,7 @@ export default function Demo() {
           {captcha.element}
         </div>
       )}
+      {!unavailable && <LegalLine doing="trying the demo" />}
     </AuthLayout>
   )
 }

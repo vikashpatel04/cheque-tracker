@@ -9,7 +9,12 @@ const env = import.meta.env
 export const brand = {
   name: env.VITE_APP_NAME || 'Cheque Tracker',
   tagline: env.VITE_APP_TAGLINE || 'Track every cheque. Never miss a date.',
-  siteUrl: env.VITE_SITE_URL || 'https://chequetracker.com',
+  /**
+   * The website, for "Back to website" and the terms and privacy links on
+   * sign-up (plan item 87). Unset by default, so a self-hosted copy links to
+   * no one else's terms.
+   */
+  siteUrl: env.VITE_SITE_URL?.replace(/\/+$/, '') || undefined,
   /** The logo image in the app. Replace public/logo.webp, or point this at another image in public/. */
   logoUrl: env.VITE_APP_LOGO || '/logo.webp',
   /**

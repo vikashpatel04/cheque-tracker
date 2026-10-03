@@ -414,6 +414,14 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
       - the helper lives in `src/lib`, with a unit test, and the variable goes in `.env.example` and `src/vite-env.d.ts`.
     - **Links to the website** through `brand.siteUrl` (`VITE_SITE_URL`): a "Back to website" link in `AuthLayout`, and "By continuing you agree to the Terms and Privacy Policy" on sign-up, linking to `${siteUrl}/terms` and `/privacy` (57).
     - **Docs:** `docs/hosting.md`, with the DNS and service settings.
+    - Built 2026-10-03, not yet pushed:
+      - `src/lib/siteCookie.ts`: one `onAuthStateChange` listener, started in `main.tsx`; a demo never sets the flag. It checks the domain so nothing can be smuggled into the cookie. Unit tests in `tests/siteCookie.test.ts`.
+      - `brand.siteUrl` has no default now, so self-hosted copies link to no one else's terms; a trailing slash is trimmed.
+      - "Back to website" sits on the logo row. Sign-up and `/demo` say "By … you agree to the Terms and the Privacy Policy", which open in a new tab.
+      - `vercel.json` adds `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options: DENY`. A Content Security Policy is described in `docs/hosting.md`, to try in report-only first.
+      - **Checked in the browser** with a temporary `.env.development.local` (since removed):
+        - with `VITE_SITE_URL=https://chequetracker.com/`, the links are right at phone width;
+        - with `VITE_COOKIE_DOMAIN=127.0.0.1` and a made-up session in the page, the flag was set when signed in, cleared when the session went, and never set for a demo.
   - **Why two sites:**
     - the installed app's service worker answers every page on its own address, so a landing page there would never reach visitors;
     - a static page ranks better in search;
