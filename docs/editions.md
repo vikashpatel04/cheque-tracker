@@ -128,7 +128,7 @@ In the demo, the app shows a bar saying so, says "End the demo" instead of "Sign
 
 | Environment | Supabase project | Frontend |
 |---|---|---|
-| Production | Its own project, used for nothing else | Vercel project deploying `main` (or release tags) |
+| Production | Its own project, used for nothing else | A Cloudflare Worker built from `main` (or release tags), see [hosting.md](./hosting.md) |
 | Development | A separate project, or `npx supabase start` locally | `npm run dev` |
 | The maintainer's personal copy | Its own project until it moves to production as a normal account | Its own deployment, pinned to a stable tag |
 
@@ -206,7 +206,7 @@ values ('<auth user id>', 'trial', now() + interval '30 days', 'Free trial');
 
 ## What never goes in this repository
 
-- **Keys and secrets:** the Supabase service-role key, payment keys and webhook secrets. They belong in Supabase and Vercel secrets. Anything in a `VITE_*` variable ends up in the browser.
+- **Keys and secrets:** the Supabase service-role key, payment keys and webhook secrets. They belong in Supabase's secrets, never in the app's build variables: anything in a `VITE_*` variable ends up in the browser.
 - **Customer data:** exports, screenshots and logs with real cheque, party or bank details.
 - **Business documents:** pricing experiments, customer lists, and runbooks with production details. Keep them in a private place.
 

@@ -125,7 +125,7 @@ Both read the same database with the Supabase service-role key, so use them only
 | Export and import | jsPDF + jspdf-autotable, SheetJS (xlsx) |
 | Backend | Supabase: Postgres, Auth, row-level security, SQL functions, Edge Functions, pg_cron |
 | Tests | Vitest, with PGlite running every migration |
-| Build and deploy | Vite, TypeScript, Vercel |
+| Build and deploy | Vite, TypeScript, Cloudflare Workers |
 
 ---
 

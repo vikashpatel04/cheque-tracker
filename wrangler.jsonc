@@ -1,0 +1,11 @@
+// The hosted edition runs on Cloudflare Workers, as static assets only
+// (docs/hosting.md). Addresses that aren't files get index.html, so the app's
+// own router takes over. Headers and caching are in public/_headers.
+{
+  "name": "cheque-tracker",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

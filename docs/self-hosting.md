@@ -4,7 +4,7 @@ Self-hosting is free, with every feature. You need:
 
 - Node.js 20 or newer
 - A [Supabase](https://supabase.com) project (the free tier is enough)
-- Somewhere to host a static site, such as [Vercel](https://vercel.com)
+- Somewhere to host a static site, such as [Cloudflare](https://workers.cloudflare.com), whose settings are included
 
 If you'd rather not run anything yourself, use the hosted version at [chequetracker.com](https://chequetracker.com).
 
@@ -86,15 +86,20 @@ The job runs every 15 minutes and checks each user's auto-pass time in that user
 
 ## 7. Deploy
 
-On Vercel:
-1. Import the repository.
-2. Add the variables from step 2.
-3. Deploy.
+On Cloudflare, whose free plan is enough:
+1. In the dashboard, go to Workers & Pages → Create → Import a repository, and choose your copy of this repository.
+2. Build command: `npm run build`. Deploy command: `npx wrangler deploy`. Name the Worker as `name` in `wrangler.jsonc` does, or change that name to match.
+3. Add the variables from step 2 under Settings → Build → Build variables and secrets, and build again.
+4. Open it at its `workers.dev` address, or add your own domain under Settings → Domains & Routes.
 
-Vercel detects Vite, and `vercel.json` handles client-side routing and cache headers. Any static host works if it:
+`wrangler.jsonc` sends every address that isn't a file to `index.html`, so the app's own pages work, and `public/_headers` sets its security headers.
+
+Any other static host works if it:
 
 - serves `index.html` for unknown paths, and
-- serves `sw.js` and `index.html` with `Cache-Control: no-cache`, so installed apps find new versions. Files in `assets/` never change and can be cached for a year.
+- serves `sw.js` and `index.html` with `Cache-Control: no-cache`, so installed apps find new versions. Files in `assets/` never change and can be cached for a year, but only if a missing one gets a 404, not `index.html`.
+
+On Vercel, for example, a `vercel.json` with `{"rewrites": [{"source": "/((?!assets/).*)", "destination": "/index.html"}]}` does the first.
 
 The app installs on phones and computers (it's a PWA) and starts without a connection once it has been opened. Each build makes its own `sw.js` from `pwa/service-worker.js`; the dev server has none.
 

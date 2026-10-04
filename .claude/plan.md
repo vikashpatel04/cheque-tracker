@@ -405,7 +405,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - **Tests:** `tests/demo.test.ts` (21). Breaking the demo branch of `has_write_access`, or the size limit, fails 4 of them.
     - **Checked in the browser** with made-up data in the page and every write blocked: the link and `/demo` with the real settings (no demo) and with demos faked on; the refusal message; the bar, menus and Settings in a faked demo session; and "Create an account" ending the demo and opening sign-up.
 - [x] **87.** Two sites on chequetracker.com (decided 2026-10-02). Built 2026-10-03; the launch steps wait on the maintainer.
-  - **The website** at the apex, with `www` redirecting to it. It's a static site in a separate private repo (Astro on Vercel), in a new folder next to this one such as `chequetracker-site`, and gets its own plan when started.
+  - **The website** at the apex, with `www` redirecting to it. It's a static site in a separate private repo (Astro, on Cloudflare since 2026-10-04), in a new folder next to this one such as `chequetracker-site`, and gets its own plan when started.
     - **Pages:** home, pricing, FAQ, terms, privacy, refunds and contact, built from the item 30 boards.
     - **Content:** the hero and features from `docs/design-brief.md`, with no mention of open source.
     - **Header:** Sign in (to `app.chequetracker.com/login`) and "Start free trial" (to `/signup`). A small inline script sends signed-in visitors from the home page to the app; pricing and the legal pages stay readable.
@@ -427,7 +427,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
       - `src/lib/siteCookie.ts`: one `onAuthStateChange` listener, started in `main.tsx`; a demo never sets the flag. It checks the domain so nothing can be smuggled into the cookie. Unit tests in `tests/siteCookie.test.ts`.
       - `brand.siteUrl` has no default now, so self-hosted copies link to no one else's terms; a trailing slash is trimmed.
       - "Back to website" sits on the logo row. Sign-up and `/demo` say "By … you agree to the Terms and the Privacy Policy", which open in a new tab.
-      - `vercel.json` adds `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options: DENY`. A Content Security Policy is described in `docs/hosting.md`, to try in report-only first.
+      - `vercel.json` adds `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options: DENY` (in `public/_headers` since the move to Cloudflare). A Content Security Policy is described in `docs/hosting.md`, to try in report-only first.
       - **The website** was built in the maintainer's existing private repo `../cheque-tracker-website`, as they asked: the old open-source family site was removed (`b10683d`) and the new one built from the Landing board (`a2b5f65`). Its `CLAUDE.md` and `.claude/plan.md` cover how it works and what's left before launch: the operator's details, a legal review, domains, the demo turned on, and a social image.
       - **Checked in the browser** with a temporary `.env.development.local` (since removed):
         - with `VITE_SITE_URL=https://chequetracker.com/`, the links are right at phone width;
@@ -439,8 +439,21 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - marketing scripts can't touch sign-in tokens;
     - each can be changed without redeploying the other.
   - **Order:** the website and its legal pages come before payments go live, because Razorpay's activation and Google's brand verification need them.
+  - **Moved to Cloudflare** (approved 2026-10-04, built the same day): Vercel's free plan is for non-commercial use only.
+    - **Here:**
+      - `wrangler.jsonc` serves `dist/` as static assets, with `index.html` for every address that isn't a file;
+      - `public/_headers` has the security headers, plus `Strict-Transport-Security`, which Vercel used to add;
+      - `vercel.json` is gone;
+      - `docs/hosting.md` is rewritten for Cloudflare, and `docs/self-hosting.md` deploys there too.
+    - **Caching is left at Cloudflare's default** (`max-age=0, must-revalidate`). A year's caching for `assets/` would also keep the app's page wherever a missing file was asked for, since unknown addresses get `index.html`. The service worker already keeps the files for the installed app.
+    - **Checked with `wrangler dev`:**
+      - `/` and `/today` give the app with every header;
+      - built files and `sw.js` are checked on each load;
+      - `_headers` itself is never served;
+      - the sign-in page loads in the browser with no console errors.
+    - **The website** moved the same way, in its own repository.
   - **The maintainer sets up:**
-    - Vercel domains;
+    - Cloudflare: the domain, the two Workers with their custom domains and build variables, and the `www` redirect (`docs/hosting.md`);
     - Supabase's Site URL and redirect URLs on `app.…`;
     - Google's authorized origins;
     - Turnstile's hostnames;
