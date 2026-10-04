@@ -123,6 +123,12 @@ In this order unless I say otherwise:
 3. **Rebuild the website's home page** from the approved design, by its plan's notes. Its Content Security Policy blocks inline styles and scripts, so no `style` attributes there.
 4. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
 5. **The website's launch steps,** with me: its own plan, "Before launch".
+6. **Notifications (plan item 41),** which I asked for on 2026-10-04:
+   - notification options in Settings → Notifications;
+   - a time I choose for a short daily brief of what needs doing;
+   - email or push;
+   - trial and Business only.
+   The plan's item 41 has the details.
 
 After that:
 - **Before launch:**
@@ -144,6 +150,7 @@ After that:
 - **The landing page gets a new design on the canvas,** to approve before it's built: more attractive, minimal motion, explanations where they help, and room for a product video I'll provide.
 - **Hosting:** Cloudflare's free plan for both sites (I said yes). Vercel's Hobby plan is for non-commercial use only, and selling plans is commercial.
 - **The landing hero:** I want continuous motion that explains the app's flow, with perfect loops, instead of the floating cheque and phone.
+- **Notifications:** options in Settings, including a time I choose for a short daily brief (plan item 41).
 
 ## Decided on 2026-10-03
 

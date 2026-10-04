@@ -244,6 +244,15 @@ Next:
 
 - [ ] **41.** Reminders, by email by default, with PWA push as an option.
   - Decided 2026-10-02: only accounts on a free trial or Business get reminders (email, WhatsApp, push). The Free plan keeps its records and Today's to-dos, but the app stops watching its dates.
+  - Asked for on 2026-10-04: notification options in the app.
+    - **Settings → Notifications** (the section that waits for this item): turn each kind on or off, such as:
+      - cheques due or needing funds;
+      - cheques to deposit;
+      - clearing to check;
+      - bounces.
+    - Choose how notifications arrive: email, or push on the installed app.
+    - Choose a time of day for a short daily brief of what needs doing, in the user's own time zone (`settings.timezone`).
+    - Server jobs send them per user at that time, as auto-pass runs at each user's `auto_pass_time`.
 - [ ] **42.** A WhatsApp nudge to the payer through a `wa.me` link.
 - [ ] **43.** Cheque photos, stored in a private bucket.
 - [ ] **44.** When a received cheque clears into an account, offer to use that money for given cheques on the same account.
