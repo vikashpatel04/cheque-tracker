@@ -16,6 +16,14 @@ The agreed plan and its progress are in `.claude/plan.md`. Work through its **Or
 
 ## Done on 2026-10-04
 
+- **The landing hero** on the canvas (Version 15), on both `Landing-v2` boards, waiting for my look. It has two lanes, "Cheques you receive" and "Cheques you give", with a cheque slip at each step.
+  - A lane's next-step buttons are tapped, then its slips step down together: the last drops into "Money in" or "Paid", and a new one comes in at the top.
+  - The lanes take turns every 2 seconds. It's one seamless 16-second CSS loop, and stands still with reduced motion.
+  - The website's plan, "Next" item 1, says how to build it there.
+- **Both sites on Cloudflare** (`6f4a143` here, `bcfcd94` in the website):
+  - `wrangler.jsonc` and `public/_headers` replace `vercel.json`;
+  - `docs/hosting.md` has the dashboard steps;
+  - checked with `wrangler dev`.
 - **The website** (`../cheque-tracker-website`):
   - light only;
   - Business in four lengths (1, 3, 6 or 12 months, prices confirmed), and Enterprise as coming soon;
@@ -47,7 +55,9 @@ I asked for the demo with its security taken care of, and for the two-site setup
   - `8f7f487`, `7b2389e`, `3e3d753`: the Free and Business plans;
   - `1435d56`, `817f17f`: 85, the tour;
   - `61b6062`: 86, the demo;
-  - `9720370`: 87, the app's part of the two sites.
+  - `9720370`: 87, the app's part of the two sites;
+  - `6f4a143`: hosting on Cloudflare;
+  - docs commits in between.
 - **Unpushed migrations:**
   - `019_free_plan.sql`: the Free plan; rewritten before it was ever pushed, replacing the first `019_plan_ended_message.sql`.
   - `020_payments.sql`: plan lengths, orders and `record_payment()`.
@@ -66,6 +76,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
 - **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself.
   - `http://127.0.0.1:5173` is a separate, signed-out address: use it to look at the sign-in pages without signing me out.
   - To test the installed app (service worker, offline start, updates), run `npm run build`, then the "preview" configuration (port 4173). The dev server has no service worker on purpose.
+  - To check the Cloudflare setup (routing and headers), run `npm run build`, then the "cloudflare" configuration (`wrangler dev`, port 8787).
   - Plan rules only show with billing on. To check them without changing Supabase, fake `instance_config` and `entitlements` in the page by wrapping `window.fetch`, and intercept every change request, so my real data isn't touched. That's how items 55, 53, 84 and the Free plan were checked; their plan notes say how.
 - **Waiting on me** (each needs my go-ahead or my accounts; never done for me):
   1. Push. Then the types get regenerated.
@@ -80,7 +91,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
      Steps in `docs/payments.md`.
   3. **CAPTCHA:**
      - a Cloudflare Turnstile widget;
-     - `VITE_TURNSTILE_SITE_KEY` in Vercel, deployed first;
+     - `VITE_TURNSTILE_SITE_KEY` in the app Worker's build variables, deployed first;
      - only then CAPTCHA protection in Supabase with the secret key.
 
      The order matters: `docs/editions.md`, "Sign-up protection".
@@ -88,14 +99,15 @@ I asked for the demo with its security taken care of, and for the two-site setup
   5. **To try the Free plan for real:** `trial_days = 30` and billing on in dev. That puts my own account on Free, unless I give myself a comp grant.
   6. **Demo (86):** after pushing 023, allow anonymous sign-ins in Supabase and check their rate limit (`docs/editions.md`, "Turning on the demo").
   7. **Two sites (87),** in `docs/hosting.md`:
-     - the website on Cloudflare, on the apex with `www` redirecting (Cloudflare, not Vercel: see 2026-10-04);
-     - this app on `app.`, with `VITE_SITE_URL` and `VITE_COOKIE_DOMAIN` set;
+     - the domain on Cloudflare, with Always Use HTTPS;
+     - the website's Worker on the apex, with `www` redirecting;
+     - this app's Worker on `app.`, with its build variables, `VITE_SITE_URL` and `VITE_COOKIE_DOMAIN` included;
      - Supabase's Site URL and redirect URLs;
      - Google's origin and consent-screen links;
      - Turnstile's hostname;
      - email from a subdomain with SPF, DKIM and DMARC, and the `support@` mailbox.
   8. **The website repo:**
-     - push it (five commits: `b10683d` to `ae9437d`);
+     - push it (six commits: `b10683d` to `bcfcd94`);
      - fill in my details in its `src/config.ts`;
      - review its legal drafts. Its plan, "Before launch", lists the proposals to confirm, such as the refund rules.
 - **Design:**
@@ -107,23 +119,13 @@ I asked for the demo with its security taken care of, and for the two-site setup
 ## What's next
 
 In this order unless I say otherwise:
-1. **The landing hero on the canvas** (https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG).
-   - On `Landing-v2-desktop` and `Landing-v2-phone`, replace the right side's floating cheque and phone with something in continuous motion that explains the app's flow, with perfect loops where needed.
-   - Keep it calm and on-brand, and still for reduced motion.
-   - Both boards have the same markup apart from `<title>` and `$preview`: read the desktop one, change it, and write both.
+1. **My look at the landing hero** on the canvas (https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG), boards `Landing-v2-desktop` and `Landing-v2-phone`. Change it as I say.
+   - Both boards have the same markup apart from `<title>` and `$preview`: change the desktop one, and write both.
    - Follow the canvas's `SKILL.md`: read the artifact with `read` before publishing, and don't render it unless I ask.
-2. **Move both sites to Cloudflare** (approved).
-   - **This app:** `vercel.json` becomes Cloudflare's config, Workers with static assets in `wrangler.jsonc`:
-     - the SPA fallback;
-     - `public/_headers` for the same caching and security headers;
-     - `sw.js` and `index.html` never cached.
-
-     Then rewrite `docs/hosting.md` for Cloudflare: DNS, Workers Builds from GitHub, environment variables, custom domains, and the `www` redirect. Check `docs/editions.md` and `CLAUDE.md` for Vercel mentions.
-   - **The website:** the same steps; its plan has them.
-3. **Rebuild the website's home page** from the approved design, by its plan's notes. Its Content Security Policy blocks inline styles and scripts, so no `style` attributes there.
-4. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
-5. **The website's launch steps,** with me: its own plan, "Before launch".
-6. **Notifications (plan item 41),** which I asked for on 2026-10-04:
+2. **Rebuild the website's home page** from the approved design, by its plan's notes ("Next", item 3). Its Content Security Policy blocks inline styles and scripts, so no `style` attributes there.
+3. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
+4. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
+5. **Notifications (plan item 41),** which I asked for on 2026-10-04:
    - notification options in Settings → Notifications;
    - a time I choose for a short daily brief of what needs doing;
    - email or push;
@@ -177,7 +179,7 @@ After that:
   - Signing out discards it, and a daily cleanup removes abandoned demos.
   - Demos get a one-day Business grant, can't buy or import, and see a bar inviting them to sign up (86).
 - **The domain:**
-  - `chequetracker.com` and `www` are a static website in a private repo (Astro on Vercel): home, pricing, FAQ, terms, privacy, refunds, contact.
+  - `chequetracker.com` and `www` are a static website in a private repo (Astro on Vercel, then Cloudflare from 2026-10-04): home, pricing, FAQ, terms, privacy, refunds, contact.
   - `app.chequetracker.com` is this app.
   - The website's header has Sign in and "Start free trial", and its home page sends signed-in visitors to the app (87).
   - The legal pages come before payments go live.
