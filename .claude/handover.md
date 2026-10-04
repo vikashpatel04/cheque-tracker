@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-10-03, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-04, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -13,6 +13,15 @@ Continue building Cheque Tracker in this repository. Read `CLAUDE.md` first and 
 - no hardcoded country values
 
 The agreed plan and its progress are in `.claude/plan.md`. Work through its **Order of work** from the first unticked item, one at a time. Check with me before anything that changes Supabase settings or data.
+
+## Done on 2026-10-04
+
+- **The website** (`../cheque-tracker-website`):
+  - light only;
+  - Business in four lengths (1, 3, 6 or 12 months, prices confirmed), and Enterprise as coming soon;
+  - its plan lists what's next (`.claude/plan.md`, "Next, in order").
+- **A new landing design** on the canvas, in the row "Landing, redesigned": boards `Landing-v2-desktop` and `Landing-v2-phone`. I like it better than the first; the hero's right side is next.
+- **Docs here:** the four lengths, and the decisions of 2026-10-04.
 
 ## Done on 2026-10-03
 
@@ -79,14 +88,14 @@ I asked for the demo with its security taken care of, and for the two-site setup
   5. **To try the Free plan for real:** `trial_days = 30` and billing on in dev. That puts my own account on Free, unless I give myself a comp grant.
   6. **Demo (86):** after pushing 023, allow anonymous sign-ins in Supabase and check their rate limit (`docs/editions.md`, "Turning on the demo").
   7. **Two sites (87),** in `docs/hosting.md`:
-     - the website's Vercel project, on the apex with `www` redirecting;
+     - the website on Cloudflare, on the apex with `www` redirecting (Cloudflare, not Vercel: see 2026-10-04);
      - this app on `app.`, with `VITE_SITE_URL` and `VITE_COOKIE_DOMAIN` set;
      - Supabase's Site URL and redirect URLs;
      - Google's origin and consent-screen links;
      - Turnstile's hostname;
      - email from a subdomain with SPF, DKIM and DMARC, and the `support@` mailbox.
   8. **The website repo:**
-     - push it (two commits);
+     - push it (five commits: `b10683d` to `ae9437d`);
      - fill in my details in its `src/config.ts`;
      - review its legal drafts. Its plan, "Before launch", lists the proposals to confirm, such as the refund rules.
 - **Design:**
@@ -98,8 +107,22 @@ I asked for the demo with its security taken care of, and for the two-site setup
 ## What's next
 
 In this order unless I say otherwise:
-1. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
-2. **The website's launch steps,** with me: its own plan, "Before launch".
+1. **The landing hero on the canvas** (https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG).
+   - On `Landing-v2-desktop` and `Landing-v2-phone`, replace the right side's floating cheque and phone with something in continuous motion that explains the app's flow, with perfect loops where needed.
+   - Keep it calm and on-brand, and still for reduced motion.
+   - Both boards have the same markup apart from `<title>` and `$preview`: read the desktop one, change it, and write both.
+   - Follow the canvas's `SKILL.md`: read the artifact with `read` before publishing, and don't render it unless I ask.
+2. **Move both sites to Cloudflare** (approved).
+   - **This app:** `vercel.json` becomes Cloudflare's config, Workers with static assets in `wrangler.jsonc`:
+     - the SPA fallback;
+     - `public/_headers` for the same caching and security headers;
+     - `sw.js` and `index.html` never cached.
+
+     Then rewrite `docs/hosting.md` for Cloudflare: DNS, Workers Builds from GitHub, environment variables, custom domains, and the `www` redirect. Check `docs/editions.md` and `CLAUDE.md` for Vercel mentions.
+   - **The website:** the same steps; its plan has them.
+3. **Rebuild the website's home page** from the approved design, by its plan's notes. Its Content Security Policy blocks inline styles and scripts, so no `style` attributes there.
+4. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
+5. **The website's launch steps,** with me: its own plan, "Before launch".
 
 After that:
 - **Before launch:**
@@ -117,9 +140,10 @@ After that:
 
 - **The website is light only:** no dark mode there. The app keeps its own light and dark.
 - **The plans shown** are Business, now, and Enterprise, coming soon with AI features and longer plans. Free is only what an account keeps after a trial or plan ends.
-- **Business comes in four lengths:** 1, 3, 6 or 12 months. I set the base price; the longer ones are proposals to confirm (prices live only in the website repo and the `packs` table).
+- **Business comes in four lengths:** 1, 3, 6 or 12 months, prices confirmed (they live only in the website repo and the `packs` table).
 - **The landing page gets a new design on the canvas,** to approve before it's built: more attractive, minimal motion, explanations where they help, and room for a product video I'll provide.
-- **Hosting:** Claude recommends Cloudflare's free plan. Vercel's Hobby plan is for non-commercial use only, and selling plans is commercial. Moving `vercel.json` and `docs/hosting.md` to Cloudflare waits for my go-ahead.
+- **Hosting:** Cloudflare's free plan for both sites (I said yes). Vercel's Hobby plan is for non-commercial use only, and selling plans is commercial.
+- **The landing hero:** I want continuous motion that explains the app's flow, with perfect loops, instead of the floating cheque and phone.
 
 ## Decided on 2026-10-03
 
