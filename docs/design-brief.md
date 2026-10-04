@@ -200,7 +200,7 @@ Design each at desktop width (1440) and phone width (390), with empty and loadin
   - Reports
   - Works in your country's currency and formats
 - **Trust:** your data is private and you can export it any time.
-- **Pricing:** prepaid packs of 1, 6 and 12 months, tax extra, and a free trial. Real prices and the trial length come separately, so use placeholders.
+- **Pricing:** Business, prepaid for 1, 3, 6 or 12 months, tax extra, a free trial, and Enterprise coming soon. Real prices and the trial length come separately, so use placeholders.
 - **FAQ and sign-up.**
 
 ### 31. Sign-up and onboarding

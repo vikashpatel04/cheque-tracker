@@ -19,7 +19,7 @@ The agreed plan for Cheque Tracker v2, approved by the maintainer on 2026-09-27,
 - **4.** The given side says "Funded" instead of "Deposited" (the database value stays `DEPOSITED`), and the word "Parties" stays.
 - **5.** The hosted service sells prepaid packs through Razorpay.
   - Reshaped on 2026-10-02 (items 55 and 84):
-    - **Business:** the paid plan, prepaid for 1, 6 or 12 months; auto-renew comes later.
+    - **Business:** the paid plan, prepaid for 1, 3, 6 or 12 months (3 months added 2026-10-04); auto-renew comes later.
     - **The free trial:** 30 days, no card.
     - **Free:** what an account is on once a trial or plan ends. Cheques keep moving, nothing new goes in.
     - **Enterprise:** later, with AI features.
@@ -402,7 +402,7 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
     - **Header:** Sign in (to `app.chequetracker.com/login`) and "Start free trial" (to `/signup`). A small inline script sends signed-in visitors from the home page to the app; pricing and the legal pages stay readable.
     - **Pricing page:**
       - the 30-day trial;
-      - Business for 1, 6 or 12 months, tax extra, with "After your trial you stay on Free: keep updating your cheques and export your data";
+      - Business for 1, 3, 6 or 12 months, tax extra, with "After your trial you stay on Free: keep updating your cheques and export your data";
       - Enterprise as coming soon, with a contact link.
     - **Prices** live only there and in the `packs` table. A small public prices endpoint can come later, if keeping them in step becomes a chore.
   - **The app** at `app.chequetracker.com`. Its part, in this repo:

@@ -113,6 +113,14 @@ After that:
 
 83 (installing on phones) is for later. Tick the feature map off as you go, and check every screen at desktop and phone width.
 
+## Decided on 2026-10-04
+
+- **The website is light only:** no dark mode there. The app keeps its own light and dark.
+- **The plans shown** are Business, now, and Enterprise, coming soon with AI features and longer plans. Free is only what an account keeps after a trial or plan ends.
+- **Business comes in four lengths:** 1, 3, 6 or 12 months. I set the base price; the longer ones are proposals to confirm (prices live only in the website repo and the `packs` table).
+- **The landing page gets a new design on the canvas,** to approve before it's built: more attractive, minimal motion, explanations where they help, and room for a product video I'll provide.
+- **Hosting:** Claude recommends Cloudflare's free plan. Vercel's Hobby plan is for non-commercial use only, and selling plans is commercial. Moving `vercel.json` and `docs/hosting.md` to Cloudflare waits for my go-ahead.
+
 ## Decided on 2026-10-03
 
 - **The website** lives in my existing private repo `cheque-tracker-website`. The old site for the open-source family was deleted and the new one started there; the old one stays in its history.
@@ -122,7 +130,7 @@ After that:
 
 - **Plans:**
   - a 30-day free trial, with no card;
-  - **Business**, prepaid for 1, 6 or 12 months (auto-renew later);
+  - **Business**, prepaid for 1, 6 or 12 months (auto-renew later; 3 months added on 2026-10-04);
   - **Free** once a trial or plan ends;
   - **Enterprise** later, with AI features.
 - **The Free plan:**

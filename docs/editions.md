@@ -42,7 +42,7 @@ On the hosted edition there are three states, and `entitlements.plan` names the 
 | | What it is | What you can do |
 |---|---|---|
 | **Free trial** | `trial_days` from sign-up (30 on chequetracker.com), no card | Everything Business can, except importing an export |
-| **Business** | Bought for 1, 6 or 12 months, paid once, renewed by choice. Prices are the operator's `packs` rows | Everything |
+| **Business** | Bought for 1, 3, 6 or 12 months, paid once, renewed by choice. Prices are the operator's `packs` rows | Everything |
 | **Free** | What an account is on once its trial or plan ends | Move its cheques along and export, nothing new |
 
 An **Enterprise** plan with AI features may come later. Nothing checks for it yet: any active entitlement gives full access.
@@ -136,7 +136,7 @@ Never develop against production, and never point development tools at it.
 
 ### Selling Business
 
-Business is bought in Settings → Plan, through Razorpay and the `payments` Edge Function. Each length on sale (1, 6 or 12 months) is a row in the `packs` table. Setting it up (the lengths and their prices, keys, the webhook) is in [payments.md](./payments.md). Prices live only in the hosted project's database.
+Business is bought in Settings → Plan, through Razorpay and the `payments` Edge Function. Each length on sale (1, 3, 6 or 12 months) is a row in the `packs` table. Setting it up (the lengths and their prices, keys, the webhook) is in [payments.md](./payments.md). Prices live only in the hosted project's database.
 
 ### Switching billing on
 

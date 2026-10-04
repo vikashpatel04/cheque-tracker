@@ -2,7 +2,7 @@
 
 Only for the hosted edition. On a self-hosted copy billing is off, so none of this shows; see [editions.md](./editions.md).
 
-The paid plan is **Business**, bought for a number of months and paid once. It doesn't renew by itself. Each length on sale (1, 6 or 12 months) is a row in the `packs` table. A new period starts when the access you already have ends, whether that's a free trial or time bought earlier, so buying early loses nothing. When it ends, the account is on the Free plan ([editions.md](./editions.md)).
+The paid plan is **Business**, bought for a number of months and paid once. It doesn't renew by itself. Each length on sale (1, 3, 6 or 12 months) is a row in the `packs` table. A new period starts when the access you already have ends, whether that's a free trial or time bought earlier, so buying early loses nothing. When it ends, the account is on the Free plan ([editions.md](./editions.md)).
 
 ## How a payment works
 
