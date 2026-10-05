@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-10-04, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-05, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -14,9 +14,17 @@ Continue building Cheque Tracker in this repository. Read `CLAUDE.md` first and 
 
 The agreed plan and its progress are in `.claude/plan.md`. Work through its **Order of work** from the first unticked item, one at a time. Check with me before anything that changes Supabase settings or data.
 
+## Done on 2026-10-05
+
+- **The website's home page,** rebuilt from the Landing-v2 design once I approved it (`9739328` in the website).
+  - It has every section of the boards, the two-lane opening included. Business's length picker needs no script.
+  - The video section is built, and stays out until my video is set as `productVideo` in its `src/config.ts`.
+  - Checked at desktop and phone widths, and under `wrangler dev` with the Content Security Policy enforced.
+  - Its plan, "Next" item 3, lists the small changes from the boards and why.
+
 ## Done on 2026-10-04
 
-- **The landing hero** on the canvas (Version 15), on both `Landing-v2` boards, waiting for my look. It has two lanes, "Cheques you receive" and "Cheques you give", with a cheque slip at each step.
+- **The landing hero** on the canvas (Version 15), on both `Landing-v2` boards, approved on 2026-10-05. It has two lanes, "Cheques you receive" and "Cheques you give", with a cheque slip at each step.
   - A lane's next-step buttons are tapped, then its slips step down together: the last drops into "Money in" or "Paid", and a new one comes in at the top.
   - The lanes take turns every 2 seconds. It's one seamless 16-second CSS loop, and stands still with reduced motion.
   - The website's plan, "Next" item 1, says how to build it there.
@@ -107,7 +115,8 @@ I asked for the demo with its security taken care of, and for the two-site setup
      - Turnstile's hostname;
      - email from a subdomain with SPF, DKIM and DMARC, and the `support@` mailbox.
   8. **The website repo:**
-     - push it (six commits: `b10683d` to `bcfcd94`);
+     - push it (seven commits: `b10683d` to `9739328`);
+     - the product video, when it's ready: under 25 MiB to serve it from the site (its `src/config.ts`, `productVideo`);
      - fill in my details in its `src/config.ts`;
      - review its legal drafts. Its plan, "Before launch", lists the proposals to confirm, such as the refund rules.
 - **Design:**
@@ -119,13 +128,9 @@ I asked for the demo with its security taken care of, and for the two-site setup
 ## What's next
 
 In this order unless I say otherwise:
-1. **My look at the landing hero** on the canvas (https://claude.ai/artifact/VWTn8hQaU45E8bVUsy4jdG), boards `Landing-v2-desktop` and `Landing-v2-phone`. Change it as I say.
-   - Both boards have the same markup apart from `<title>` and `$preview`: change the desktop one, and write both.
-   - Follow the canvas's `SKILL.md`: read the artifact with `read` before publishing, and don't render it unless I ask.
-2. **Rebuild the website's home page** from the approved design, by its plan's notes ("Next", item 3). Its Content Security Policy blocks inline styles and scripts, so no `style` attributes there.
-3. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
-4. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
-5. **Notifications (plan item 41),** which I asked for on 2026-10-04:
+1. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
+2. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
+3. **Notifications (plan item 41),** which I asked for on 2026-10-04:
    - notification options in Settings → Notifications;
    - a time I choose for a short daily brief of what needs doing;
    - email or push;
@@ -143,6 +148,10 @@ After that:
 - **Features:** 41 and 42, reminders, for trial and Business only.
 
 83 (installing on phones) is for later. Tick the feature map off as you go, and check every screen at desktop and phone width.
+
+## Decided on 2026-10-05
+
+- **The landing design is approved,** the two-lane hero included, and the website's home page is built from it.
 
 ## Decided on 2026-10-04
 
