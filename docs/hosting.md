@@ -69,7 +69,7 @@ A changed build variable takes effect with the next build: push, or retry the la
 The website's repository has its own `wrangler.jsonc` and `public/_headers`. They set its pages, its not-found page and its headers, including a strict Content Security Policy.
 
 Set it up the same way:
-- **Repository:** `vikashpatel04/cheque-tracker-website`.
+- **Repository:** `vikashpatel04/cheque-tracker-website`, production branch `master` (that repository's main branch).
 - **Worker name:** `cheque-tracker-website`.
 - **Build command:** `npm run build`. It needs no variables.
 - **Custom domain:** `chequetracker.com`.

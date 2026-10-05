@@ -51,35 +51,14 @@ I asked for the demo with its security taken care of, and for the two-site setup
 
 ## Where things stand
 
-- **Code:** all work is committed on `main`; nothing is pushed since `c164418`. 215 tests pass; lint (0 errors, 2 known warnings) and build are clean.
-- **Unpushed commits** (oldest first):
-  - `e2d4b20`: the CI fix;
-  - `0eeeb41`: 69, loading less up front;
-  - `9972c3b`, `bccfe2f`: 52, sign-up, Google and password reset;
-  - `43dec27`: the "+" on Today;
-  - `8b683cd`: 55, first version;
-  - `132f353`: 53, payments;
-  - `38913db`, `1134f38`: 84, one trial per person;
-  - `8f7f487`, `7b2389e`, `3e3d753`: the Free and Business plans;
-  - `1435d56`, `817f17f`: 85, the tour;
-  - `61b6062`: 86, the demo;
-  - `9720370`: 87, the app's part of the two sites;
-  - `6f4a143`: hosting on Cloudflare;
-  - docs commits in between.
-- **Unpushed migrations:**
-  - `019_free_plan.sql`: the Free plan; rewritten before it was ever pushed, replacing the first `019_plan_ended_message.sql`.
-  - `020_payments.sql`: plan lengths, orders and `record_payment()`.
-  - `021_one_trial_per_person.sql`.
-  - `022_tour.sql`.
-  - `023_demo.sql`: the demo. `020_payments.sql` also changed before it was ever pushed: a bought plan's start ignores a demo's day.
-
-  Pushing applies them to the dev project. Then regenerate `src/types/database.ts` with the Supabase MCP tool: the new tables and columns were added to it by hand.
+- **Code:** everything is pushed, in both repositories. I pushed most of it; Claude pushed the last commits on 2026-10-05, at my request. 215 tests pass; lint (0 errors, 2 known warnings) and build are clean.
+- **Migrations 019–023 are applied** to the dev project (checked on 2026-10-05). `src/types/database.ts` still has their tables and columns added by hand: regenerate it (What's next, item 1).
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
-  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–018 are applied.
+  - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–023 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
   - My account has a settings row (region India). `instance_config.billing_enabled` is false, so everything is unlocked and no plan rules apply.
   - My v0 data is imported there: 97 parties, 82 given cheques and 7 funds added. The only received cheques are the made-up sample set (parties named "(sample)"). Settings → Your data → Remove sample data still removes it; that row shows only while the set is there.
-  - Google sign-in is set up (OAuth client in Testing). Email confirmation is on, the minimum password length is 8, and anonymous sign-ins read as off: keep them off until 023 is pushed.
+  - Google sign-in is set up (OAuth client in Testing). Email confirmation is on, the minimum password length is 8, and anonymous sign-ins read as off. 023 is applied, so they can be turned on for the demo (Waiting on me, 6).
   - `.env.local` points at it.
 - **Running the app:** `.claude/launch.json` starts `npm run dev` ("dev") for the browser pane. I sign in myself.
   - `http://127.0.0.1:5173` is a separate, signed-out address: use it to look at the sign-in pages without signing me out.
@@ -87,7 +66,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
   - To check the Cloudflare setup (routing and headers), run `npm run build`, then the "cloudflare" configuration (`wrangler dev`, port 8787).
   - Plan rules only show with billing on. To check them without changing Supabase, fake `instance_config` and `entitlements` in the page by wrapping `window.fetch`, and intercept every change request, so my real data isn't touched. That's how items 55, 53, 84 and the Free plan were checked; their plan notes say how.
 - **Waiting on me** (each needs my go-ahead or my accounts; never done for me):
-  1. Push. Then the types get regenerated.
+  1. **Pushing:** both repositories are pushed (2026-10-05). From now on I push, as before.
   2. **Payments (53):**
      - Razorpay test-mode keys;
      - the three secrets;
@@ -105,7 +84,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
      The order matters: `docs/editions.md`, "Sign-up protection".
   4. **Throwaway-mail list (84):** I can load the full public list myself (SQL in `docs/editions.md`), or say yes to Claude downloading `disposable_email_blocklist.conf` from github.com/disposable-email-domains into a migration.
   5. **To try the Free plan for real:** `trial_days = 30` and billing on in dev. That puts my own account on Free, unless I give myself a comp grant.
-  6. **Demo (86):** after pushing 023, allow anonymous sign-ins in Supabase and check their rate limit (`docs/editions.md`, "Turning on the demo").
+  6. **Demo (86):** 023 is applied, so allow anonymous sign-ins in Supabase and check their rate limit (`docs/editions.md`, "Turning on the demo").
   7. **Two sites (87),** in `docs/hosting.md`:
      - the domain on Cloudflare, with Always Use HTTPS;
      - the website's Worker on the apex, with `www` redirecting;
@@ -115,7 +94,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
      - Turnstile's hostname;
      - email from a subdomain with SPF, DKIM and DMARC, and the `support@` mailbox.
   8. **The website repo:**
-     - push it (seven commits: `b10683d` to `9739328`);
+     - its Worker on Cloudflare, from its branch `master` (`docs/hosting.md`);
      - the product video, when it's ready: under 25 MiB to serve it from the site (its `src/config.ts`, `productVideo`);
      - fill in my details in its `src/config.ts`;
      - review its legal drafts. Its plan, "Before launch", lists the proposals to confirm, such as the refund rules.
@@ -128,9 +107,10 @@ I asked for the demo with its security taken care of, and for the two-site setup
 ## What's next
 
 In this order unless I say otherwise:
-1. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
-2. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
-3. **Notifications (plan item 41),** which I asked for on 2026-10-04:
+1. **Regenerate `src/types/database.ts`** with the Supabase MCP tool (`generate_typescript_types`, which only reads), now that 019–023 are applied. Then lint, test, build and commit.
+2. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
+3. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
+4. **Notifications (plan item 41),** which I asked for on 2026-10-04:
    - notification options in Settings → Notifications;
    - a time I choose for a short daily brief of what needs doing;
    - email or push;
@@ -152,6 +132,8 @@ After that:
 ## Decided on 2026-10-05
 
 - **The landing design is approved,** the two-lane hero included, and the website's home page is built from it.
+- **Claude pushed both repositories once,** because I was away from my computer. The rule stays: Claude commits, and I push.
+- **I'll host the website on `chequetracker.com` through Cloudflare** (`docs/hosting.md`).
 
 ## Decided on 2026-10-04
 
