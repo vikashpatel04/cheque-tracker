@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useAuthOptions } from '@/hooks/useAuthOptions'
 import { PlanContext, type Plan } from '@/hooks/usePlan'
 import { useSignOut } from '@/hooks/useSignOut'
 import {
@@ -67,6 +68,7 @@ async function loadPlan(): Promise<Loaded | null> {
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const leave = useSignOut()
+  const authOptions = useAuthOptions()
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [now, setNow] = useState(() => Date.now())
   // The dialog explaining why something waits for a pack, while it's open.
@@ -154,6 +156,9 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     [state, lapsed, guard, requireWrite, requirePaid, refresh]
   )
 
+  // In a demo while sign-ups are paused, there's no account to go to: say so, and stay.
+  const noAccountYet = !!asking?.demo && !!authOptions?.signUpPaused
+
   return (
     <PlanContext.Provider value={plan}>
       {children}
@@ -161,13 +166,15 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{asking?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{asking?.text}</AlertDialogDescription>
+            <AlertDialogDescription>{noAccountYet ? (asking?.pausedText ?? asking?.text) : asking?.text}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Not now</AlertDialogCancel>
-            <AlertDialogAction onClick={() => (asking?.demo ? void leave('/signup') : navigate('/settings#plan'))}>
-              {asking?.action}
-            </AlertDialogAction>
+            <AlertDialogCancel>{noAccountYet ? 'OK' : 'Not now'}</AlertDialogCancel>
+            {!noAccountYet && (
+              <AlertDialogAction onClick={() => (asking?.demo ? void leave('/signup') : navigate('/settings#plan'))}>
+                {asking?.action}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

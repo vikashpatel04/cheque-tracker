@@ -20,6 +20,38 @@ export function GoogleButton({ onClick, disabled }: { onClick: () => void; disab
   )
 }
 
+/** A small "Coming soon" chip, for sign-ups while they're paused (migration 024). */
+export function ComingSoon() {
+  return (
+    <span className="inline-flex h-5 items-center rounded-full bg-attention-soft px-2 align-middle text-xs font-semibold text-attention">
+      Coming soon
+    </span>
+  )
+}
+
+/**
+ * "New here? Create an account". While sign-ups are paused the line stays,
+ * marked "Coming soon", and leads nowhere; the demo is offered under it.
+ */
+export function NewHereLine({ options }: { options: AuthOptions | null }) {
+  if (options?.signUpPaused) {
+    return (
+      <>
+        New here? <span className="font-semibold text-ink-quiet">Create an account</span> <ComingSoon />
+      </>
+    )
+  }
+  if (options?.signUp === false) return null
+  return (
+    <>
+      New here?{' '}
+      <Link to="/signup" className="font-semibold text-brand hover:underline">
+        Create an account
+      </Link>
+    </>
+  )
+}
+
 /** "Just looking? Try the demo", where this copy of the app offers one (plan item 86). */
 export function DemoLink({ options }: { options: AuthOptions | null }) {
   if (!options?.demo) return null

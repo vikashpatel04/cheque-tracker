@@ -131,6 +131,20 @@ The widget's hostnames: `app.chequetracker.com`. The website needs no CAPTCHA: i
 
 The website's "Try the demo" links to `https://app.chequetracker.com/demo`. Turning the demo on is in [editions.md](./editions.md), "Turning on the demo".
 
+## Opening the app before sign-ups
+
+The app can go live on `app.` for accounts that already exist, with sign-ups paused and the demo open for everyone else ([editions.md](./editions.md), "Pausing sign-ups"):
+1. **Push** migration 024. Then, in the SQL editor, `update instance_config set signups_open = false;`.
+2. **Keep billing off** (`billing_enabled = false`): existing accounts have everything, and payments can wait.
+3. **The demo:** follow "Turning on the demo" in [editions.md](./editions.md). Keep Supabase's "Allow new users to sign up" on, as the demo needs it. Turn on the CAPTCHA before sharing the address widely.
+4. **The app's Worker** on `app.` (above), with the build variables of the Supabase project that holds the accounts.
+5. **That project's URLs:** its Site URL becomes `https://app.chequetracker.com`, and `https://app.chequetracker.com/**` joins its Redirect URLs. Keep `http://localhost:5173/**` there if you also develop against it.
+6. **Google:** add `https://app.chequetracker.com` to the OAuth client's authorized JavaScript origins.
+7. **Email:** until your own SMTP is set up, Supabase's built-in email only sends to the project's team members. That covers resetting your own password, but nobody else's.
+8. **The website** keeps `signupsOpen = false` in its `src/config.ts`, so its "Start free trial" says sign-ups are paused and offers the demo.
+
+To open sign-ups later: set up email sending, set `signups_open = true`, and set the website's `signupsOpen = true`. Payments and billing come after.
+
 ## Order
 
 1. **The domain** on Cloudflare.

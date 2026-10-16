@@ -109,6 +109,8 @@ export interface PlanWording {
   action: string
   /** In the demo, the button leaves it to create an account instead. */
   demo?: boolean
+  /** In the demo while sign-ups are paused (migration 024): the text, without the way to an account. */
+  pausedText?: string
 }
 
 /** What the Free plan still allows, said once. */
@@ -132,6 +134,7 @@ export function lapsedWording({
       banner: 'Create an account to keep going.',
       action: 'Create an account',
       demo: true,
+      pausedText: 'A demo lasts a day. Sign-ups open again soon, for keeping track of your own cheques.',
     }
   }
   if (ended?.source === 'trial') {
@@ -172,6 +175,7 @@ export const DEMO_CANT_IMPORT: PlanWording = {
   banner: "The demo can't import.",
   action: 'Create an account',
   demo: true,
+  pausedText: 'Its cheques are made up. Sign-ups open again soon, and your own account can bring in an export.',
 }
 
 /*

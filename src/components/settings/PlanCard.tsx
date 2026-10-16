@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { SettingsSection } from '@/components/settings/SettingsSection'
 import { Chip } from '@/components/shared/Chip'
 import { brand } from '@/config/brand'
+import { useAuthOptions } from '@/hooks/useAuthOptions'
 import { usePlan, type Plan } from '@/hooks/usePlan'
 import { useSignOut } from '@/hooks/useSignOut'
 import { formatMinorUnits, formatShortDate } from '@/lib/formatters'
@@ -76,6 +77,7 @@ function PackOption({ pack, packs, busy, onBuy }: { pack: Pack; packs: Pack[]; b
 export function PlanCard() {
   const plan = usePlan()
   const leave = useSignOut()
+  const authOptions = useAuthOptions()
   const [packs, setPacks] = useState<Pack[]>([])
   const [payments, setPayments] = useState<PaymentOrder[]>([])
   const [buying, setBuying] = useState<string | null>(null)
@@ -93,15 +95,23 @@ export function PlanCard() {
   if (!shown) return null
 
   if (plan.demo) {
+    // While sign-ups are paused (migration 024) there's no account to go to yet.
+    const paused = !!authOptions?.signUpPaused
     return (
       <SettingsSection
         id="plan"
         title="Plan"
-        description="The demo: everything in Business for a day, with made-up cheques. Create an account to keep track of your own."
+        description={
+          paused
+            ? 'The demo: everything in Business for a day, with made-up cheques. Sign-ups open again soon, for keeping track of your own.'
+            : 'The demo: everything in Business for a day, with made-up cheques. Create an account to keep track of your own.'
+        }
       >
-        <Button className="self-start" onClick={() => void leave('/signup')}>
-          Create an account
-        </Button>
+        {!paused && (
+          <Button className="self-start" onClick={() => void leave('/signup')}>
+            Create an account
+          </Button>
+        )}
       </SettingsSection>
     )
   }

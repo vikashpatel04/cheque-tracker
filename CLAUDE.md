@@ -81,6 +81,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
   - `entitlements`: trial, purchase, comp or demo. Only the service role writes them. The paid plan is **Business** (`plan = 'business'`); Enterprise may come later. Trials are one per email address, and none for throwaway mail (migration 021). Importing an export needs Business, not a trial (`import_data()`, `usePlan().requirePaid()`).
   - **The Free plan** (migration 019): without an active trial or Business plan (`has_write_access()` false), an account can still move its cheques along (status functions, undo, funds added for cheques) and edit notes, but can't add, change, delete or import. Status functions set `app.given_lifecycle` / `app.received_lifecycle`. A trigger lets the Free plan change notes only. RESTRICTIVE insert policies keep new rows out.
   - **The demo** (migration 023): an anonymous sign-in (`is_anonymous`) is a demo. `start_demo()` fills it and gives it a one-day `demo` grant, its only access whatever the edition; `end_demo()` deletes it, and demos over a day old are deleted too. Triggers cap a demo's rows and row size, and demos get no trial and can't buy or import. In the app it's `usePlan().demo`, and signing out ends the demo. See [docs/editions.md](docs/editions.md).
+  - **Pausing sign-ups** (migration 024): with `instance_config.signups_open` false, a trigger on `auth.users` refuses new accounts, and demos turned into accounts, while demos still start. Supabase's own sign-up switch would stop the demo too. In the app it's `useAuthOptions().signUpPaused`: "Create an account" shows as coming soon, and nothing in a demo leads to sign-up.
   - The UI only reflects this. `PlanProvider` keeps the plan current; `usePlan().lapsed` means the Free plan. Wrap any new action the Free plan can't do (adding, editing beyond notes, deleting) in `usePlan().guard`, or check `requireWrite()`. Never guard a status change. See [docs/editions.md](docs/editions.md).
 - **Companions:** cheque-mcp and Cheque Watch read the given-side tables with the service-role key. Keep changes to `cheques`, `parties`, `cheque_history` and `daily_deposits` additive.
 - **Edge Function `supabase/functions/payments`:** sells Business through Razorpay: `/checkout`, `/confirm` and the `/webhook`. Only the service role can run `record_payment()`, which turns a checked payment into a `purchase` entitlement, once, starting when current access ends. Prices live in the hosted project's `packs` table, never in the repo. Each length on sale is a `packs` row. Settings → Plan (`PlanCard`, `src/lib/payments.ts`) lists them and opens Razorpay Checkout. See [docs/payments.md](docs/payments.md).
@@ -89,7 +90,7 @@ Run lint, test and build before every commit. CI runs the same checks (`.github/
 ## Database changes
 
 - **Migrations:**
-  - Add a numbered migration; the next one is `supabase/migrations/024_…`.
+  - Add a numbered migration; the next one is `supabase/migrations/025_…`.
   - Never edit a migration once it's pushed; add a new file instead.
   - Keep changes additive.
 - **Row-level security:** turn it on for every table. Users get their own rows by `auth.uid()`. Tables users write also need a RESTRICTIVE `has_write_access()` policy on insert. For updates the Free plan may make, follow migration 019.

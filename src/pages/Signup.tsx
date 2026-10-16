@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { DemoLink, GoogleButton, LegalLine, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
+import { brand } from '@/config/brand'
 import { useAuth } from '@/hooks/useAuth'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
@@ -32,7 +33,8 @@ const signInLink = (
 
 /**
  * Create an account (plan item 52; the Signup-phone board), with email or
- * Google. With email confirmation on, it ends on "Check your email".
+ * Google. With email confirmation on, it ends on "Check your email". While
+ * sign-ups are paused (migration 024), it says so and offers the demo.
  */
 export default function Signup() {
   const { signUp, signInWithGoogle, resendConfirmation, user } = useAuth()
@@ -48,6 +50,32 @@ export default function Signup() {
   })
 
   if (user) return <Navigate to="/" replace />
+
+  if (options?.signUpPaused) {
+    return (
+      <AuthLayout title="Sign-ups are paused for a moment" subtitle="We'll turn them on again very soon." footer={signInLink}>
+        <div className="flex flex-col gap-4 rounded-xl border bg-surface p-5">
+          <p className="text-base leading-6">
+            {options.demo
+              ? "Until then, try the demo: a private copy of the app with made-up cheques. There's nothing to sign up for, and it's cleared when you leave."
+              : 'Until then, sign in if you already have an account.'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {options.demo && (
+              <Button asChild>
+                <Link to="/demo">Try the demo</Link>
+              </Button>
+            )}
+            {brand.siteUrl && (
+              <Button asChild variant="outline">
+                <a href={brand.siteUrl}>Back to website</a>
+              </Button>
+            )}
+          </div>
+        </div>
+      </AuthLayout>
+    )
+  }
 
   const onSubmit = async (data: SignupForm) => {
     setError('')
@@ -130,7 +158,10 @@ export default function Signup() {
         </>
       }
     >
-      {options?.signUp === false ? (
+      {options === null ? (
+        // Until the settings arrive, so a paused instance never flashes the form.
+        <div aria-busy="true" className="min-h-[320px]" />
+      ) : !options.signUp ? (
         <p className="rounded-xl border bg-surface p-5 text-base leading-6">
           New accounts can&apos;t be created here. Ask whoever runs this copy of the app to add you.
         </p>

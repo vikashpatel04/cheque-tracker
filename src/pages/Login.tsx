@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import { DemoLink, GoogleButton, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
+import { DemoLink, GoogleButton, NewHereLine, OrDivider, PasswordInput } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { useAuthOptions } from '@/hooks/useAuthOptions'
@@ -20,13 +20,18 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-/** A link from an email that didn't work comes back here with the reason in the address. */
+/**
+ * A link from an email, or a Google sign-in, that didn't work comes back here
+ * with the reason in the address: in the hash or in the query.
+ */
 function linkProblem(): string {
-  const params = new URLSearchParams(window.location.hash.slice(1))
-  if (!params.get('error')) return ''
-  return params.get('error_code') === 'otp_expired'
-    ? 'That link has expired or was already used. Sign in, or ask for a new one.'
-    : params.get('error_description') ?? "That link didn't work. Try signing in."
+  const hash = new URLSearchParams(window.location.hash.slice(1))
+  const query = new URLSearchParams(window.location.search)
+  const param = (name: string) => hash.get(name) ?? query.get(name)
+  if (!param('error')) return ''
+  if (param('error_code') === 'otp_expired') return 'That link has expired or was already used. Sign in, or ask for a new one.'
+  const description = param('error_description')
+  return description ? authMessage(description) : "That link didn't work. Try signing in."
 }
 
 /** Sign in (plan item 52), with Google when the project allows it. */
@@ -81,14 +86,7 @@ export default function Login() {
       subtitle="Welcome back. Your cheques are where you left them."
       footer={
         <>
-          {options?.signUp !== false && (
-            <>
-              New here?{' '}
-              <Link to="/signup" className="font-semibold text-brand hover:underline">
-                Create an account
-              </Link>
-            </>
-          )}
+          <NewHereLine options={options} />
           <DemoLink options={options} />
         </>
       }

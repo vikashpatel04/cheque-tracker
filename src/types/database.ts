@@ -269,6 +269,7 @@ export type Database = {
           default_country_code: string | null
           demos_per_hour: number
           id: boolean
+          signups_open: boolean
           trial_days: number
           updated_at: string
         }
@@ -277,6 +278,7 @@ export type Database = {
           default_country_code?: string | null
           demos_per_hour?: number
           id?: boolean
+          signups_open?: boolean
           trial_days?: number
           updated_at?: string
         }
@@ -285,6 +287,7 @@ export type Database = {
           default_country_code?: string | null
           demos_per_hour?: number
           id?: boolean
+          signups_open?: boolean
           trial_days?: number
           updated_at?: string
         }

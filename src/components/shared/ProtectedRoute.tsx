@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  const { hash } = useLocation()
+  const { hash, search } = useLocation()
 
   if (loading) {
     return (
@@ -14,8 +14,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    // A link from an email that failed carries the reason in the hash; sign-in shows it.
-    return <Navigate to={{ pathname: '/login', hash }} replace />
+    // A link from an email, or a Google sign-in, that failed carries the reason
+    // in the hash or the query; sign-in shows it.
+    return <Navigate to={{ pathname: '/login', search, hash }} replace />
   }
 
   return <>{children}</>

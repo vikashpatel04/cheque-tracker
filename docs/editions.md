@@ -26,6 +26,8 @@ A table with exactly one row, created by migration `011_editions.sql`:
 | `billing_enabled` | `false` (default): self-hosted, no plans. `true`: plans are enforced. |
 | `trial_days` | Free days for new sign-ups when billing is on. `0` means no trial. |
 | `default_country_code` | Country pre-selected at first sign-in when the browser doesn't reveal one. |
+| `demos_per_hour` | How many demos may start in an hour (migration 023). `0` turns the demo off. |
+| `signups_open` | `true` (default). `false` pauses sign-ups while the demo stays open (migration 024; [Pausing sign-ups](#pausing-sign-ups)). |
 
 Anyone can read it and nobody can change it through the API. It can only be changed with the service role or in the SQL editor.
 
@@ -120,7 +122,7 @@ In the demo, the app shows a bar saying so, says "End the demo" instead of "Sign
 
 ### Tests
 
-`tests/migrations.test.ts` applies every migration to an in-memory Postgres and checks both editions as real users: writes allowed with billing off, trials at sign-up, read-only accounts, comp grants, expired purchases, and that users can't write entitlements. `tests/demo.test.ts` checks the demo the same way, with anonymous users. They run on every pull request.
+`tests/migrations.test.ts` applies every migration to an in-memory Postgres and checks both editions as real users: writes allowed with billing off, trials at sign-up, read-only accounts, comp grants, expired purchases, and that users can't write entitlements. `tests/demo.test.ts` checks the demo the same way, with anonymous users, and `tests/signupsPaused.test.ts` checks pausing sign-ups. They run on every pull request.
 
 ## Running the hosted edition
 
@@ -173,13 +175,29 @@ Accounts created before this have no entitlement and become read-only. Give them
 ### Turning on the demo
 
 1. Push migration 023 first. Until then, an anonymous sign-in on an instance with billing off would have full access.
-2. In Supabase, go to Authentication → Sign In / Providers and allow anonymous sign-ins. New sign-ups must be allowed too.
+2. In Supabase, go to Authentication → Sign In / Providers and allow anonymous sign-ins. New sign-ups must be allowed too: to keep people out for now, pause sign-ups below instead.
 3. Under Authentication → Rate Limits, check the limit for anonymous sign-ins per IP address. Supabase starts at 30 an hour.
 4. With CAPTCHA protection on (above), every anonymous sign-in needs a Turnstile token. The `/demo` page sends one.
 5. Choose how many demos may start in an hour: `update instance_config set demos_per_hour = 50;`. Set it to 0 to turn the demo off without touching Supabase's settings.
 6. Check the clean-up job: `select jobname, schedule from cron.job where jobname = 'remove-expired-demos';`.
 
 Self-hosted copies: Supabase keeps anonymous sign-ins off unless you allow them, so there's no demo there by default.
+
+### Pausing sign-ups
+
+To let nobody new in for a while, and keep the demo open (migration 024):
+
+```sql
+update instance_config set signups_open = false;   -- true opens them again
+```
+
+- **The database refuses new accounts** by any route: email, Google, the API, or a demo turned into an account. Existing accounts sign in as before, and demos still start.
+- **The app follows it:**
+  - sign-in shows "Create an account" marked "Coming soon", with the demo under it;
+  - `/signup` says sign-ups are paused, and offers the demo and the website;
+  - in a demo, the ways to an account say "Coming soon" instead of ending the demo.
+- **Why not Supabase's own switch:** turning off "Allow new users to sign up" also stops anonymous sign-ins, so the demo would stop too. Leave it on, and pause here.
+- **The website** has its own switch, `signupsOpen` in its `src/config.ts`. While it's false, "Start free trial" leads to its `/signup` page, which says the same and offers the demo. Change both together.
 
 ### Granting a plan by hand
 

@@ -2,26 +2,34 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '@/components/auth/AuthLayout'
-import { LegalLine } from '@/components/auth/AuthParts'
+import { ComingSoon, LegalLine } from '@/components/auth/AuthParts'
 import { useAuth } from '@/hooks/useAuth'
-import { useAuthOptions } from '@/hooks/useAuthOptions'
+import { useAuthOptions, type AuthOptions } from '@/hooks/useAuthOptions'
 import { useCaptcha } from '@/hooks/useCaptcha'
 import { startDemo } from '@/lib/demo'
 
-const footer = (
-  <>
-    Ready to start for real?{' '}
-    <Link to="/signup" className="font-semibold text-brand hover:underline">
-      Create an account
-    </Link>
-    <span className="mt-2 block">
-      Already have one?{' '}
-      <Link to="/login" className="font-semibold text-brand hover:underline">
-        Sign in
-      </Link>
-    </span>
-  </>
-)
+function footer(options: AuthOptions | null) {
+  return (
+    <>
+      Ready to start for real?{' '}
+      {options?.signUpPaused ? (
+        <>
+          <span className="font-semibold text-ink-quiet">Create an account</span> <ComingSoon />
+        </>
+      ) : (
+        <Link to="/signup" className="font-semibold text-brand hover:underline">
+          Create an account
+        </Link>
+      )}
+      <span className="mt-2 block">
+        Already have one?{' '}
+        <Link to="/login" className="font-semibold text-brand hover:underline">
+          Sign in
+        </Link>
+      </span>
+    </>
+  )
+}
 
 /**
  * Try the demo (plan item 86): a private copy of the app with made-up
@@ -61,7 +69,7 @@ export default function Demo() {
     <AuthLayout
       title="Try the demo"
       subtitle="A private copy of the app with made-up cheques. Look around and change anything: it's all cleared when you leave."
-      footer={footer}
+      footer={footer(options)}
     >
       {unavailable ? (
         <p className="rounded-xl border bg-surface p-5 text-base leading-6">The demo isn&apos;t available here right now.</p>

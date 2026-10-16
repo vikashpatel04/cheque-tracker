@@ -1,6 +1,6 @@
 # Handover
 
-Status on 2026-10-05, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
+Status on 2026-10-17, written for the next Claude Code chat. Start that chat in this repository's folder so `CLAUDE.md` loads, then paste everything below the line.
 
 When you hand over again, update this file and the ticks in [plan.md](plan.md). Keep both free of prices, secrets and anything else `CLAUDE.md` keeps out of the repo.
 
@@ -13,6 +13,18 @@ Continue building Cheque Tracker in this repository. Read `CLAUDE.md` first and 
 - no hardcoded country values
 
 The agreed plan and its progress are in `.claude/plan.md`. Work through its **Order of work** from the first unticked item, one at a time. Check with me before anything that changes Supabase settings or data.
+
+## Done on 2026-10-17
+
+- **89, sign-ups paused with the demo open,** so I can use the app on `app.chequetracker.com` myself first (plan item 89).
+  - Migration 024 adds `instance_config.signups_open`. While it's false, the database refuses new accounts, and demos turned into accounts; demos still start.
+  - The app shows "Create an account" as coming soon, and `/signup` offers the demo and the website.
+  - The website's `signupsOpen` sends every "Start free trial" to its own notice.
+  - Supabase's own sign-up switch can't be used: it stops the demo too.
+- **The website's pricing:**
+  - the white tab slides between the lengths, and the price crossfades;
+  - 1 month is chosen first;
+  - still no script.
 
 ## Done on 2026-10-05
 
@@ -51,8 +63,8 @@ I asked for the demo with its security taken care of, and for the two-site setup
 
 ## Where things stand
 
-- **Code:** everything is pushed, in both repositories. I pushed most of it; Claude pushed the last commits on 2026-10-05, at my request. 215 tests pass; lint (0 errors, 2 known warnings) and build are clean.
-- **Migrations 019–023 are applied** to the dev project (checked on 2026-10-05). `src/types/database.ts` still has their tables and columns added by hand: regenerate it (What's next, item 1).
+- **Code:** everything up to 2026-10-05 is pushed, in both repositories. The work of 2026-10-17 (sign-ups paused, the pricing picker) is committed and waits for my push. 225 tests pass; lint (0 errors, 2 known warnings) and build are clean.
+- **Migrations 019–023 are applied** to the dev project (checked on 2026-10-05); 024 applies when I push. `src/types/database.ts` has the newer tables and columns added by hand, `signups_open` included: regenerate it once 024 is applied (What's next, item 1).
 - **Supabase:** the dev project `cheque-tracker-dev` (Mumbai, free plan) is connected to this repo through Supabase's GitHub integration.
   - "Deploy to production" is on for `main`, with working directory `.`, so pushing new files in `supabase/migrations/` applies them. Migrations 001–023 are applied.
   - "Automatically expose new tables" is off, and automatic RLS is on.
@@ -66,7 +78,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
   - To check the Cloudflare setup (routing and headers), run `npm run build`, then the "cloudflare" configuration (`wrangler dev`, port 8787).
   - Plan rules only show with billing on. To check them without changing Supabase, fake `instance_config` and `entitlements` in the page by wrapping `window.fetch`, and intercept every change request, so my real data isn't touched. That's how items 55, 53, 84 and the Free plan were checked; their plan notes say how.
 - **Waiting on me** (each needs my go-ahead or my accounts; never done for me):
-  1. **Pushing:** both repositories are pushed (2026-10-05). From now on I push, as before.
+  1. **Push both repositories** (the commits of 2026-10-17). Then, to use the app on `app.chequetracker.com` myself: `docs/hosting.md`, "Opening the app before sign-ups", which starts with `update instance_config set signups_open = false;`.
   2. **Payments (53):**
      - Razorpay test-mode keys;
      - the three secrets;
@@ -107,7 +119,7 @@ I asked for the demo with its security taken care of, and for the two-site setup
 ## What's next
 
 In this order unless I say otherwise:
-1. **Regenerate `src/types/database.ts`** with the Supabase MCP tool (`generate_typescript_types`, which only reads), now that 019–023 are applied. Then lint, test, build and commit.
+1. **Regenerate `src/types/database.ts`** with the Supabase MCP tool (`generate_typescript_types`, which only reads), once 024 is applied. Then lint, test, build and commit.
 2. **88, a faster start,** whenever I ask. The main file is 1,068 kB (it was 1,048 kB after 69); look at that too.
 3. **The website's launch steps,** with me: its own plan, "Before launch", and `docs/hosting.md` here for Cloudflare.
 4. **Notifications (plan item 41),** which I asked for on 2026-10-04:
@@ -128,6 +140,11 @@ After that:
 - **Features:** 41 and 42, reminders, for trial and Business only.
 
 83 (installing on phones) is for later. Tick the feature map off as you go, and check every screen at desktop and phone width.
+
+## Decided on 2026-10-17
+
+- **The app goes live for me first,** on `app.chequetracker.com` with my existing account. Sign-ups show as coming soon, the website says they're paused, and visitors get the demo. Payments can wait (plan item 89).
+- **The website's length picker** chooses 1 month first, and moves smoothly between lengths.
 
 ## Decided on 2026-10-05
 

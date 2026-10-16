@@ -461,6 +461,22 @@ See also "Still needed before billing goes live" in `docs/editions.md`.
 - [ ] **88.** A faster start.
   - **Measured on localhost (2026-10-02):** a ~0.7 s `auth.getUser()` before any data, and `bank_accounts` fetched about 10 times.
   - **Fixes:** make `useBankAccounts` a shared store, and have `SettingsProvider` use `getSession()`. Compare production-preview timings before and after.
+- [x] **89.** Sign-ups paused, the demo open (asked for on 2026-10-17). The maintainer wants the app live on `app.chequetracker.com` to use with the account that already exists, while sign-up shows as coming soon, the website says sign-ups are paused, and visitors get the demo. Payments can wait.
+  - **Why not Supabase's own switch:** turning off "Allow new users to sign up" also refuses anonymous sign-ins (checked in Supabase Auth's source), which would stop the demo.
+  - **Migration 024:**
+    - `instance_config.signups_open`, true by default, so self-hosted copies are unchanged;
+    - while it's false, a trigger on `auth.users` (`internal.guard_signups()`) refuses a new account and a demo turned into one, whatever the route;
+    - demos and existing accounts are untouched.
+  - **The app:**
+    - `useAuthOptions` reads the column as `signUpPaused`;
+    - sign-in and the demo page show "Create an account" marked "Coming soon";
+    - `/signup` says sign-ups are paused, and offers the demo and the website;
+    - in a demo, the bar, Settings → Plan and the plan dialogs drop "Create an account" instead of ending the demo;
+    - a refused Google sign-up explains itself, and the route guard now keeps the reason from the query as well as the hash.
+  - **The website:** `signupsOpen` in its config. While false, every "Start free trial" leads to its `/signup` page: sign-ups are paused, try the demo, or sign in.
+  - **Tests:** `tests/signupsPaused.test.ts` (10).
+  - **Checked in the browser** at phone width, with the paused setting faked in the page and every write refused: sign-in, `/signup` and `/demo`.
+  - **Steps for the maintainer:** `docs/hosting.md`, "Opening the app before sign-ups".
 - [ ] **58.** End-to-end tests with Playwright, and error tracking.
 - [ ] **59.** A production Supabase project that deploys from a release branch or tags, and tagged releases for self-hosters.
 - [ ] **60.** The maintainer's own data moves from their personal instance to the hosted service as a normal account. Item 9 helps.
